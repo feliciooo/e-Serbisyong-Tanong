@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Management - e-Serbisyong Tañong</title>
+  <link rel="icon" type="image/png" href="icon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <style>
+    /* copied UI/UX styles from AdminHome.html for consistent look */
+    * { box-sizing: border-box; margin:0; padding:0; }
+    :root{--orange:#ff9f40;--muted:#718096}
+    body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#fff5e6 0%,#ffe4b3 100%);min-height:100vh;color:#1a202c}
+    .navbar{background:rgba(255,255,255,.95);backdrop-filter:blur(10px);padding:1rem 2rem;position:sticky;top:0;z-index:100;box-shadow:0 4px 6px rgba(0,0,0,0.07)}
+    .navbar-content{max-width:1400px;margin:0 auto;display:flex;align-items:center;position:relative;padding:0 1rem;}
+    .logo{font-size:1.25rem;font-weight:700;background:linear-gradient(135deg,var(--orange) 0%,#ffb366 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+    .nav-left { flex: 0 0 auto; }
+    .nav-center { position: absolute; left:50%; transform: translateX(-50%); display:flex; align-items:center; gap:1rem; }
+    .nav-right { margin-left: auto; display:flex; gap:1rem; align-items:center; }
+    .nav-links{display:flex;gap:1rem}
+    .nav-link{color:#4a5568;text-decoration:none;padding:.5rem 1rem;border-radius:.5rem}
+    .nav-link.active{background:linear-gradient(135deg,#ffb366 0%,#ffc285 100%);color:#fff}
+    .container{max-width:1100px;margin:2rem auto;padding:1rem}
+    .card{background:#fff;border-radius:1rem;padding:1.5rem;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+    .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+    .card-title{font-size:1.25rem;font-weight:700;color:#2d3748}
+    .add-btn{background:linear-gradient(135deg,#ffb366 0%,#ffc285 100%);color:#fff;padding:.5rem .9rem;border-radius:.5rem;border:none;cursor:pointer}
+    .admin-list{margin-top:.75rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.75rem}
+    .admin-item{border:1px solid #e6e6e6;border-radius:.75rem;padding:.9rem;background:#fafafa;display:flex;flex-direction:column;gap:.5rem}
+    .admin-item .meta{display:flex;justify-content:space-between;align-items:center}
+    .small{font-size:.85rem;color:var(--muted)}
+    .actions{display:flex;gap:.5rem;justify-self:end}
+    .btn-ghost{background:#fff;border:1px solid #e6e6e6;padding:.35rem .6rem;border-radius:.5rem;cursor:pointer}
+    .btn-danger{background:#fed7d7;color:#c53030;border:none;padding:.35rem .6rem;border-radius:.5rem;cursor:pointer}
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1200;align-items:center;justify-content:center}
+    .modal.show{display:flex}
+    .logout-btn {
+      background: linear-gradient(135deg, #f56565 0%, #c53030 100%);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .logout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+    }
+    .user-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .user-info {
+      text-align: right;
+    }
+    .user-name {
+      font-weight: 600;
+      color: #2d3748;
+    }
+    .user-role {
+      font-size: 0.85rem;
+      color: #718096;
+    }
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+    .form-input,textarea{width:100%;padding:.6rem;border:1px solid #e2e8f0;border-radius:.5rem}
+    .toast{position:fixed;right:1.25rem;bottom:1.25rem;background:#1a202c;color:#fff;padding:.6rem .9rem;border-radius:.5rem;z-index:2000}
+    @media(max-width:640px){.form-row{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-content">
+      <div class="nav-left">
+        <div class="logo">e-Serbisyong Tañong</div>
+      </div>
+
+      <div class="nav-center">
+        <div class="nav-links">
+          <a href="AdminHome.html" class="nav-link">Dashboard</a>
+          <a href="AdminServices.html" class="nav-link">Services</a>
+          <a href="AdminUsers.html" class="nav-link">Users</a>
+          <a href="UserVerification.html" class="nav-link">User Verification</a>
+          <a href="AdminManagement.html" class="nav-link active">Admin Management</a>
+        </div>
+      </div>
+
+      <div class="nav-right">
+        <div class="user-section">
+          <div class="user-info">
+            <div class="user-name" id="userGreet">Admin</div>
+            <div class="user-role">Administrator</div>
+          </div>
+          <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Admin Management</div>
+          <div class="small">Add, edit or remove administrative users.</div>
+        </div>
+        <div style="display:flex;gap:.5rem;align-items:center">
+          <input id="searchAdmin" type="search" placeholder="Search admin..." class="form-input" style="width:220px" />
+          <button class="add-btn admin-add-action" onclick="openAddAdminModal()">+ Add Admin</button>
+        </div>
+      </div>
+
+      <div id="adminContainer" class="admin-list">
+        <!-- admin cards injected here -->
+      </div>
+      <div id="noAdmins" class="small text-center mt-4" style="display:none">No admins found.</div>
+    </div>
+  </div>
+
+  <!-- Admin Modal -->
+  <div id="adminModal" class="modal" role="dialog" aria-modal="true">
+    <div class="card modal-content" style="width:100%;max-width:720px">
+      <div class="card-header" style="align-items:flex-start">
+        <div>
+          <div id="adminModalTitle" class="card-title">Add Admin</div>
+          <div class="small">Create or update an admin.</div>
+        </div>
+        <button class="btn-ghost" onclick="closeAdminModal()">×</button>
+      </div>
+
+      <form id="adminForm">
+        <div class="form-row">
+          <div>
+            <label class="small">Full name</label>
+            <input id="adminName" class="form-input" required />
+          </div>
+          <div>
+            <label class="small">Email</label>
+            <input id="adminEmail" type="email" class="form-input" required />
+          </div>
+        </div>
+
+        <div style="margin-top:.75rem">
+          <label class="small">Contact</label>
+          <input id="adminContact" class="form-input" />
+        </div>
+
+        <div style="margin-top:.75rem; display:flex;flex-direction:column;gap:.5rem;">
+          <label style="display:flex;align-items:center;gap:.5rem;">
+            <input id="createAuthAccount" type="checkbox" />
+            <span class="small">Create Firebase Auth account</span>
+          </label>
+
+          <label id="setPasswordRow" style="display:none;align-items:center;gap:.5rem;">
+            <input id="setPasswordOnCreate" type="checkbox" />
+            <span class="small">Set initial password now (instead of sending reset link)</span>
+          </label>
+
+          <div id="passwordFields" style="display:none;margin-top:.5rem;">
+            <label class="small">Password</label>
+            <input id="adminPassword" type="password" class="form-input" />
+            <label class="small" style="margin-top:.5rem">Confirm Password</label>
+            <input id="adminPasswordConfirm" type="password" class="form-input" />
+            <div class="small" style="color:#718096;margin-top:.25rem">Password must be at least 6 characters.</div>
+          </div>
+
+          <div id="editAuthActions" style="display:none;margin-top:.5rem;gap:.5rem;align-items:center;">
+            <button id="resetPasswordBtn" type="button" class="btn-ghost" style="display:none">Send password reset email</button>
+            <button id="forceCreateAuthBtn" type="button" class="btn-ghost" style="display:none">Create Auth Account</button>
+          </div>
+        </div>
+        <div style="margin-top:1rem;display:flex;justify-content:flex-end;gap:.5rem">
+          <button type="button" class="btn-ghost" onclick="closeAdminModal()">Cancel</button>
+          <button id="saveAdminBtn" type="submit" class="add-btn">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" style="display:none"></div>
+
+  <script>
+  // firebase config
+  const firebaseConfig = {
+        apiKey: "AIzaSyCDT65vncku1avdYSxrCJCM_SE-gN2E2ok",
+        authDomain: "e-serbisyong-tanong.firebaseapp.com",
+        databaseURL: "https://e-serbisyong-tanong-default-rtdb.firebaseio.com",
+        projectId: "e-serbisyong-tanong",
+        storageBucket: "e-serbisyong-tanong.firebasestorage.app",
+        messagingSenderId: "147646033817",
+        appId: "1:147646033817:web:503ac4767a4774a4afad08",
+        measurementId: "G-3TDQYZTF1H"
+        };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
+
+  // Load current admin and check access level (now with live disable enforcement)
+  function loadCurrentAdminAndApply() {
+    // detach previous listener if any
+    if (window._adminAccessRef) {
+      try { window._adminAccessRef.off(); } catch (e) { /* ignore */ }
+      window._adminAccessRef = null;
+    }
+
+    window.currentAdminAccess = null;
+    const user = firebase.auth().currentUser;
+    if (!user) { applyAdminAccessUI(); return; }
+
+    // helper that installs a live listener on a specific admin DB ref (by key or direct)
+    const watchRef = (ref) => {
+      if (!ref) { applyAdminAccessUI(); return; }
+      window._adminAccessRef = ref;
+      ref.on('value', snap => {
+        const data = snap && snap.val() ? snap.val() : null;
+        const access = data && (data.access || data.role) ? (data.access || data.role) : null;
+
+        // If access is explicitly disabled or not 'full', force sign-out and redirect
+        if (!access || access !== 'full') {
+          console.warn('[AdminManagement] admin access not full or disabled — signing out', { access });
+          // remove listener to avoid loops
+          try { if (window._adminAccessRef) { window._adminAccessRef.off(); window._adminAccessRef = null; } } catch (e) {}
+          firebase.auth().signOut().finally(() => { window.location.href = 'Login.html'; });
+          return;
+        }
+
+        // valid full admin — apply UI
+        window.currentAdminAccess = 'full';
+        applyAdminAccessUI();
+      }, err => {
+        console.error('admin watchRef error', err);
+        applyAdminAccessUI();
+      });
+    };
+
+    // 1) direct node lookup (admins/{uid})
+    const directRef = db.ref('admins/' + user.uid);
+    directRef.once('value').then(snap => {
+      if (snap.exists()) {
+        // install live watch on direct node
+        watchRef(directRef);
+        return;
+      }
+
+      // 2) fallback: some projects store admins under push keys — search by 'uid' field
+      return db.ref('admins').orderByChild('uid').equalTo(user.uid).limitToFirst(1).once('value').then(byUid => {
+        if (byUid && byUid.exists()) {
+          const key = Object.keys(byUid.val())[0];
+          const ref = db.ref('admins/' + key);
+          watchRef(ref);
+          return;
+        }
+
+        // 3) last fallback: search by email (case-insensitive)
+        const emailKey = (user.email || '').toLowerCase();
+        return db.ref('admins').orderByChild('email').equalTo(emailKey).limitToFirst(1).once('value').then(byEmail => {
+          if (byEmail && byEmail.exists()) {
+            const key = Object.keys(byEmail.val())[0];
+            const ref = db.ref('admins/' + key);
+            watchRef(ref);
+            return;
+          }
+
+          // No admin record found: enforce sign-out
+          console.warn('[AdminManagement] no admin DB record found for signed-in user — signing out');
+          firebase.auth().signOut().finally(() => { window.location.href = 'Login.html'; });
+        });
+      });
+    }).catch(err => {
+      console.error('admin load error', err);
+      applyAdminAccessUI();
+    });
+  }
+
+  // Apply UI visibility based on admin access
+  function applyAdminAccessUI() {
+    const access = window.currentAdminAccess;
+
+    const navByHref = (href) => document.querySelector(`.nav-link[href="${href}"]`);
+    const servicesLink = navByHref('AdminServices.html');
+    const usersLink = navByHref('AdminUsers.html');
+    const managementLink = navByHref('AdminManagement.html');
+    const verificationLink = navByHref('UserVerification.html');
+
+    [servicesLink, usersLink, managementLink, verificationLink].forEach(el => { if (el) el.style.display = 'none'; });
+
+    if (access === 'full') {
+      [servicesLink, usersLink, managementLink, verificationLink].forEach(el => { if (el) el.style.display = ''; });
+    } else if (access === 'limited') {
+      if (servicesLink) servicesLink.style.display = '';
+      if (verificationLink) verificationLink.style.display = '';
+      if (usersLink) usersLink.style.display = 'none';
+      if (managementLink) managementLink.style.display = 'none';
+    } else {
+      [servicesLink, usersLink, managementLink, verificationLink].forEach(el => { if (el) el.style.display = 'none'; });
+    }
+
+    document.querySelectorAll('.admin-add-action').forEach(el => { el.style.display = (access === 'full') ? '' : 'none'; });
+    document.querySelectorAll('.archive-action').forEach(el => { el.style.display = (access === 'full') ? '' : 'none'; });
+    document.querySelectorAll('.remove-user-action').forEach(el => { el.style.display = (access === 'full') ? '' : 'none'; });
+    document.querySelectorAll('.admin-edit-action').forEach(btn => { btn.disabled = (access !== 'full'); });
+
+    const apptCard = document.getElementById('appointmentsCard');
+    if (apptCard) apptCard.style.display = (access === 'full') ? '' : 'none';
+  }
+
+  // Main elements
+  const adminContainer = document.getElementById('adminContainer');
+  const noAdmins = document.getElementById('noAdmins');
+  const adminModal = document.getElementById('adminModal');
+  const adminForm = document.getElementById('adminForm');
+  const adminModalTitle = document.getElementById('adminModalTitle');
+  const searchAdmin = document.getElementById('searchAdmin');
+  const toastEl = document.getElementById('toast');
+
+  let adminsMap = {};
+  let editingId = null;
+
+  function fetchAdmins() {
+    db.ref('admins').on('value', snapshot => {
+      const data = snapshot.val() || {};
+      adminsMap = {};
+      Object.entries(data).forEach(([k,v]) => adminsMap[k] = {...v, _key:k});
+      renderAdmins();
+    }, err => {
+      console.error('Failed loading admins', err);
+      showToast('Failed to load admins', 'error');
+    });
+  }
+
+  function renderAdmins() {
+    const q = (searchAdmin.value || '').toLowerCase();
+    const list = Object.values(adminsMap).filter(a => {
+      if (!q) return true;
+      return (a.name||'').toLowerCase().includes(q) || (a.email||'').toLowerCase().includes(q);
+    });
+
+    adminContainer.innerHTML = '';
+    if (list.length === 0) {
+      noAdmins.style.display = 'block';
+      return;
+    }
+    noAdmins.style.display = 'none';
+
+    const currentUser = auth.currentUser;
+    const currentUid = currentUser && currentUser.uid ? currentUser.uid : null;
+    const currentEmail = currentUser && currentUser.email ? (currentUser.email || '').toLowerCase() : null;
+
+    list.forEach(a => {
+      const el = document.createElement('div');
+      el.className = 'admin-item';
+      const accessLabel = (a.access === 'full') ? 'Full' : (a.access || 'Full');
+      // hide remove button for the currently signed-in admin (prevent self-removal UI)
+      const isSelf = (a.uid && currentUid && a.uid === currentUid) || (a.email && currentEmail && (a.email||'').toLowerCase() === currentEmail);
+      el.innerHTML = `
+        <div class="meta">
+          <div>
+            <div style="font-weight:700">${escapeHtml(a.name || a.fullname || '—')}</div>
+            <div class="small">${escapeHtml(a.email || '—')}</div>
+          </div>
+          <div class="actions">
+            <button class="btn-ghost" onclick="event.stopPropagation(); editAdmin('${a._key}')">Edit</button>
+            ${isSelf ? '' : `<button class="btn-danger" onclick="event.stopPropagation(); removeAdmin('${a._key}')">Remove</button>`}
+          </div>
+        </div>
+        <div class="small">Access: <strong>${escapeHtml(accessLabel)}</strong></div>
+        <div class="small">Contact: ${escapeHtml(a.contact || '—')}</div>
+        <div class="small">Added: ${a.timestamp ? new Date(a.timestamp).toLocaleString() : '—'}</div>
+      `;
+      adminContainer.appendChild(el);
+    });
+  }
+
+  searchAdmin.addEventListener('input', renderAdmins);
+
+  function openAddAdminModal() {
+    editingId = null;
+    adminModalTitle.textContent = 'Add Admin';
+    adminForm.reset();
+    
+    // Show auth creation options when adding new admin
+    document.getElementById('createAuthAccount').parentElement.style.display = 'flex';
+    document.getElementById('editAuthActions').style.display = 'none';
+    document.getElementById('resetPasswordBtn').style.display = 'none';
+    document.getElementById('forceCreateAuthBtn').style.display = 'none';
+    
+    showAdminModal();
+  }
+
+  function showAdminModal() { adminModal.classList.add('show'); }
+  function closeAdminModal() { adminModal.classList.remove('show'); editingId = null; }
+
+  // Toggle password fields visibility
+  document.getElementById('createAuthAccount').addEventListener('change', function() {
+    const checked = this.checked;
+    document.getElementById('setPasswordRow').style.display = checked ? 'flex' : 'none';
+    if (!checked) {
+      document.getElementById('setPasswordOnCreate').checked = false;
+      document.getElementById('passwordFields').style.display = 'none';
+    }
+  });
+
+  document.getElementById('setPasswordOnCreate').addEventListener('change', function() {
+    document.getElementById('passwordFields').style.display = this.checked ? 'block' : 'none';
+  });
+
+  adminForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const name = document.getElementById('adminName').value.trim();
+    const email = document.getElementById('adminEmail').value.trim().toLowerCase();
+    const contact = document.getElementById('adminContact').value.trim();
+    const access = 'full';
+    const createAuth = document.getElementById('createAuthAccount').checked;
+    const setPassword = document.getElementById('setPasswordOnCreate').checked;
+    const password = document.getElementById('adminPassword').value;
+    const passwordConfirm = document.getElementById('adminPasswordConfirm').value;
+    const saveBtn = document.getElementById('saveAdminBtn');
+
+    if (!name || !email) return showToast('Name and email required', 'error');
+
+    if (createAuth && setPassword) {
+      if (!password) return showToast('Password is required', 'error');
+      if (password.length < 6) return showToast('Password must be at least 6 characters', 'error');
+      if (password !== passwordConfirm) return showToast('Passwords do not match', 'error');
+    }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+
+    try {
+      const timestamp = firebase.database.ServerValue.TIMESTAMP;
+      // force full access for every created admin
+      const adminData = { name, email, contact, access: 'full', role: 'full', timestamp };
+
+      let adminKey = editingId;
+      let shouldCreateAuth = !editingId && createAuth;
+      
+      if (editingId) {
+        await db.ref('admins/' + editingId).update(adminData);
+      } else {
+        const newRef = await db.ref('admins').push(adminData);
+        adminKey = newRef.key;
+      }
+
+      // Create Firebase Auth account if requested
+      if (!editingId && createAuth) {
+        try {
+          const currentUser = auth.currentUser;
+          
+          if (setPassword && password) {
+            // Create account with password
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            const newUid = userCredential.user.uid;
+            
+            // Update admin record with UID and role
+            await db.ref('admins/' + adminKey).update({ uid: newUid, role: 'admin' });
+            
+            // Sign back in as the original admin
+            if (currentUser) {
+              await auth.updateCurrentUser(currentUser);
+            }
+            
+            showToast('Admin added with password', 'success');
+          } else {
+            // Create account with temporary password, then send reset email
+            const tempPassword = Math.random().toString(36).slice(-12) + 'Aa1!';
+            const userCredential = await auth.createUserWithEmailAndPassword(email, tempPassword);
+            const newUid = userCredential.user.uid;
+            
+            // Update admin record with UID and role
+            await db.ref('admins/' + adminKey).update({ uid: newUid, role: 'admin' });
+            
+            // Send password reset email
+            await auth.sendPasswordResetEmail(email);
+            
+            // Sign back in as the original admin
+            if (currentUser) {
+              await auth.updateCurrentUser(currentUser);
+            }
+            
+            showToast('Admin added. Password reset email sent to ' + email, 'success');
+          }
+        } catch (authError) {
+          console.error('Auth creation error:', authError);
+          if (authError.code === 'auth/email-already-in-use') {
+            showToast('Email already has an auth account. Admin data saved.', 'warning');
+          } else {
+            showToast('Admin saved but auth account creation failed: ' + authError.message, 'warning');
+          }
+        }
+      } else {
+        showToast(editingId ? 'Admin updated' : 'Admin added (no auth account created)', 'success');
+      }
+      
+      closeAdminModal();
+    } catch (err) {
+      console.error('save admin error', err);
+      showToast('Failed to save admin: ' + (err.message || ''), 'error');
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save';
+    }
+  });
+
+  function editAdmin(id) {
+    if (window.currentAdminAccess !== 'full') return showToast('Not authorized', 'error');
+    const a = adminsMap[id];
+    if (!a) return showToast('Admin not found', 'error');
+    editingId = id;
+    adminModalTitle.textContent = 'Edit Admin';
+    document.getElementById('adminName').value = a.name || '';
+    document.getElementById('adminEmail').value = a.email || '';
+    document.getElementById('adminContact').value = a.contact || '';
+    
+    // Hide auth creation options when editing
+    document.getElementById('createAuthAccount').checked = false;
+    document.getElementById('setPasswordRow').style.display = 'none';
+    document.getElementById('passwordFields').style.display = 'none';
+    document.getElementById('createAuthAccount').parentElement.style.display = 'none';
+    
+    // Show reset password button if admin has UID
+    if (a.uid) {
+      document.getElementById('editAuthActions').style.display = 'flex';
+      document.getElementById('resetPasswordBtn').style.display = 'inline-block';
+    } else {
+      document.getElementById('editAuthActions').style.display = 'flex';
+      document.getElementById('forceCreateAuthBtn').style.display = 'inline-block';
+    }
+    
+    showAdminModal();
+  }
+
+  function removeAdmin(id) {
+    if (window.currentAdminAccess !== 'full') return showToast('Not authorized', 'error');
+    if (!confirm('Are you sure you want to remove this admin?')) return;
+    // Prevent removing yourself as an extra safeguard (in case UI check missed)
+    const rec = adminsMap[id];
+    const currentUser = auth.currentUser;
+    const currentUid = currentUser && currentUser.uid ? currentUser.uid : null;
+    const currentEmail = currentUser && currentUser.email ? (currentUser.email || '').toLowerCase() : null;
+    if (rec) {
+      const isSelf = (rec.uid && currentUid && rec.uid === currentUid) || (rec.email && currentEmail && (rec.email||'').toLowerCase() === currentEmail);
+      if (isSelf) return showToast("You can't remove your own admin account from here.", 'error');
+    }
+
+    // Soft-disable: keep record but revoke admin access
+    db.ref('admins/' + id).update({ access: 'disabled', disabledAt: Date.now() })
+      .then(() => showToast('Admin disabled (auth account still exists)', 'warning'))
+      .catch(err => { console.error(err); showToast('Failed to disable admin', 'error'); });
+  }
+
+  function escapeHtml(str){ return String(str || '').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;'); }
+  
+  function showToast(msg, type='success'){
+    toastEl.textContent = msg;
+    toastEl.style.display = 'block';
+    toastEl.style.background = type==='error' ? '#e53e3e' : (type==='warning' ? '#ed8936' : '#1a202c');
+    setTimeout(()=> toastEl.style.display='none',4000);
+  }
+
+  // Handle password reset button
+  document.getElementById('resetPasswordBtn').addEventListener('click', async function() {
+    if (!editingId) return;
+    const admin = adminsMap[editingId];
+    if (!admin || !admin.email) return showToast('Admin email not found', 'error');
+    
+    this.disabled = true;
+    this.textContent = 'Sending...';
+    
+    try {
+      await auth.sendPasswordResetEmail(admin.email);
+      showToast('Password reset email sent to ' + admin.email, 'success');
+    } catch (err) {
+      console.error('Password reset error:', err);
+      showToast('Failed to send reset email: ' + err.message, 'error');
+    } finally {
+      this.disabled = false;
+      this.textContent = 'Send password reset email';
+    }
+  });
+
+  // Handle force create auth account button
+  document.getElementById('forceCreateAuthBtn').addEventListener('click', async function() {
+    if (!editingId) return;
+    const admin = adminsMap[editingId];
+    if (!admin || !admin.email) return showToast('Admin email not found', 'error');
+    
+    if (!confirm('Create Firebase Auth account for ' + admin.email + '?')) return;
+    
+    this.disabled = true;
+    this.textContent = 'Creating...';
+    
+    try {
+      const currentUser = auth.currentUser;
+      const tempPassword = Math.random().toString(36).slice(-12) + 'Aa1!';
+      const userCredential = await auth.createUserWithEmailAndPassword(admin.email, tempPassword);
+      const newUid = userCredential.user.uid;
+      
+      // Update admin record with UID
+      await db.ref('admins/' + editingId).update({ uid: newUid });
+      
+      // Send password reset email
+      await auth.sendPasswordResetEmail(admin.email);
+      
+      // Sign back in as the original admin
+      if (currentUser) {
+        await auth.updateCurrentUser(currentUser);
+      }
+      
+      showToast('Auth account created. Password reset email sent.', 'success');
+      closeAdminModal();
+    } catch (err) {
+      console.error('Auth creation error:', err);
+      if (err.code === 'auth/email-already-in-use') {
+        showToast('Email already has an auth account', 'error');
+      } else {
+        showToast('Failed to create auth account: ' + err.message, 'error');
+      }
+    } finally {
+      this.disabled = false;
+      this.textContent = 'Create Auth Account';
+    }
+  });
+
+  function logout(){
+    auth.signOut().then(()=> window.location.href='Login.html').catch(()=> window.location.href='Login.html');
+  }
+
+  // ensure auth state hooks run the admin check on sign-in
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      loadCurrentAdminAndApply();
+    } else {
+      // signed out — redirect to login
+      window.location.href = 'Login.html';
+    }
+  });
+
+  fetchAdmins();
+</script>
+
+</body>
+</html>

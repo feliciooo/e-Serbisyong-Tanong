@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registered Users | e-Serbisyong Tañong</title>
+  <link rel="icon" type="image/png" href="icon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #fff5e6 0%, #ffe4b3 100%);
+      min-height: 100vh;
+      color: #1a202c;
+    }
+    .navbar {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .navbar-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      position: relative;
+      padding: 0 1rem;
+    }
+    .nav-left { flex: 0 0 auto; }
+    .nav-center { position: absolute; left:50%; transform: translateX(-50%); display:flex; align-items:center; gap:1rem; }
+    .nav-right { margin-left:auto; display:flex; align-items:center; gap:1rem; }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #ff9f40 0%, #ffb366 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+    .nav-link {
+      text-decoration: none;
+      color: #4a5568;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      transition: all 0.3s;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: linear-gradient(135deg, #ffb366 0%, #ffc285 100%);
+      color: white;
+    }
+    .user-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .user-info {
+      text-align: right;
+    }
+    .user-name {
+      font-weight: 600;
+      color: #2d3748;
+    }
+    .user-role {
+      font-size: 0.85rem;
+      color: #718096;
+    }
+    .logout-btn {
+      background: linear-gradient(135deg, #f56565 0%, #c53030 100%);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .logout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+    }
+    .active-tab {
+      background-color: #fb923c; /* orange-400 */
+      color: white;
+    }
+    .inactive-tab {
+      background-color: #e5e7eb; /* gray-200 */
+      color: #374151; /* gray-700 */
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <div class="nav-left">
+        <div class="logo">e-Serbisyong Tañong</div>
+      </div>
+
+      <div class="nav-center">
+        <div class="nav-links">
+          <a href="AdminHome.html" class="nav-link">Dashboard</a>
+          <a href="AdminServices.html" class="nav-link">Services</a>
+          <a href="AdminUsers.html" class="nav-link active">Users</a>
+          <a href="UserVerification.html" class="nav-link">User Verification</a>
+          <a href="AdminManagement.html" class="nav-link">Admin Management</a>
+        </div>
+      </div>
+
+       <div class="nav-right">
+        <div class="user-section">
+          <div class="user-info">
+            <div class="user-name" id="userGreet">Admin</div>
+            <div class="user-role">Administrator</div>
+          </div>
+          <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-lg">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+      <h1 class="text-2xl font-bold text-gray-800">Registered Users</h1>
+      <div class="flex flex-col md:flex-row gap-2 items-center">
+        <input id="searchUser" type="text" placeholder="Search user..." class="border rounded-lg px-4 py-2 focus:ring focus:ring-orange-300" />
+        <select id="filterAge" class="border rounded-lg px-3 py-2 text-sm">
+          <option value="">All Ages</option>
+          <option value="minor">Below 18</option>
+          <option value="adult">18-59</option>
+          <option value="senior">60+</option>
+        </select>
+        <select id="filterGender" class="border rounded-lg px-3 py-2 text-sm">
+          <option value="">All Genders</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+        <select id="filterVerified" class="border rounded-lg px-3 py-2 text-sm">
+          <option value="">All</option>
+          <option value="yes">Verified</option>
+          <option value="no">Unverified</option>
+        </select>
+        <input id="filterDate" type="date" class="border rounded-lg px-3 py-2 text-sm" />
+        <button id="exportBtn" class="bg-orange-400 text-white px-4 py-2 rounded-lg font-semibold hover:bg-orange-500 transition">Export CSV</button>
+      </div>
+    </div>
+
+    <!-- User Tabs -->
+    <div id="requestTabs" class="flex gap-2 mb-6">
+      <button id="tabActive" class="px-4 py-2 rounded font-semibold shadow hover:bg-orange-500 active-tab">Active Users</button>
+      <button id="tabDisabled" class="px-4 py-2 rounded font-semibold shadow hover:bg-gray-300 inactive-tab">Disabled Users</button>
+    </div>
+
+    <!-- Active Users Table -->
+    <div id="activeUsersCard" class="overflow-x-auto">
+      <table class="min-w-full text-sm text-left border border-gray-200">
+        <thead class="bg-orange-400 text-white uppercase text-xs tracking-wider">
+          <tr>
+            <th class="px-6 py-3">Full Name</th>
+            <th class="px-6 py-3">Email</th>
+            <th class="px-6 py-3">Contact</th>
+            <th class="px-6 py-3">Address</th>
+            <th class="px-6 py-3">Registered Date</th>
+            <th class="px-6 py-3">Verified</th>
+            <th class="px-6 py-3">Status</th>
+            <th class="px-6 py-3">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="usersTable" class="divide-y divide-gray-100 bg-white">
+          <tr><td colspan="8" class="text-center py-4 text-gray-500">Loading users...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Disabled Users Table -->
+    <div id="disabledUsersCard" class="mt-10 hidden">
+      <h2 class="text-xl font-bold text-gray-700 mb-4">Disabled Users</h2>
+      <p class="text-gray-500 text-sm mb-4">View and re-enable previously disabled user accounts.</p>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm text-left border border-gray-200">
+          <thead class="bg-gray-400 text-white uppercase text-xs tracking-wider">
+            <tr>
+              <th class="px-6 py-3">Full Name</th>
+              <th class="px-6 py-3">Email</th>
+              <th class="px-6 py-3">Contact</th>
+              <th class="px-6 py-3">Address</th>
+              <th class="px-6 py-3">Registered Date</th>
+              <th class="px-6 py-3">Verified</th>
+              <th class="px-6 py-3">Status</th>
+              <th class="px-6 py-3">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="disabledUsersTable" class="divide-y divide-gray-100 bg-white">
+            <tr><td colspan="8" class="text-center py-4 text-gray-500">No disabled users found.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Details Modal -->
+  <div id="userDetailsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
+    <div class="bg-white rounded-xl shadow-lg p-8 w-full max-w-md relative animate-fade-in">
+      <button onclick="closeUserDetails()" class="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-xl font-bold">&times;</button>
+      <h2 class="text-xl font-bold mb-4 text-orange-500">User Details</h2>
+      <div id="userDetailsContent" class="space-y-2"></div>
+      <div id="userActivityContent" class="mt-4"></div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" style="position:fixed;bottom:2rem;right:2rem;display:flex;flex-direction:column;gap:0.5rem;"></div>
+
+  <script>
+    // Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyCDT65vncku1avdYSxrCJCM_SE-gN2E2ok",
+        authDomain: "e-serbisyong-tanong.firebaseapp.com",
+        databaseURL: "https://e-serbisyong-tanong-default-rtdb.firebaseio.com",
+        projectId: "e-serbisyong-tanong",
+        storageBucket: "e-serbisyong-tanong.firebasestorage.app",
+        messagingSenderId: "147646033817",
+        appId: "1:147646033817:web:503ac4767a4774a4afad08",
+        measurementId: "G-3TDQYZTF1H"
+        };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // Escape HTML to prevent XSS when inserting user-provided strings into the DOM
+    function escapeHtml(input) {
+      const s = String(input == null ? '' : input);
+      return s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // global admin access state helper
+    window.currentAdminAccess = window.currentAdminAccess || null; // 'full' or null
+    function isFullAdmin() { return window.currentAdminAccess === 'full'; }
+
+    // DOM Elements
+    const usersTable = document.getElementById('usersTable');
+    const disabledUsersTable = document.getElementById('disabledUsersTable');
+    const searchInput = document.getElementById('searchUser');
+    const filterAge = document.getElementById('filterAge');
+    const filterGender = document.getElementById('filterGender');
+    const filterVerified = document.getElementById('filterVerified');
+    const filterDate = document.getElementById('filterDate');
+    const tabActive = document.getElementById('tabActive');
+    const tabDisabled = document.getElementById('tabDisabled');
+    const activeUsersCard = document.getElementById('activeUsersCard');
+    const disabledUsersCard = document.getElementById('disabledUsersCard');
+
+    let allUsers = {};
+    let currentView = 'active'; // 'active' or 'disabled'
+
+    // Auth state listener
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        loadUsers();
+        loadCurrentAdminAndApply();
+        // start live watcher to enforce admin access (auto-signout if disabled)
+        watchAdminAccess();
+      } else {
+        // cleanup any admin access watcher
+        try { if (window._adminAccessWatcherRef) { window._adminAccessWatcherRef.off(); window._adminAccessWatcherRef = null; } } catch (e) {}
+        window.location.href = "Login.html";
+      }
+    });
+
+    // Tab switching logic
+    tabActive.addEventListener('click', () => {
+      currentView = 'active';
+      tabActive.classList.replace('inactive-tab', 'active-tab');
+      tabDisabled.classList.replace('active-tab', 'inactive-tab');
+      activeUsersCard.classList.remove('hidden');
+      disabledUsersCard.classList.add('hidden');
+      renderUsers();
+    });
+
+    tabDisabled.addEventListener('click', () => {
+      currentView = 'disabled';
+      tabDisabled.classList.replace('inactive-tab', 'active-tab');
+      tabActive.classList.replace('active-tab', 'inactive-tab');
+      disabledUsersCard.classList.remove('hidden');
+      activeUsersCard.classList.add('hidden');
+      renderUsers();
+    });
+
+    // Fetch all users from Firebase
+    function loadUsers() {
+      db.ref('users').on('value', snapshot => {
+        allUsers = snapshot.val() || {};
+        renderUsers();
+      });
+    }
+
+    // Main render function
+    function renderUsers() {
+      if (currentView === 'active') {
+        renderActiveUsers();
+      } else {
+        renderDisabledUsers();
+      }
+    }
+
+    // Filter and render ACTIVE users
+    function renderActiveUsers() {
+      const filtered = filterUsers(false); // Get active users
+      usersTable.innerHTML = "";
+
+      if (filtered.length === 0) {
+        usersTable.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-gray-500">No active users found.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(([key, u]) => {
+        const row = createUserRow(key, u, false);
+        usersTable.appendChild(row);
+      });
+    }
+
+    // Filter and render DISABLED users
+    function renderDisabledUsers() {
+      const filtered = filterUsers(true); // Get disabled users
+      disabledUsersTable.innerHTML = "";
+      
+      if (filtered.length === 0) {
+        disabledUsersTable.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-gray-500">No disabled users found.</td></tr>`;
+        return;
+      }
+      
+      filtered.forEach(([key, u]) => {
+        const row = createUserRow(key, u, true);
+        disabledUsersTable.appendChild(row);
+      });
+    }
+
+    // Universal filtering logic
+    function filterUsers(isDisabledView) {
+      const query = (searchInput.value || "").toLowerCase();
+      const ageFilter = filterAge.value;
+      const genderFilter = filterGender.value;
+      const verifiedFilter = filterVerified.value;
+      const dateFilter = filterDate.value;
+
+      return Object.entries(allUsers).filter(([_, u]) => {
+        // Primary filter: active or disabled status
+        const isUserDisabled = u.accountStatus === "disabled";
+        if (isDisabledView !== isUserDisabled) {
+            return false;
+        }
+
+        // Search filter
+        const name = (u.fullName || u.fullname || "").toLowerCase();
+        const email = (u.email || "").toLowerCase();
+        const contact = (u.contact || u.phone || "").toLowerCase();
+        if (!(name.includes(query) || email.includes(query) || contact.includes(query))) {
+            return false;
+        }
+
+        // Age filter
+        if (ageFilter) {
+            const age = parseInt(u.age, 10);
+            if ((ageFilter === "minor" && age >= 18) ||
+                (ageFilter === "adult" && (age < 18 || age >= 60)) ||
+                (ageFilter === "senior" && age < 60)) {
+                return false;
+            }
+        }
+
+        // Gender filter
+        if (genderFilter && u.sex !== genderFilter) return false;
+
+        // Verified filter
+        const isVerified = u.verificationStatus === 'Verified';
+        if ((verifiedFilter === "yes" && !isVerified) || (verifiedFilter === "no" && isVerified)) {
+            return false;
+        }
+
+        // Date filter
+        if (dateFilter) {
+          const regDate = u.registeredAt || u.createdAt;
+          if (!regDate || new Date(regDate).toISOString().slice(0, 10) !== dateFilter) return false;
+        }
+
+        return true;
+      });
+    }
+    
+    // Universal row creation
+    function createUserRow(key, user, isDisabledView) {
+        const fullName = user.fullName || user.fullname || '—';
+        const contact = user.contact || user.phone || '—';
+        const address = user.address || '—';
+        const date = user.registeredAt || user.createdAt ? new Date(user.registeredAt || user.createdAt).toLocaleString() : '—';
+        
+        const verifiedText = (user.verificationStatus === 'Verified' || user.emailVerified) ? '<span class="text-green-600 font-medium">Yes</span>' : '<span class="text-gray-500">No</span>';
+        const statusText = isDisabledView ? 'Disabled' : 'Active';
+        const statusClass = isDisabledView ? 'text-red-500' : 'text-green-500';
+
+        const actionButton = isDisabledView
+            ? `<button class="text-green-500 hover:underline" onclick="event.stopPropagation(); reenableUser('${key}')">Re-enable</button>`
+            : `<button class="text-gray-500 hover:text-red-500 remove-user-action" onclick="event.stopPropagation(); disableUser('${key}')">Remove</button>`;
+
+        const row = document.createElement('tr');
+        row.className = "hover:bg-orange-50 transition cursor-pointer";
+        row.innerHTML = `
+          <td class="px-6 py-4">${escapeHtml(fullName)}</td>
+          <td class="px-6 py-4">${escapeHtml(user.email || '—')}</td>
+          <td class="px-6 py-4">${escapeHtml(contact)}</td>
+          <td class="px-6 py-4">${escapeHtml(address)}</td>
+          <td class="px-6 py-4">${date}</td>
+          <td class="px-6 py-4">${verifiedText}</td>
+          <td class="px-6 py-4 font-semibold ${statusClass}">${statusText}</td>
+          <td class="px-6 py-4">
+            <button class="text-orange-500 hover:underline mr-2" onclick="event.stopPropagation(); showUserDetails(allUsers['${key}'])">View</button>
+            ${actionButton}
+          </td>
+        `;
+        row.onclick = () => showUserDetails(user);
+        return row;
+    }
+
+    // Add event listeners to all filters
+    [searchInput, filterAge, filterGender, filterVerified, filterDate].forEach(el => {
+      el.addEventListener('input', renderUsers);
+      el.addEventListener('change', renderUsers);
+    });
+
+    // Disable a user's account
+    function disableUser(key) {
+        if (window.currentAdminAccess !== 'full') {
+            return showToast('You do not have permission to perform this action.', 'error');
+        }
+        if (!confirm('Are you sure you want to disable this user\'s account? They will not be able to log in.')) return;
+
+        db.ref('users/' + key).update({
+            accountStatus: "disabled",
+            disabledAt: firebase.database.ServerValue.TIMESTAMP
+        })
+        .then(() => {
+            showToast('User account disabled successfully.', 'success');
+            renderUsers();
+        })
+        .catch(error => {
+            console.error("Failed to disable user:", error);
+            showToast('Failed to disable user.', 'error');
+        });
+    }
+
+    // Re-enable a user's account
+    function reenableUser(key) {
+        if (!confirm('Are you sure you want to re-enable this user\'s account?')) return;
+        
+        db.ref('users/' + key).update({
+            accountStatus: "active", // or use null to remove the flag
+            disabledAt: null
+        })
+        .then(() => {
+            showToast('User account re-enabled successfully.', 'success');
+            renderUsers();
+        })
+        .catch(error => {
+            console.error('Error re-enabling user:', error);
+            showToast('Failed to re-enable user.', 'error');
+        });
+    }
+
+    // Show user details modal
+    function showUserDetails(user) {
+      const modal = document.getElementById('userDetailsModal');
+      const content = document.getElementById('userDetailsContent');
+      const status = user.accountStatus === 'disabled' ? 'Disabled' : 'Active';
+      const statusClass = user.accountStatus === 'disabled' ? 'text-red-500 font-bold' : 'text-green-500 font-bold';
+      
+      content.innerHTML = `
+        <div><span class="font-semibold text-gray-700">Full Name:</span> ${escapeHtml(user.fullName || user.fullname || '—')}</div>
+        <div><span class="font-semibold text-gray-700">Email:</span> ${escapeHtml(user.email || '—')}</div>
+        <div><span class="font-semibold text-gray-700">Contact:</span> ${escapeHtml(user.contact || user.phone || '—')}</div>
+        <div><span class="font-semibold text-gray-700">Address:</span> ${escapeHtml(user.address || '—')}</div>
+        <div><span class="font-semibold text-gray-700">Age:</span> ${escapeHtml(user.age || '—')}</div>
+        <div><span class="font-semibold text-gray-700">Sex:</span> ${escapeHtml(user.sex || '—')}</div>
+        <div><span class="font-semibold text-gray-700">Registered:</span> ${user.registeredAt || user.createdAt ? new Date(user.registeredAt || user.createdAt).toLocaleString() : '—'}</div>
+        <div><span class="font-semibold text-gray-700">Verification:</span> ${user.verificationStatus === 'Verified' ? 'Verified' : 'Not Verified'}</div>
+        <div><span class="font-semibold text-gray-700">Account Status:</span> <span class="${statusClass}">${status}</span></div>
+      `;
+      modal.classList.remove('hidden');
+    }
+
+    function closeUserDetails() {
+      document.getElementById('userDetailsModal').classList.add('hidden');
+    }
+
+    // Export users to CSV (only exports users from the current view)
+    document.getElementById('exportBtn').addEventListener('click', function() {
+      const usersToExport = filterUsers(currentView === 'disabled');
+      if (usersToExport.length === 0) {
+        showToast('No user data to export in the current view.', 'info');
+        return;
+      }
+      const headers = ['Full Name', 'Email', 'Contact', 'Address', 'Age', 'Sex', 'Registered Date', 'Verification Status', 'Account Status'];
+      const csvRows = [headers.join(',')];
+
+      usersToExport.forEach(([_, u]) => {
+        const row = [
+          `"${(u.fullName || u.fullname || '').replace(/"/g, '""')}"`,
+          `"${(u.email || '').replace(/"/g, '""')}"`,
+          `"${(u.contact || u.phone || '').replace(/"/g, '""')}"`,
+          `"${(u.address || '').replace(/"/g, '""')}"`,
+          u.age || '',
+          `"${(u.sex || '')}"`,
+          `"${u.registeredAt || u.createdAt ? new Date(u.registeredAt || u.createdAt).toLocaleString() : ''}"`,
+          `"${u.verificationStatus || 'Not Verified'}"`,
+          `"${u.accountStatus === 'disabled' ? 'Disabled' : 'Active'}"`
+        ];
+        csvRows.push(row.join(','));
+      });
+
+      const csvContent = csvRows.join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentView}_users.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('User data exported as CSV.', 'success');
+    });
+
+    // Live watch: force sign-out + redirect when admin access is not 'full'
+    window._adminAccessWatcherRef = window._adminAccessWatcherRef || null;
+    async function watchAdminAccess() {
+      // detach previous
+      try { if (window._adminAccessWatcherRef) { window._adminAccessWatcherRef.off(); window._adminAccessWatcherRef = null; } } catch(e) {}
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const attach = (ref) => {
+        if (!ref) return;
+        window._adminAccessWatcherRef = ref;
+        ref.on('value', snap => {
+          const rec = snap && snap.val() ? snap.val() : null;
+          const access = rec && (rec.access || rec.role) ? String(rec.access || rec.role).toLowerCase() : null;
+          if (access !== 'full') {
+            try { if (window._adminAccessWatcherRef) { window._adminAccessWatcherRef.off(); window._adminAccessWatcherRef = null; } } catch(e){}
+            console.warn('Admin access revoked or not full — signing out', { access });
+            auth.signOut().finally(() => { window.location.href = 'Login.html'; });
+          } else {
+            // keep currentAdminAccess in sync
+            window.currentAdminAccess = 'full';
+            applyAdminAccessUI();
+          }
+        }, err => console.error('admin access watch error', err));
+      };
+
+      try {
+        // 1) try direct key admins/{uid}
+        const directRef = db.ref('admins/' + user.uid);
+        const directSnap = await directRef.once('value');
+        if (directSnap && directSnap.exists()) { attach(directRef); return; }
+
+        // 2) fallback: admins entries with child uid
+        const byUidSnap = await db.ref('admins').orderByChild('uid').equalTo(user.uid).limitToFirst(1).once('value');
+        if (byUidSnap && byUidSnap.exists()) {
+          const key = Object.keys(byUidSnap.val())[0];
+          attach(db.ref('admins/' + key));
+          return;
+        }
+
+        // 3) fallback: search by email (lowercased)
+        const emailKey = (user.email || '').toLowerCase();
+        const byEmailSnap = await db.ref('admins').orderByChild('email').equalTo(emailKey).limitToFirst(1).once('value');
+        if (byEmailSnap && byEmailSnap.exists()) {
+          const key = Object.keys(byEmailSnap.val())[0];
+          attach(db.ref('admins/' + key));
+          return;
+        }
+
+        // no admin record found -> sign out
+        console.warn('No admin DB record for signed-in user — signing out');
+        await auth.signOut();
+        window.location.href = 'Login.html';
+      } catch (err) {
+        console.error('watchAdminAccess error', err);
+      }
+    }
+
+    async function loadCurrentAdminAndApply() {
+      window.currentAdminAccess = null;
+      const user = firebase.auth().currentUser;
+      if (!user) return applyAdminAccessUI();
+
+      try {
+        // 1) try direct uid node (admins/{uid})
+        let snap = await db.ref('admins/' + user.uid).once('value');
+        let data = snap && snap.exists() ? snap.val() : null;
+
+        // 2) fallback: some projects store admins under push keys — search by 'uid' field
+        if (!data) {
+          const byUid = await db.ref('admins').orderByChild('uid').equalTo(user.uid).limitToFirst(1).once('value');
+          if (byUid && byUid.exists()) data = Object.values(byUid.val())[0];
+        }
+
+        // 3) last fallback: search by email (case-insensitive)
+        if (!data) {
+          const emailKey = (user.email || '').toLowerCase();
+          const byEmail = await db.ref('admins').orderByChild('email').equalTo(emailKey).limitToFirst(1).once('value');
+          if (byEmail && byEmail.exists()) data = Object.values(byEmail.val())[0];
+        }
+
+        if (data) {
+          // accept only explicit 'full' access
+          const access = data.access || data.role || null;
+          window.currentAdminAccess = access === 'full' ? 'full' : null;
+          console.debug('[AdminUsers] admin record found', { keySource: data._key || '(push/email/uid)', access: access, resolved: window.currentAdminAccess, record: data });
+        } else {
+          window.currentAdminAccess = null;
+        }
+      } catch (err) {
+        console.error('loadCurrentAdminAndApply error', err);
+        window.currentAdminAccess = null;
+      }
+
+      applyAdminAccessUI();
+    }
+
+    function applyAdminAccessUI() {
+        const full = isFullAdmin();
+        document.querySelectorAll('.remove-user-action').forEach(el => el.style.display = full ? '' : 'none');
+        // ensure admin-only buttons are hidden as well
+        document.querySelectorAll('.admin-add-action, .archive-action').forEach(el => el.style.display = full ? '' : 'none');
+    }
+
+    const styleEl = document.createElement('style');
+    styleEl.textContent = `@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } } .animate-fade-in { animation: fadeIn 200ms ease-out; }`;
+    document.head.appendChild(styleEl);
+
+    // Add a logout helper so the navbar button works
+    function logout() {
+      const btn = document.querySelector('.logout-btn');
+      if (btn) btn.disabled = true;
+      auth.signOut()
+        .catch(err => console.error('Error signing out:', err))
+        .finally(() => { window.location.href = 'Login.html'; });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>e-Serbisyong Tañong</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <style>
+        .slide-in-right {
+            transform: translateX(80px);
+            opacity: 0;
+            animation: slideInRight 0.7s cubic-bezier(.68,-0.55,.27,1.55) forwards;
+        }
+        @keyframes slideInRight {
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen m-0 font-['Roboto',Arial,sans-serif] bg-gray-50">
+    <div class="flex min-h-screen">
+        <div class="hidden md:flex w-2/3 bg-cover bg-center relative" style="background-image:url('BarangayHall.jpg')">
+            <div class="flex flex-col justify-center items-center w-full h-full bg-black bg-opacity-40 z-10"></div>
+            <div class="absolute top-0 right-0 h-full w-24 bg-gradient-to-r from-transparent to-white z-20 pointer-events-none"></div>
+        </div>
+        <div class="flex w-full md:w-1/2 items-center justify-center md:justify-end px-4 md:px-16 bg-white">
+            <div class="bg-white px-8 py-10 rounded-2xl shadow-2xl w-full max-w-sm flex flex-col items-center slide-in-right">
+                <div class="flex flex-col items-center mb-6">
+                    <img src="icon.png" alt="Logo" class="w-16 h-16 mb-2 rounded-full shadow-md object-cover">
+                    <span class="text-lg font-bold text-orange-500 tracking-wide">e-Serbisyong Tañong</span>
+                </div>
+                <h2 class="mb-6 font-semibold text-gray-900 text-2xl tracking-wide">Welcome Back</h2>
+                <form id="loginForm" class="w-full">
+                    <div class="mb-5 w-full">
+                        <label for="email" class="block mb-2 text-base text-gray-700 font-medium">Email Address</label>
+                        <input type="email" id="email" placeholder="Enter your email" required class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base bg-gray-50 focus:border-orange-400 focus:bg-white outline-none transition">
+                    </div>
+                    <div class="mb-5 w-full">
+                        <label for="password" class="block mb-2 text-base text-gray-700 font-medium">Password</label>
+                        <div class="relative">
+                            <input type="password" id="password" placeholder="Enter your password" required class="w-full px-4 py-3 border border-gray-200 rounded-lg text-base bg-gray-50 focus:border-orange-400 focus:bg-white outline-none transition pr-10">
+                            <button type="button" id="togglePasswordBtn" tabindex="-1" class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-orange-500">
+                                <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button type="submit" class="flex-1 px-4 py-3 rounded-lg bg-orange-400 text-white font-semibold text-base transition hover:bg-orange-300">Login</button>
+                        <button type="button" class="flex-1 px-4 py-3 rounded-lg bg-gray-50 text-orange-400 border border-orange-200 font-semibold text-base transition hover:bg-orange-50" onclick="window.location.href='Register.html'">Register</button>
+                    </div>
+                    <div class="w-full mt-3 text-right">
+                        <button type="button" id="forgotBtn" class="text-sm text-orange-500 hover:underline">Forgot password?</button>
+                    </div>
+                </form>
+                <div id="loginError" class="text-red-600 mt-3 text-sm"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+                const firebaseConfig = {
+        apiKey: "AIzaSyCDT65vncku1avdYSxrCJCM_SE-gN2E2ok",
+        authDomain: "e-serbisyong-tanong.firebaseapp.com",
+        databaseURL: "https://e-serbisyong-tanong-default-rtdb.firebaseio.com",
+        projectId: "e-serbisyong-tanong",
+        storageBucket: "e-serbisyong-tanong.firebasestorage.app",
+        messagingSenderId: "147646033817",
+        appId: "1:147646033817:web:503ac4767a4774a4afad08",
+        measurementId: "G-3TDQYZTF1H"
+        };
+
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const loginError = document.getElementById('loginError');
+            loginError.textContent = '';
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    console.log('Logged in user UID:', user.uid);
+                    console.log('Logged in user email:', user.email);
+                    
+                    // CHECK IF ADMIN FIRST
+                    checkIfAdmin(user, email);
+                })
+                .catch((error) => {
+                    handleAuthError(error);
+                });
+        });
+        
+        function checkIfAdmin(user, email) {
+            const loginError = document.getElementById('loginError');
+            loginError.textContent = '';
+
+            // Helper to handle non-admin regular user flow
+            const continueAsUser = () => {
+                return db.ref('users/' + user.uid).once('value').then(userSnapshot => {
+                    const userData = (userSnapshot && userSnapshot.val()) || {};
+
+                    if (userData.accountStatus === 'disabled') {
+                        loginError.textContent = 'Your account has been disabled. Please contact an administrator.';
+                        auth.signOut();
+                        return;
+                    }
+
+                    if (!user.emailVerified) {
+                        loginError.innerHTML =
+                            'Please verify your email. <button id="resendBtn" class="text-orange-500 hover:underline font-semibold">Resend verification</button>';
+                        document.getElementById('resendBtn').addEventListener('click', () => resendVerification(user));
+                        auth.signOut();
+                        return;
+                    }
+
+                    localStorage.setItem('user', JSON.stringify({
+                        uid: user.uid,
+                        fullname: userData.fullname || "",
+                        email: user.email
+                    }));
+                    window.location.href = 'Home.html';
+                });
+            };
+
+            // 1) direct node lookup admins/{uid}
+            db.ref('admins/' + user.uid).once('value')
+                .then(directSnap => {
+                    if (directSnap && directSnap.exists()) return { source: 'direct', record: directSnap.val() };
+                    // 2) fallback: some projects store admins under push keys with uid child
+                    return db.ref('admins').orderByChild('uid').equalTo(user.uid).limitToFirst(1).once('value')
+                        .then(byUidSnap => {
+                            if (byUidSnap && byUidSnap.exists()) return { source: 'byUid', record: Object.values(byUidSnap.val())[0] };
+                            // 3) last fallback: search by email (case-insensitive)
+                            return db.ref('admins').orderByChild('email').equalTo(email.toLowerCase()).limitToFirst(1).once('value')
+                                .then(byEmailSnap => {
+                                    if (byEmailSnap && byEmailSnap.exists()) return { source: 'byEmail', record: Object.values(byEmailSnap.val())[0] };
+                                    return null;
+                                });
+                        });
+                })
+                .then(found => {
+                    if (!found) return continueAsUser();
+
+                    const adminData = found.record || {};
+                    console.debug('Admin lookup', found.source, { adminData });
+                    const access = (adminData.access || adminData.role || '').toLowerCase();
+
+                    // If admin explicitly disabled or not 'full' => deny admin access
+                    if (access !== 'full') {
+                        // If explicitly disabled, show message; otherwise treat as non-admin and sign out to be safe
+                        if (access === 'disabled') {
+                            loginError.textContent = 'This admin account has been disabled.';
+                        } else {
+                            loginError.textContent = 'Access denied.';
+                        }
+                        auth.signOut();
+                        return;
+                    }
+
+                    // Admin with full access — redirect
+                    redirectAsAdmin(user, adminData);
+                })
+                .catch(error => {
+                    console.error("Login check error:", error);
+                    loginError.textContent = "Could not verify user status. Please try again.";
+                    auth.signOut();
+                });
+        }
+        
+        function redirectAsAdmin(user, adminData) {
+            console.log('Redirecting as admin:', adminData);
+            
+            localStorage.setItem('user', JSON.stringify({
+                uid: user.uid,
+                fullname: adminData.name || adminData.fullname || "",
+                email: user.email
+            }));
+
+            // All admins go to AdminHome
+            window.location.href = 'AdminHome.html';
+        }
+
+        function handleAuthError(error) {
+    const loginError = document.getElementById('loginError');
+    let code = (error && error.code) ? error.code : '';
+    const firebaseMsg = (error && error.message) ? error.message : '';
+
+    if (!code && firebaseMsg) {
+        const m = firebaseMsg.match(/\(auth\/([^)]+)\)/i);
+        if (m && m[1]) code = 'auth/' + m[1];
+    }
+
+    const c = (code || '').toString().toLowerCase();
+    let message = "An error occurred. Please try again.";
+
+    if (c === 'auth/user-not-found' || c === 'auth/wrong-password' || /invalid.*(login|credential|credentials|password)/.test(c)) {
+        message = "Incorrect email or password.";
+    } else if (c === 'auth/invalid-email') {
+        message = "Please enter a valid email address.";
+    } else if (c === 'auth/too-many-requests') {
+        message = "Too many failed attempts. Please try again later.";
+    } else if (c === 'auth/network-request-failed') {
+        message = "Network error. Please check your connection.";
+    } else if (c === 'auth/user-disabled') {
+        message = "This user account has been disabled.";
+    } else {
+        if (firebaseMsg) {
+            let cleaned = firebaseMsg.replace(/^Firebase:\s*/i, '').trim();
+            cleaned = cleaned.replace(/^Error\s*\([^)]+\)\.?\s*/i, '');
+            message = cleaned || message;
+        }
+        console.log("Auth error:", error);
+    }
+
+    loginError.textContent = message;
+}
+
+        async function resendVerification(user) {
+            const loginError = document.getElementById('loginError');
+            loginError.textContent = 'Sending...';
+            
+            try {
+                await user.sendEmailVerification();
+                loginError.innerHTML = '<span class="text-green-600">Verification email sent!</span>';
+            } catch (error) {
+                loginError.innerHTML = '<span class="text-red-600">Failed to send verification email.</span>';
+            }
+        }
+
+        document.getElementById('forgotBtn').addEventListener('click', () => {
+            window.location.href = 'ResetPassword.html';
+        });
+
+        const passwordInput = document.getElementById('password');
+        const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+        const eyeIcon = document.getElementById('eyeIcon');
+        togglePasswordBtn.addEventListener('click', function() {
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            eyeIcon.innerHTML = isPassword
+                ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.956 9.956 0 012.042-3.368m1.528-1.664A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.956 9.956 0 01-4.422 5.255M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />`
+                : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>`;
+        });
+    </script>
+</body>
+</html>

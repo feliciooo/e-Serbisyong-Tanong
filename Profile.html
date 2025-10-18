@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>e-Serbisyong Tañong</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="icon.png">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    <style>
+       .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4em;
+        font-size: 0.95em;
+        font-weight: 500;
+        border-radius: 9999px;
+        padding: 0.25em 0.8em;
+        line-height: 1.2;
+        vertical-align: middle;
+      }
+      /* Navbar notification badge: match Notifications.html UI/UX */
+      #notifBadge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #ef4444;
+        color: #fff;
+        border-radius: 9999px;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        line-height: 1;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+     }
+      /* Navbar notification badge: match Notifications.html UI/UX */
+      #notifBadge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #ef4444;
+        color: #fff;
+        border-radius: 9999px;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        line-height: 1;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+      }
+      .badge-info {
+        background-color: #e0f2fe;
+        color: #0369a1;
+        border: 1px solid #bae6fd;
+      }
+      .badge-success {
+        background-color: #dcfce7;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+      }
+      .badge-warning {
+        background-color: #fef9c3;
+        color: #b45309;
+        border: 1px solid #fde68a;
+      }
+      .badge-error {
+        background-color: #fee2e2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+      }
+      /* Maximize main content area */
+      @media (min-width: 1024px) {
+        .main-max {
+          max-width: 1200px;
+        }
+      }
+
+      /* Add this to your <style> section for animation/highlight effects */
+      .card-animate {
+        animation: cardPopIn 0.5s cubic-bezier(.4,2,.6,1) both;
+      }
+      @keyframes cardPopIn {
+        0% { transform: scale(0.96) translateY(20px); opacity: 0.2; box-shadow: none;}
+        80% { transform: scale(1.03) translateY(-2px); opacity: 1;}
+        100% { transform: scale(1) translateY(0); opacity: 1;}
+      }
+      .modal-animate {
+        animation: modalFadeIn 0.35s cubic-bezier(.4,2,.6,1) both;
+      }
+      @keyframes modalFadeIn {
+        0% { transform: scale(0.96) translateY(30px); opacity: 0.2;}
+        80% { transform: scale(1.03) translateY(-2px); opacity: 1;}
+        100% { transform: scale(1) translateY(0); opacity: 1;}
+      }
+      .card-highlight {
+        box-shadow: 0 0 0 3px #fdba74, 0 1px 8px 0 rgba(0,0,0,0.07);
+        border-color: #fb923c !important;
+        transition: box-shadow 0.2s, border-color 0.2s;
+      }
+      .card-animate:hover, .card-animate:focus-within {
+        box-shadow: 0 0 0 3px #fdba74, 0 2px 16px 0 rgba(0,0,0,0.10);
+        border-color: #fb923c !important;
+      }
+      #editRequestModal .modal-animate,
+#editRequestModal .bg-white {
+  max-height: 80vh;           /* Limit modal height to 80% of viewport */
+  overflow-y: auto;           /* Enable vertical scrolling if content is too long */
+  min-height: 200px;
+  font-size: 0.97rem;         /* Slightly smaller font for dense info */
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+#editRequestModal input,
+#editRequestModal select,
+#editRequestModal textarea {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  font-size: 0.97rem;
+}
+
+/* Modal size and scroll fixes for both edit & view modals */
+      #editRequestModal .modal-animate,
+      #editRequestModal .bg-white,
+      #viewRequestModal .modal-animate,
+      #viewRequestModal .bg-white {
+        max-height: 80vh;
+        overflow: hidden; /* container hides overflow, inner area will scroll */
+      }
+
+      /* Scrollable inner content area (leaves header/footer visible) */
+      .modal-scroll-inner {
+        max-height: calc(80vh - 120px); /* leave room for modal header/footer/buttons */
+        overflow-y: auto;
+        padding-right: 0.75rem; /* small space for scrollbar */
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* Constrain attachment thumbnails so they don't grow modal height */
+      #editRequestModal img,
+      #viewRequestModal img {
+        max-height: 140px;
+        max-width: 120px;
+        object-fit: contain;
+        display: block;
+      }
+
+      /* Tighter spacing for modal content */
+      #editRequestModal .modal-animate,
+      #viewRequestModal .modal-animate {
+        padding-top: 1.25rem;
+        padding-bottom: 1.25rem;
+      }
+
+      /* Prevent long attachment strings from overflowing modal and mask label */
+      .attach-label {
+        max-width: 120px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+      }
+
+     /* Ensure status badges are compact and consistent (overrides global .badge) */
+     .status-badge {
+       display: inline-flex !important;
+       align-items: center !important;
+       gap: 0.35rem !important;
+       font-size: 0.675rem !important;    /* compact */
+       font-weight: 600 !important;
+       line-height: 1 !important;
+       border-radius: 9999px !important;
+       padding: 0.125rem 0.45rem !important;
+       vertical-align: middle !important;
+       box-sizing: border-box !important;
+     }
+     /* If modal parent is increasing font-size, use root-based sizing as fallback */
+#viewRequestModal .status-badge,
+.modal-animate .status-badge {
+  font-size: 0.75rem !important;
+}
+/* Make sure legacy .badge rules don't leak into status display */
+.status-badge.badge,
+.status-badge.badge-* {
+  font-size: 0.675rem !important;
+  padding: 0.125rem 0.45rem !important;
+}
+
+/* Force compact badge appearance only inside the view request modal */
+#viewRequestModal, #viewRequestModalBody {
+  /* ensure modal has normal root font-size so rem values are predictable */
+  font-size: 1rem !important;
+}
+#viewRequestModalBody .status-badge,
+#viewRequestModal .status-badge,
+.modal-animate #viewRequestModalBody .status-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  font-size: 0.7rem !important;      /* compact */
+  font-weight: 600 !important;
+  line-height: 1 !important;
+  border-radius: 9999px !important;
+  padding: 0.12rem 0.45rem !important;
+  vertical-align: middle !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+  text-transform: none !important;
+}
+/* fallback: prevent any .badge global selectors from winning here */
+#viewRequestModalBody .status-badge.badge,
+#viewRequestModal .status-badge.badge {
+  font-size: 0.7rem !important;
+  padding: 0.12rem 0.45rem !important;
+}
+
+/* ========= ADDED: limit height/scrolling for Edit Profile modal =========
+   Ensures the Edit Profile modal never exceeds the viewport height and
+   the form area becomes scrollable instead of overflowing or overlapping.
+*/
+#editProfileModal .modal-animate,
+#editProfileModal .bg-white {
+  max-height: 85vh;           /* limit modal container height to viewport */
+  overflow: hidden;           /* container hides overflow; inner area scrolls */
+  box-sizing: border-box;
+  padding: 1rem 1.25rem;
+}
+
+/* keep header/footer visible and make form area scrollable */
+#editProfileModal .modal-animate form {
+  max-height: calc(85vh - 120px); /* leave room for header/footer/buttons */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 0.5rem; /* space for scrollbar so layout doesn't jump */
+}
+
+/* Constrain modal width on larger screens but allow full width on small screens */
+#editProfileModal .modal-animate {
+  width: 100%;
+  max-width: 560px; /* comfortable width for forms */
+  margin: 0 1rem;
+  border-radius: 1rem;
+}
+
+/* Smaller padding on very small screens */
+@media (max-width: 420px) {
+  #editProfileModal .modal-animate { padding: 0.75rem; }
+  #editProfileModal .modal-animate form { max-height: calc(85vh - 100px); }
+}
+
+/* Ensure file inputs don't force modal to grow horizontally */
+#editProfileModal input[type="file"] {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Make sure the cancel/submit button row sticks to bottom area visually */
+#editProfileModal .modal-animate .flex.gap-2.mt-2,
+#editProfileModal .modal-animate .flex.gap-2.mt-6 {
+  margin-bottom: 0.5rem;
+}
+
+/* ========================================================================= */
+    </style>
+</head>
+<body class="min-h-screen m-0 font-['Roboto',Arial,sans-serif] flex bg-cover bg-fixed bg-center" style="background-image:url('')">
+<div class="fixed top-0 right-0 z-50 w-full flex justify-end pointer-events-none">
+  <div class="flex items-center gap-3 bg-white/95 shadow rounded-bl-2xl px-5 py-2 mt-0 mr-0 pointer-events-auto border-b border-l border-gray-200">
+    <img src="https://static.vecteezy.com/system/resources/previews/020/911/731/original/profile-icon-avatar-icon-user-icon-person-icon-free-png.png" alt="Profile" class="h-8 w-8 rounded-full border border-gray-200 object-cover bg-gray-100" />
+    <span class="text-base text-gray-700 font-medium" id="userGreet"></span>
+  </div>
+</div>
+<div class="flex w-full min-h-screen">
+  <!-- Sidebar -->
+  <aside class="hidden md:flex bg-white shadow-lg w-64 min-h-screen flex flex-col py-8 px-4 fixed z-40 top-0 left-0 border-r border-orange-100" style="max-height:100vh;overflow-y:auto;">
+    <div class="flex items-center gap-3 mb-6">
+      <img src="icon.png" alt="Logo" class="h-8 w-8 rounded-full" />
+      <span class="font-extrabold text-lg text-orange-500 tracking-wide">e-Serbisyong Tañong</span>
+    </div>
+<nav class="flex flex-col gap-2">
+    <a href="Home.html" class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-gray-800 hover:bg-orange-50 transition">
+        <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m4-8v8m5 0a2 2 0 002-2V7a2 2 0 00-2-2h-3.5a2 2 0 00-1.5.67"></path>
+        </svg>
+        Home
+    </a>
+    <a href="Services.html" class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-gray-800 hover:bg-orange-50 transition">
+        <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
+        </svg>
+        Services
+    </a>
+    <a href="Appointments.html" class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-gray-800 hover:bg-orange-50 transition">
+                <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                Appointments
+            </a>
+    <a href="Notifications.html" class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-gray-800 hover:bg-orange-50 transition relative" aria-label="Notifications">
+         <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+             <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+         </svg>
+         Notifications
+       <span id="notifBadge" class="badge hidden" aria-hidden="true">0</span>
+     </a>
+    <a href="Profile.html" class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-white bg-orange-400 transition relative">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+        Profile
+    </a>
+</nav>
+        <div class="mt-auto flex flex-col gap-2">
+            <button onclick="logout()" class="w-full bg-orange-400 text-white rounded-lg px-4 py-2 font-medium transition hover:bg-orange-300">Logout</button>
+        </div>
+  </aside>
+  <!-- Main content (add left margin for sidebar) -->
+<div class="flex-1 md:ml-60 flex flex-col min-h-screen pb-20 md:pb-0">
+    <main class="flex-1 flex flex-col items-center w-full">
+      <div class="mt-10 mb-6 w-full main-max px-2">
+        <div class="bg-white rounded-xl shadow-md px-8 py-6 flex flex-col gap-4">
+          <div class="flex items-center justify-between mb-1">
+            <div class="text-2xl font-semibold text-gray-900 tracking-wide">My Profile</div>
+            <button class="bg-orange-400 text-white rounded-lg px-5 py-2 text-base font-medium transition hover:bg-orange-300" id="editBtn" onclick="showEditModal()">Edit Profile</button>
+          </div>
+          <!-- Profile Completion Progress Bar -->
+          <div id="profileProgressBar" class="w-full mb-4">
+            <!-- Progress bar will be rendered here -->
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-2 w-full mb-2" id="profileInfo">
+            <!-- Info rows will be rendered here -->
+          </div>
+        </div>
+      </div>
+      <div class="w-full main-max px-2">
+        <div class="bg-white rounded-xl shadow-md px-8 py-6 flex flex-col gap-4">
+          <div class="text-2xl font-semibold text-gray-900 mb-1 tracking-wide">My Service Requests</div>
+          <div id="serviceRequestsList" class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Service requests will be rendered here -->
+          </div>
+        </div>
+      </div>
+<!-- START: Logout Button for Mobile ONLY -->
+<div class="w-full main-max px-2 mt-8 mb-4 md:hidden">
+    <button onclick="logout()" class="w-full bg-red-500 text-white rounded-lg px-5 py-3 text-base font-medium transition hover:bg-red-600 shadow-md hover:shadow-lg">
+        Logout
+    </button>
+</div>
+<!-- END: Logout Button -->
+ <div class="w-full main-max px-2 mt-4 mb-4 md:hidden">
+    <div class="flex justify-center gap-3">
+        <button id="about-link-mobile" class="flex-1 bg-gray-200 text-gray-800 rounded-lg px-4 py-2 text-sm font-medium transition hover:bg-gray-300">About</button>
+        <button id="privacy-link-mobile" class="flex-1 bg-gray-200 text-gray-800 rounded-lg px-4 py-2 text-sm font-medium transition hover:bg-gray-300">Privacy</button>
+        <button id="contact-link-mobile" class="flex-1 bg-gray-200 text-gray-800 rounded-lg px-4 py-2 text-sm font-medium transition hover:bg-gray-300">Contact</button>
+    </div>
+</div>
+    </main>
+    <footer class="w-full bg-orange-400 py-4 px-8 text-left text-white text-sm font-bold border-t border-orange-300 mt-auto">
+        © 2025 e-Serbisyong Tañong. All rights reserved.
+    </footer>
+  </div>
+</div>
+
+<!-- START: Universal Modal, Content, and Links -->
+
+<!-- 1. Embedded Content Templates -->
+<template id="about-content">
+    <h2 class="text-2xl font-bold text-orange-600 mb-4">About e-Serbisyong Tañong</h2>
+    <div class="space-y-4 text-gray-700 leading-relaxed">
+        <p><strong>e-Serbisyong Tañong</strong> is a digital platform designed to bridge the gap between the residents of Barangay Tañong and their local government. Our mission is to provide a modern, accessible, and efficient way for community members to access essential barangay services from anywhere, at any time.</p>
+        <h3 class="text-lg font-semibold text-gray-800 pt-2">Key Features</h3>
+        <ul class="list-disc list-inside space-y-2">
+            <li><strong>Online Service Requests:</strong> Apply for clearances, permits, and other essential documents without needing to visit the barangay hall in person.</li>
+            <li><strong>Appointment Scheduling:</strong> Easily book appointments with barangay officials, reducing wait times and ensuring you are attended to promptly.</li>
+            <li><strong>Profile Management:</strong> Keep your personal information up-to-date to ensure seamless and accurate processing of your requests.</li>
+            <li><strong>Real-time Notifications:</strong> Stay informed with instant updates on the status of your service requests and appointments.</li>
+        </ul>
+        <p>This platform was developed with the goal of promoting transparency, improving public service delivery, and empowering our residents through technology. We are committed to continuously improving this service to better meet the needs of our community.</p>
+    </div>
+</template>
+
+<template id="privacy-content">
+    <h2 class="text-2xl font-bold text-orange-600 mb-4">Privacy Policy</h2>
+    <div class="space-y-4 text-gray-700 leading-relaxed">
+        <p class="text-sm text-gray-500">Last updated: October 17, 2025</p>
+        <p>e-Serbisyong Tañong ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our web application.</p>
+        <h3 class="text-lg font-semibold text-gray-800 pt-2">Information We Collect</h3>
+        <ul class="list-disc list-inside space-y-2">
+            <li><strong>Personal Data:</strong> Personally identifiable information, such as your name, address, email address, and telephone number, that you voluntarily give to us when you register or request services.</li>
+            <li><strong>Uploaded Documents:</strong> Files and images you upload, such as a Barangay ID, are collected to verify your identity and fulfill service requirements. These are stored securely.</li>
+        </ul>
+        <h3 class="text-lg font-semibold text-gray-800 pt-2">How We Use Your Information</h3>
+        <p>Having accurate information permits us to provide you with a smooth, efficient, and customized experience. We may use information collected about you to create and manage your account, process your requests, and email you regarding your account status.</p>
+        <h3 class="text-lg font-semibold text-gray-800 pt-2">Data Security</h3>
+        <p>We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that despite our efforts, no security measures are perfect or impenetrable.</p>
+        
+    </div>
+</template>
+
+<template id="contact-content">
+    <h2 class="text-2xl font-bold text-orange-600 mb-4">Contact Information</h2>
+    <div class="space-y-4 text-gray-700 leading-relaxed">
+        <p class="text-sm text-gray-500">Last updated: October 17, 2025</p>
+        <p>If you have any questions, concerns, or need assistance, you can reach us through the following channels:</p>
+
+        <h3 class="text-lg font-semibold text-gray-800 pt-2">Barangay Tañong Contact Details</h3>
+        <ul class="list-disc list-inside space-y-2">
+            <li><strong>Facebook:</strong> <a href="https://www.facebook.com/profile.php?id=61553549227340" target="_blank" class="text-blue-600 hover:underline">Barangay Tañong Council</a></li>
+            <li><strong>Email:</strong> <a href="mailto:barangaytanongcouncil@gmail.com" class="text-blue-600 hover:underline">barangaytanongcouncil@gmail.com</a></li>
+            <li><strong>Emergency Hotline:</strong> <a href="tel:0285253037" class="text-blue-600 hover:underline">02 8525 3037</a></li>
+            <li><strong>Address:</strong> <a href="https://maps.google.com/?q=5+Lopez+Jaena+Street,+1803+Marikina+City,+Philippines" target="_blank" class="text-blue-600 hover:underline">5 Lopez Jaena Street, 1803 Marikina City, Philippines</a></li>
+        </ul>
+
+        <h3 class="text-lg font-semibold text-gray-800 pt-2">Marikina City Emergency Hotlines</h3>
+        <ul class="list-disc list-inside space-y-2">
+            <li><strong>Marikina Rescue 161 Hotline:</strong> 8-646-2436 to 38 </br> 8-646-0427 </br> 7-273-6563</li>
+            <li><strong>Mobile Numbers:</strong>
+                <ul class="list-disc list-inside ml-5 space-y-1">
+                    <li>0917-584-2168 (Globe)</li>
+                    <li>0917-804-6352 (Globe)</li>
+                    <li>0928-559-3341 (Smart)</li>
+                </ul>
+            </li>
+            <li><strong>Email:</strong> <a href="mailto:drrmo.marikinacity@gmail.com" class="text-blue-600 hover:underline">drrmo.marikinacity@gmail.com</a></li>
+            <li><strong>Facebook Messenger:</strong> <a href="https://www.facebook.com/messages/t/349166318514092" target="_blank" class="text-blue-600 hover:underline">Reskyu Onesixone</a></li>
+            <li><strong>Facebook Account:</strong> <a href="https://www.facebook.com/MarikinaRescue161" target="_blank" class="text-blue-600 hover:underline">Marikina City Rescue 161</a></li>
+        </ul>
+    </div>
+</template>
+
+
+<!-- 2. Generic Modal Structure -->
+<div id="info-modal" class="fixed inset-0 z-[100] hidden bg-black bg-opacity-60 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col modal-animate">
+        <div class="flex items-center justify-between p-4 border-b">
+            <h2 id="modal-title" class="text-xl font-semibold text-gray-800"></h2>
+            <button id="modal-close-btn" class="text-gray-500 hover:text-red-500 text-3xl font-bold">&times;</button>
+        </div>
+        <div id="modal-content-body" class="p-6 overflow-y-auto">
+            <!-- Content will be injected here -->
+        </div>
+    </div>
+</div>
+
+<!-- 3. Bottom Right Links -->
+<div class="hidden md:flex fixed bottom-4 right-4 z-[90] gap-4">
+    <button id="about-link" class="text-xs text-white hover:text-orange-500 hover:underline">About</button>
+    <button id="privacy-link" class="text-xs text-white hover:text-orange-500 hover:underline">Privacy</button>
+    <button id="contact-link" class="text-xs text-white hover:text-orange-500 hover:underline">Contact</button>
+</div>
+
+<!-- 4. JavaScript to Power the Modal -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('info-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContentBody = document.getElementById('modal-content-body');
+        const closeBtn = document.getElementById('modal-close-btn');
+
+        // Desktop Links
+        const aboutLink = document.getElementById('about-link');
+        const privacyLink = document.getElementById('privacy-link');
+        const contactLink = document.getElementById('contact-link');
+
+        // Mobile Links
+        const aboutLinkMobile = document.getElementById('about-link-mobile');
+        const privacyLinkMobile = document.getElementById('privacy-link-mobile');
+        const contactLinkMobile = document.getElementById('contact-link-mobile');
+
+        function openModal(title, templateId) {
+            if (!modal || !modalTitle || !modalContentBody) return;
+
+            const template = document.getElementById(templateId);
+            if (!template) {
+                modalContentBody.innerHTML = '<p class="text-center text-red-500">Content could not be found.</p>';
+            } else {
+                modalContentBody.innerHTML = template.innerHTML;
+            }
+
+            modalTitle.textContent = title;
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        // Add listeners for both desktop and mobile buttons
+        if (aboutLink) aboutLink.addEventListener('click', () => openModal('About e-Serbisyong Tañong', 'about-content'));
+        if (aboutLinkMobile) aboutLinkMobile.addEventListener('click', () => openModal('About e-Serbisyong Tañong', 'about-content'));
+
+        if (privacyLink) privacyLink.addEventListener('click', () => openModal('Privacy Policy', 'privacy-content'));
+        if (privacyLinkMobile) privacyLinkMobile.addEventListener('click', () => openModal('Privacy Policy', 'privacy-content'));
+        
+        if (contactLink) contactLink.addEventListener('click', () => openModal('Contact Information', 'contact-content'));
+        if (contactLinkMobile) contactLinkMobile.addEventListener('click', () => openModal('Contact Information', 'contact-content'));
+
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "Escape" && !modal.classList.contains('hidden')) closeModal();
+        });
+    });
+</script>
+<!-- Edit Profile Modal -->
+<div id="editProfileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative modal-animate">
+      <button onclick="closeEditModal()" class="absolute top-3 right-4 text-gray-400 hover:text-orange-400 text-2xl font-bold" aria-label="Close">&times;</button>
+      <div class="text-xl font-semibold text-gray-900 mb-4">Edit Profile</div>
+      <form class="flex flex-col gap-4 w-full" id="profileForm">
+          <label class="text-base font-medium text-gray-700 mb-1">First Name
+              <input type="text" id="firstname" class="w-full px-4 py-2 border border-gray-200 rounded-lg text-base bg-gray-50">
+          </label>
+          <label class="text-base font-medium text-gray-700 mb-1">Middle Name
+              <input type="text" id="middlename" class="w-full px-4 py-2 border border-gray-200 rounded-lg text-base bg-gray-50">
+          </label>
+          <label class="text-base font-medium text-gray-700 mb-1">Last Name
+              <input type="text" id="lastname" class="w-full px-4 py-2 border border-gray-200 rounded-lg text-base bg-gray-50">
+          </label>
+          <label class="text-base font-medium text-gray-700 mb-1">Email Address
+              <input type="email" id="email" disabled class="w-full px-4 py-2 border border-gray-200 rounded-lg text-base bg-gray-50">
+          </label>
+          <label class="text-base font-medium text-gray-700 mb-1">Age
+              <input type="number" id="age" min="0" class="w-full px-4 py-2 border border-gray-200 rounded-lg text-base bg-gray-50">
+          </label>
+          <label class="text-base font-medium text-gray-700 mb-1">Sex
+              <select id="sex" class="w-full px-4 py-2 border border-gray-200 rounded-lg text-base bg-gray-50">
+                  <option value="">Select</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Other</option>
+              </select>
+          </label>
+          <label class="text-base font-medium text-gray-700 mb-1">Home Address
+              <input type="text" id="address" class="w-full px-4 py-2 border border-gray-200 rounded-lg text-base bg-gray-50">
+          </label>
+          <label class="text-base font-medium text-gray-700 mb-1">Phone Number
+              <input type="tel" id="phone" maxlength="11" pattern="[0-9]{11}" class="w-full px-4 py-2 border border-gray-200 rounded-lg text-base bg-gray-50" required>
+              <span class="text-xs text-gray-500 mt-1 block">Enter a valid 11-digit phone number.</span>
+          </label>
+          <!-- Add attachment button for Barangay ID -->
+          <label class="text-base font-medium text-gray-700 mb-1">Barangay ID Attachment
+              <input type="file" id="barangayIdAttachment" accept="image/*" class="w-full px-4 py-2 border border-gray-200 rounded-lg text-base bg-gray-50">
+              <span class="text-xs text-gray-500 mt-1 block">Upload your Barangay ID (image only: JPG, PNG, etc.)</span>
+          </label>
+          <div class="flex gap-2 mt-2">
+            <button type="button" onclick="closeEditModal()" class="flex-1 px-4 py-3 rounded-lg bg-gray-100 text-gray-700 font-semibold text-base transition hover:bg-gray-200">Cancel</button>
+            <button type="submit" class="flex-1 px-4 py-3 rounded-lg bg-orange-400 text-white font-semibold text-base transition hover:bg-orange-300">Submit Profile</button>
+          </div>
+      </form>
+  </div>
+</div>
+<div id="successModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm flex flex-col items-center relative modal-animate">
+    <svg class="w-14 h-14 text-green-500 mb-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="#dcfce7"/>
+      <polyline points="7 13 10 16 17 8" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div id="successModalTitle" class="text-lg font-semibold text-gray-800 mb-1"></div>
+    <div id="successModalDescription" class="text-sm text-gray-500 mb-4 text-center"></div>
+    <button onclick="closeSuccessModal()" class="bg-green-500 text-white px-5 py-2 rounded-lg font-medium hover:bg-green-400 transition">OK</button>
+  </div>
+</div>
+<!-- View Appointment Modal -->
+<div id="viewAppointmentModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative modal-animate">
+    <button onclick="closeViewAppointmentModal()" class="absolute top-3 right-4 text-gray-400 hover:text-orange-400 text-2xl font-bold" aria-label="Close">&times;</button>
+    <div class="text-xl font-semibold text-gray-900 mb-4">Appointment Details</div>
+    <div id="appointmentDetailsContent" class="flex flex-col gap-4 w-full">
+      <!-- Appointment details will be injected here -->
+    </div>
+    <div class="flex gap-2 mt-6">
+      <button type="button" onclick="closeViewAppointmentModal()" class="flex-1 px-4 py-3 rounded-lg bg-gray-100 text-gray-700 font-semibold text-base transition hover:bg-gray-200">Close</button>
+    </div>
+  </div>
+</div>
+<!-- Edit/View Service Request Modal -->
+<div id="editRequestModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
+  
+  <div class="bg-white rounded
+    <!-- Header stays visible -->
+    <div class="flex items-center justify-between px-6 py-4 border-b">
+      <div class="text-xl font-semibold text-gray-900">Edit Service Request</div>
+      <button onclick="closeEditRequestModal()" class="text-gray-400 hover:text-orange-400 text-2xl font-bold" aria-label="Close">&times;</button>
+    </div>
+    <!-- Scrollable content area -->
+    <div class="modal-scroll-inner px-6 py-4">
+      <form id="editRequestForm" class="flex flex-col gap-4 w-full"></form>
+    </div>
+    <!-- Optional footer (keeps buttons visible) -->
+    <div class="px-6 py-3 border-t text-right">
+      <!-- Buttons populated by form or kept empty; form can include its own buttons -->
+    </div>
+  </div>
+</div>
+<!-- Dropdown JS (put before </body>) -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+      if (typeof fetchUserProfile === 'function') fetchUserProfile();
+      //
+      // CHANGE THIS LINE:
+      // if (typeof fetchUserServiceRequests === 'function') fetchUserServiceRequests();
+      //
+      // TO THIS:
+      if (typeof fetchAllUserRequests === 'function') fetchAllUserRequests();
+      //
+      if (typeof showUserGreet === 'function') showUserGreet();
+      if (typeof fetchNotificationCount === 'function') fetchNotificationCount();
+    } else {
+      localStorage.removeItem('user');
+      window.location.href = 'Login.html';
+    }
+  });
+});
+</script>
+<script>
+
+  
+    // Add this code to a <script> tag in Profile.html
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            // Remove any character that is not a number
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+    }
+});
+    // Firebase config is already initialized above; do not redeclare or re-initialize here.
+
+    // Get user from localStorage
+    function getUser() {
+        return JSON.parse(localStorage.getItem('user')) || null;
+    }
+    function setUser(user) {
+        localStorage.setItem('user', JSON.stringify(user));
+    }
+
+    // Fetch user profile from Firebase
+    function fetchUserProfile() {
+    const user = firebase.auth().currentUser;
+    if (user) {
+  firebase.database().ref('users/' + user.uid).on('value', snapshot => {
+  const data = snapshot.val() || {};
+
+  // Merge user data
+  const merged = {
+    uid: user.uid,
+    firstname: data.firstname || "",
+    middlename: data.middlename || "",
+    lastname: data.lastname || "",
+    fullname: `${data.firstname || ""} ${data.middlename || ""} ${data.lastname || ""}`,
+    email: user.email || "",
+    age: data.age || "",
+    sex: data.sex || "",
+    address: data.address || "",
+    phone: data.phone || "",
+    verificationStatus: data.verificationStatus || "Unverified"
+  };
+
+  // 🔥 Fetch verification info (merge from userVerification node)
+  firebase.database().ref('userVerification/' + user.uid).once('value').then(verifySnap => {
+    const verifyData = verifySnap.val();
+    if (verifyData && verifyData.verificationStatus) {
+      merged.verificationStatus = verifyData.verificationStatus;
+    }
+    setUser(merged);
+    renderProfileInfo();
+    showUserGreet();
+  });
+});
+
+    }
+}
+    function renderProfileInfo() {
+        const users = getUser() || {};
+        document.getElementById('profileInfo').innerHTML = `
+            <div class="flex flex-col gap-1">
+                <div class="text-sm text-gray-500">First Name</div>
+                <div class="font-medium text-gray-900">${users.firstname || ''}</div>
+            </div>
+            <div class="flex flex-col gap-1">
+                <div class="text-sm text-gray-500">Middle Name</div>
+                <div class="font-medium text-gray-900">${users.middlename || ''}</div>
+            </div>
+            <div class="flex flex-col gap-1">
+                <div class="text-sm text-gray-500">Last Name</div>
+                <div class="font-medium text-gray-900">${users.lastname || ''}</div>
+            </div>
+            <div class="flex flex-col gap-1">
+                <div class="text-sm text-gray-500">Email Address</div>
+                <div class="font-medium text-gray-900">${users.email || ''}</div>
+            </div>
+            <div class="flex flex-col gap-1">
+                <div class="text-sm text-gray-500">Age</div>
+                <div class="font-medium text-gray-900">${users.age || ''}</div>
+            </div>
+            <div class="flex flex-col gap-1">
+                <div class="text-sm text-gray-500">Sex</div>
+                <div class="font-medium text-gray-900">${users.sex || ''}</div>
+            </div>
+            <div class="flex flex-col gap-1">
+                <div class="text-sm text-gray-500">Home Address</div>
+                <div class="font-medium text-gray-900">${users.address || ''}</div>
+            </div>
+            <div class="flex flex-col gap-1">
+                <div class="text-sm text-gray-500">Phone Number</div>
+                <div class="font-medium text-gray-900">${users.phone || ''}</div>
+            </div>
+        `;
+    }
+    // Show the Edit Profile modal with current user info
+function showEditModal() {
+    const users = getUser() || {};
+    document.getElementById('firstname').value = users.firstname || '';
+    document.getElementById('middlename').value = users.middlename || '';
+    document.getElementById('lastname').value = users.lastname || '';
+    document.getElementById('email').value = users.email || '';
+    document.getElementById('age').value = users.age || '';
+    document.getElementById('sex').value = users.sex || '';
+    document.getElementById('address').value = users.address || '';
+    document.getElementById('phone').value = users.phone || '';
+    document.getElementById('editProfileModal').style.display = 'flex';
+}
+
+// Hide the Edit Profile modal
+function closeEditModal() {
+    document.getElementById('editProfileModal').style.display = 'none';
+}
+
+// Profile form submit handler: require Barangay ID image
+document.getElementById('profileForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const user = getUser();
+    if (!user || !user.uid) {
+        alert('User not found. Please log in again.');
+        return;
+    }
+
+    // Get updated values from the form
+    const updated = {
+        firstname: document.getElementById('firstname').value,
+        middlename: document.getElementById('middlename').value,
+        lastname: document.getElementById('lastname').value,
+        email: document.getElementById('email').value,
+        age: document.getElementById('age').value,
+        sex: document.getElementById('sex').value,
+        address: document.getElementById('address').value,
+        phone: document.getElementById('phone').value,
+        verificationStatus: 'Pending'
+    };
+
+    // Handle Barangay ID attachment
+    const barangayIdFile = document.getElementById('barangayIdAttachment').files[0];
+    if (barangayIdFile) {
+        if (!barangayIdFile.type.startsWith('image/')) {
+            alert('Only image files are allowed for Barangay ID.');
+            return;
+        }
+        try {
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const base64String = e.target.result;
+                updated.barangayIdBase64 = base64String;
+                await firebase.database().ref('userVerification/' + user.uid).set({
+                    ...updated,
+                    barangayIdBase64: base64String,
+                    submittedAt: new Date().toISOString()
+                });
+
+                await createVerificationNotification(user.uid);
+                closeEditModal();
+                showSuccessModal(
+                    'Submission Received!',
+                    'Your submission of your new profile is being reviewed by the Admin.'
+                );
+            };
+            reader.onerror = function(err) {
+                throw err;
+            };
+            reader.readAsDataURL(barangayIdFile);
+            return;
+        } catch (error) {
+            alert('Error converting Barangay ID: ' + error.message);
+            return;
+        }
+    } else {
+        // Require an image upload for verification
+        alert('Please upload valid ID to verify your account');
+        return;
+    }
+});
+
+// Show the success modal after saving profile
+function showSuccessModal(title, description) {
+    // Check if the notification modal already exists
+    let notif = document.getElementById('requestNotifModal');
+    if (notif) notif.remove(); // Remove the existing modal if it exists
+
+    // Create a new notification modal
+    notif = document.createElement('div');
+    notif.id = 'requestNotifModal';
+    Object.assign(notif.style, {
+        position: 'fixed',
+        top: 0, left: 0, width: '100vw', height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 99999,
+        background: 'rgba(0,0,0,0.18)',
+        backdropFilter: 'blur(6px)'
+    });
+
+    // Inner container
+    const inner = document.createElement('div');
+    Object.assign(inner.style, {
+        background: '#fff',
+        borderRadius: '1.1rem',
+        boxShadow: '0 8px 32px rgba(31,38,135,0.18)',
+        padding: '2.2rem 2.6rem',
+        minWidth: '280px',
+        maxWidth: '90vw',
+        textAlign: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '1.2rem'
+    });
+
+    // Title
+    const titleEl = document.createElement('div');
+    titleEl.textContent = title || 'Your request has been submitted!';
+    Object.assign(titleEl.style, {
+        fontWeight: 'bold',
+        fontSize: '1.3rem',
+        marginBottom: '0.5rem'
+    });
+
+    // GIF
+    const gif = document.createElement('img');
+    gif.src = 'submittedgif.gif';
+    gif.alt = 'Request Submitted';
+    Object.assign(gif.style, {
+        width: '200px',
+        height: '200px',
+        marginTop: '1rem'
+    });
+
+    // Additional message
+    const messageEl = document.createElement('div');
+    messageEl.textContent = 'Please wait for the admin to review the changes. A notification will be sent to your account when there is an update.';
+    Object.assign(messageEl.style, {
+        fontSize: '1rem',
+        color: '#555',
+        marginTop: '1rem',
+        textAlign: 'center'
+    });
+
+    // Exit button
+    const exitBtn = document.createElement('button');
+    exitBtn.textContent = 'Exit';
+    Object.assign(exitBtn.style, {
+        background: '#d97706',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '0.7rem',
+        fontWeight: '500',
+        fontSize: '1rem',
+        padding: '0.7rem 2.2rem',
+        marginTop: '0.5rem',
+        cursor: 'pointer',
+        transition: 'opacity 0.18s'
+    });
+
+    exitBtn.onclick = function () {
+        notif.remove();
+    };
+
+    inner.appendChild(titleEl);
+    inner.appendChild(gif);
+    inner.appendChild(messageEl); // Add the message below the GIF
+    inner.appendChild(exitBtn);
+    notif.appendChild(inner);
+    document.body.appendChild(notif);
+}
+function closeSuccessModal() {
+    document.getElementById('successModal').classList.add('hidden');
+}
+
+    function logout() {
+        localStorage.removeItem('user');
+        window.location.href = 'Login.html';
+    }
+
+    function fetchNotificationCount() {
+    const user = firebase.auth().currentUser || getUser();
+    const uid = user && user.uid ? user.uid : null;
+    const badge = document.getElementById('notifBadge');
+    if (!uid || !badge) return;
+
+    // detach previous listener if any
+    if (window._profileNotifRef) {
+        try { window._profileNotifRef.off(); } catch (e) { /* ignore */ }
+    }
+
+    const ref = firebase.database().ref('notifications').orderByChild('userId').equalTo(uid);
+    ref.on('value', snapshot => {
+        const data = snapshot.val() || {};
+        let unread = 0;
+        Object.values(data).forEach(n => {
+            if (!n) return;
+            if (n.read === false || n.read === undefined || n.read === null) unread++;
+        });
+        if (unread > 0) {
+            badge.textContent = unread > 99 ? '99+' : unread;
+            badge.classList.remove('hidden');
+            badge.setAttribute('title', `${unread} unread notification${unread > 1 ? 's' : ''}`);
+            badge.setAttribute('aria-label', `${unread} unread notifications`);
+            badge.setAttribute('aria-hidden', 'false');
+        } else {
+            badge.classList.add('hidden');
+            badge.removeAttribute('title');
+            badge.setAttribute('aria-hidden', 'true');
+        }
+    }, err => {
+        console.error('fetchNotificationCount error', err);
+    });
+
+    window._profileNotifRef = ref;
+}
+
+// cleanup listener on logout
+const _origLogoutProfile = window.logout;
+window.logout = function() {
+    if (window._profileNotifRef) {
+        try { window._profileNotifRef.off(); } catch (e) {}
+        window._profileNotifRef = null;
+    }
+    if (typeof _origLogoutProfile === 'function') return _origLogoutProfile();
+    localStorage.removeItem('user');
+    window.location.href = 'Login.html';
+};
+    // Add this function to your main <script> tag in Profile.html
+async function createVerificationNotification(userId) {
+    if (!userId) return;
+
+    const notification = {
+        userId: userId,
+        title: "Profile Submission Received",
+        message: "Your profile update has been submitted for verification. We will notify you once the review is complete.",
+        timestamp: new Date().toISOString(),
+        read: false,
+        type: 'verification' // Add a type for potential future use
+    };
+
+    try {
+        await firebase.database().ref('notifications').push(notification);
+    } catch (error) {
+        console.error("Failed to create verification notification:", error);
+    }
+}
+    // NEW: Function to fetch both service and appointment requests
+function fetchAllUserRequests() {
+  const user = firebase.auth().currentUser;
+  if (!user) return;
+
+  const servicePromise = fetchServiceRequests(user.uid);
+  const appointmentPromise = fetchAppointmentRequests(user.uid);
+  const verificationPromise = fetchVerificationRequest(user.uid); // <-- ADDED THIS
+
+  // Add the new promise to the array
+  Promise.all([servicePromise, appointmentPromise, verificationPromise])
+    .then(([services, appointments, verifications]) => { // <-- ADDED 'verifications'
+      // Combine all three arrays
+      const allRequests = [...services, ...appointments, ...verifications]; // <-- ADDED 'verifications'
+
+      // Sort all requests by timestamp/createdAt in descending order (newest first)
+      allRequests.sort((a, b) => {
+        const dateA = a.timestamp || a.createdAt;
+        const dateB = b.timestamp || b.createdAt;
+        return new Date(dateB) - new Date(dateA);
+      });
+
+      renderAllRequests(allRequests);
+    })
+    .catch(err => {
+      console.error('Error fetching requests:', err);
+      document.getElementById('serviceRequestsList').innerHTML =
+        "<div class='text-red-500 text-center'>Could not load requests.</div>";
+    });
+}
+
+// NEW: Fetches service requests and returns a Promise
+function fetchServiceRequests(uid) {
+  return firebase.database().ref('serviceRequestsV2')
+    .orderByChild('uid')
+    .equalTo(uid)
+    .once('value')
+    .then(snap => {
+      const requests = [];
+      snap.forEach(child => {
+        const val = child.val();
+        val._key = child.key;
+        val.type = 'service'; // Add a type identifier
+        requests.push(val);
+      });
+      return requests;
+    });
+}
+function fetchVerificationRequest(uid) {
+  return firebase.database().ref('userVerification/' + uid).once('value')
+    .then(snap => {
+      const request = snap.val();
+      if (!request || !request.submittedAt) {
+        return []; // Return an empty array if no request or timestamp exists
+      }
+
+      // Create a standardized object to merge with other requests
+      const verificationRequest = {
+        _key: uid, // Use UID as a unique key for this item
+        type: 'verification', // Add a type identifier
+        serviceType: 'Profile Verification Request', // This is the title that will be displayed
+        status: request.verificationStatus || 'Pending',
+        timestamp: request.submittedAt, // Use submittedAt for sorting
+        rejectionReason: request.rejectionReason || null
+      };
+      
+      return [verificationRequest]; // Return as an array to be merged
+    });
+}
+// NEW: Fetches appointment requests and returns a Promise
+function fetchAppointmentRequests(uid) {
+  return firebase.database().ref('appointments')
+    .orderByChild('uid')
+    .equalTo(uid)
+    .once('value')
+    .then(snap => {
+      const appointments = [];
+      snap.forEach(child => {
+        const val = child.val();
+        val._key = child.key;
+        val.type = 'appointment'; // Add a type identifier
+        // Normalize data to have common fields for display
+        val.serviceType = 'Appointment Request';
+        val.timestamp = val.createdAt;
+        appointments.push(val);
+      });
+      return appointments;
+    });
+}
+
+// diagnostic helper
+function diagnoseServiceRequests() {
+  console.log('running diagnoseServiceRequests...');
+  firebase.database().ref('serviceRequestsV2').limitToFirst(1).get()
+    .then(snap => { snap.forEach(ch => console.log(ch.key, ch.val())); })
+    .catch(err => console.error('limitToFirst error', err));
+}
+
+    document.addEventListener('DOMContentLoaded', function() {
+      firebase.auth().onAuthStateChanged(function(user) {
+        // Removed verbose console.log of user id and email for privacy
+        if (user) {
+          if (typeof fetchUserProfile === 'function') fetchUserProfile();
+          if (typeof fetchUserServiceRequests === 'function') fetchUserServiceRequests();
+          if (typeof showUserGreet === 'function') showUserGreet();
+          if (typeof fetchNotificationCount === 'function') fetchNotificationCount();
+          // diagnoseServiceRequests(); // optional debug
+        } else {
+          localStorage.removeItem('user');
+          window.location.href = 'Login.html';
+        }
+      });
+    });
+    </script>
+<script>
+function openViewRequestModal(key) {
+  firebase.database().ref('serviceRequestsV2/' + key).once('value').then(snapshot => {
+    
+    const req = snapshot.val();
+    console.log('openViewRequestModal req:', key, req); // debug: inspect stored fields (revisionNote, etc.)
+    if (!req) return;
+    // allow editing only when admin set the request to "For Revision"
+    const canEdit = req.status === "For Revision";
+
+    // Build details
+    let detailsHtml = '';
+    if (req.formData && typeof req.formData === 'object') {
+      detailsHtml = Object.entries(req.formData).map(([k, v]) =>
+        `<div class="flex flex-col gap-0.5 mb-2">
+          <span class="text-xs text-gray-500">${formatFieldName(k)}</span>
+          <span class="text-sm text-gray-900 font-medium">${escapeHtml(v)}</span>
+        </div>`
+      ).join('');
+    } else {
+      // Fallback: show all top-level fields except known meta fields
+      const skip = ['_key', 'attachments', 'status', 'timestamp', 'serviceType', 'serviceKey', 'uid', 'userFullname', 'rejectionReason', 'revisionNote'];
+      detailsHtml = Object.entries(req)
+        .filter(([k, v]) => !skip.includes(k) && typeof v !== 'object')
+        .map(([k, v]) =>
+          `<div class="flex flex-col gap-0.5 mb-2">
+            <span class="text-xs text-gray-500">${formatFieldName(k)}</span>
+            <span class="text-sm text-gray-900 font-medium">${escapeHtml(v)}</span>
+          </div>`
+        ).join('');
+    }
+
+    // attachments detection: check multiple places
+    const attachments = extractAttachments(req);
+
+    // Build attachments HTML
+    let attachmentsHtml = '';
+    if (attachments && attachments.length > 0) {
+      attachmentsHtml = `
+        <div class="flex flex-col gap-0.5 mb-2">
+          <span class="text-xs text-gray-500">Attachments</span>
+          <div class="flex flex-wrap gap-3 mt-1">
+            ${attachments.map((a, i) => {
+              const str = String(a);
+              const isDataImage = str.startsWith('data:image');
+              const isUrl = /^https?:\/\//.test(str);
+              const isImageUrl = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(str);
+
+              if (isDataImage || (isUrl && isImageUrl)) {
+                const src = escapeHtml(str);
+                const label = `Attachment ${i + 1}`;
+                return `<div class="flex flex-col items-start" style="max-width:140px;">
+                        <img src="${src}" alt="attachment-${i}" class="h-24 rounded shadow border object-contain" style="max-width:120px;">
+                        <div class="attach-label text-xs text-gray-700 mt-1">${escapeHtml(label)}</div>
+                      </div>`;
+              } else {
+                const label = maskFilename(str);
+                return `<div class="flex items-center justify-center px-3 py-2 border rounded bg-gray-50" style="max-width:140px;">
+                        <div class="attach-label text-sm text-gray-900">${escapeHtml(label)}</div>
+                      </div>`;
+              }
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // admin note detection: accept multiple possible keys and also fallback to rejectionReason
+    const adminNoteRaw = (req.revisionNote && String(req.revisionNote).trim()) ? req.revisionNote
+      : (req.revision_note && String(req.revision_note).trim()) ? req.revision_note
+      : (req.adminNote && String(req.adminNote).trim()) ? req.adminNote
+      : (req.admin_note && String(req.admin_note).trim()) ? req.admin_note
+      : (req.rejectionReason && String(req.rejectionReason).trim()) ? req.rejectionReason
+      : (req.rejection_reason && String(req.rejection_reason).trim()) ? req.rejection_reason
+      : '';
+
+    let revisionNoteHtml = '';
+    if (adminNoteRaw) {
+      const label = req.status === 'For Revision' ? 'Requested changes / Revision note:' : (req.status === 'Rejected' ? 'Reason for rejection:' : 'Admin note:');
+      revisionNoteHtml = `
+        <div class="mt-2 p-3 bg-yellow-50 border border-yellow-100 rounded text-sm text-gray-800">
+          <strong>${escapeHtml(label)}</strong>
+          <div class="mt-1 text-sm">${escapeHtml(adminNoteRaw)}</div>
+        </div>
+      `;
+    }
+
+    // rejection block (keeps previous behavior)
+    let rejectionHtml = '';
+    if (req.status === 'Rejected' && (req.rejectionReason || req.revisionNote)) {
+      const rr = req.rejectionReason || req.revisionNote || '';
+      rejectionHtml = `
+        <div class="mt-2">
+          <label class="block text-xs font-medium text-red-700 mb-1">Reason for Rejection</label>
+          <textarea class="w-full rounded-lg border border-red-300 bg-red-50 text-red-700 px-3 py-2 text-xs resize-none focus:outline-none" rows="2" disabled>${escapeHtml(rr)}</textarea>
+          <div class="mt-1 text-xs text-red-600 font-semibold flex items-center gap-1">
+            <svg class="w-4 h-4 inline-block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 5.636l-1.414-1.414A9 9 0 105.636 18.364l1.414 1.414A9 9 0 1018.364 5.636z"></svg>
+            This request was rejected by the admin.
+          </div>
+        </div>
+      `;
+    }
+
+    // ensure modal exists or create it
+    let modal = document.getElementById('viewRequestModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'viewRequestModal';
+      modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/40';
+      modal.innerHTML = `
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative modal-animate" id="viewRequestModalContent">
+          <button onclick="closeViewRequestModal()" class="absolute top-3 right-4 text-gray-400 hover:text-orange-400 text-2xl font-bold" aria-label="Close">&times;</button>
+          <div id="viewRequestModalBody" class="modal-scroll-inner px-6 py-4"></div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    // render modal body: include revision/admin note above details
+    document.getElementById('viewRequestModalBody').innerHTML = `
+      <div class="text-xl font-semibold text-gray-900 mb-2">${escapeHtml(req.serviceType || '')}</div>
+      <div class="text-gray-700 text-sm mb-2"><span class="font-medium">Date:</span> ${req.timestamp ? new Date(req.timestamp).toLocaleString() : ''}</div>
+      <div class="text-gray-700 flex items-center gap-2 text-sm mb-4">
+        <span class="font-medium">Status:</span>
+        ${statusBadge(req.status)}
+      </div>
+      ${revisionNoteHtml}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 mb-2">
+        ${detailsHtml}
+        ${attachmentsHtml}
+      </div>
+      ${rejectionHtml}
+      <div class="flex gap-2 mt-6">
+        ${canEdit ? `<button type="button" onclick="openViewRequestModal();openEditRequestModal('${key}')" class="flex-1 px-4 py-3 rounded-lg bg-orange-400 text-white font-semibold text-base transition hover:bg-orange-300">Edit</button>` : ''}
+        <button type="button" onclick="closeViewRequestModal()" class="flex-1 px-4 py-3 rounded-lg bg-gray-100 text-gray-700 font-semibold text-base transition hover:bg-gray-200">Close</button>
+      </div>
+    `;
+
+    // Remove legacy large .badge elements (keep compact status-badge)
+    (function removeLegacyBadges() {
+      const body = document.getElementById('viewRequestModalBody');
+      if (!body) return;
+      body.querySelectorAll('.badge').forEach(el => {
+        if (!el.classList.contains('status-badge')) el.remove();
+      });
+    })();
+
+    modal.classList.remove('hidden');
+  }).catch(err => {
+    console.error('openViewRequestModal error:', err);
+  });
+}
+
+function closeViewRequestModal() {
+  const modal = document.getElementById('viewRequestModal');
+  if (modal) modal.classList.add('hidden');
+}
+</script>
+<script>
+function showUserGreet() {
+    const user = getUser();
+    const greetEl = document.getElementById('userGreet');
+    if (greetEl && user && user.firstname) {
+        greetEl.textContent = `Hi, ${user.firstname}!`;
+    } else if (greetEl && user && user.fullname) {
+        greetEl.textContent = `Hi, ${user.fullname.split(' ')[0]}!`;
+    } else if (greetEl) {
+        greetEl.textContent = "Hi, User!";
+    }
+}
+</script>
+<script>
+function getProfileCompletion(user) {
+  // List of required fields for completion
+  const requiredFields = [
+    { key: 'firstname', label: 'First Name' },
+    { key: 'middlename', label: 'Middle Name' },
+    { key: 'lastname', label: 'Last Name' },
+    { key: 'email', label: 'Email Address' },
+    { key: 'age', label: 'Age' },
+    { key: 'sex', label: 'Sex' },
+    { key: 'address', label: 'Home Address' },
+    { key: 'phone', label: 'Phone Number' }
+  ];
+  let filled = 0;
+  let missing = [];
+  requiredFields.forEach(field => {
+    if (user[field.key] && user[field.key].toString().trim() !== '') {
+      filled++;
+    } else {
+      missing.push(field.label);
+    }
+  });
+  const percent = Math.round((filled / requiredFields.length) * 100);
+  return { percent, missing, total: requiredFields.length, filled };
+}
+
+function renderProfileProgressBar() {
+  const user = getUser() || {};
+  const progress = getProfileCompletion(user);
+  const barColor = progress.percent === 100 ? 'bg-green-500' : progress.percent >= 75 ? 'bg-orange-400' : 'bg-gray-300';
+  document.getElementById('profileProgressBar').innerHTML = `
+    <div class="flex items-center gap-3 mb-1">
+      <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+        <div class="${barColor} h-4 rounded-full transition-all duration-300" style="width:${progress.percent}%"></div>
+      </div>
+      <span class="text-sm font-semibold text-gray-700">${progress.percent}% Complete</span>
+    </div>
+    ${progress.percent < 100 ? `
+      <div class="text-xs text-gray-500 mt-1">
+        <span class="font-medium">Missing:</span> ${progress.missing.map(m => `<span class="inline-block px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full mr-1">${m}</span>`).join('')}
+      </div>
+    ` : `<div class="text-xs text-green-600 mt-1 font-medium">Profile complete!</div>`}
+  `;
+}
+
+// Update renderProfileInfo to also call renderProfileProgressBar
+function renderProfileInfo() {
+  const users = getUser() || {};
+  // Determine verification status
+  let verificationStatus = "Unverified";
+  let verificationClass = "badge badge-error";
+  if (users.barangayId) {
+    if (users.barangayIdStatus === "Verified") {
+      verificationStatus = "Verified";
+      verificationClass = "badge badge-success";
+    } else if (users.barangayIdStatus === "Pending" || !users.barangayIdStatus) {
+      verificationStatus = "Pending Verification";
+      verificationClass = "badge badge-warning";
+    }
+  }
+  document.getElementById('profileInfo').innerHTML = `
+    <div class="flex flex-col gap-1">
+      <div class="text-sm text-gray-500">First Name</div>
+      <div class="font-medium text-gray-900">${users.firstname || ''}</div>
+    </div>
+    <div class="flex flex-col gap-1">
+      <div class="text-sm text-gray-500">Middle Name</div>
+      <div class="font-medium text-gray-900">${users.middlename || ''}</div>
+    </div>
+    <div class="flex flex-col gap-1">
+      <div class="text-sm text-gray-500">Last Name</div>
+      <div class="font-medium text-gray-900">${users.lastname || ''}</div>
+    </div>
+    <div class="flex flex-col gap-1">
+      <div class="text-sm text-gray-500">Email Address</div>
+      <div class="font-medium text-gray-900">${users.email || ''}</div>
+    </div>
+    <div class="flex flex-col gap-1">
+      <div class="text-sm text-gray-500">Age</div>
+      <div class="font-medium text-gray-900">${users.age || ''}</div>
+    </div>
+    <div class="flex flex-col gap-1">
+      <div class="text-sm text-gray-500">Sex</div>
+      <div class="font-medium text-gray-900">${users.sex || ''}</div>
+    </div>
+    <div class="flex flex-col gap-1">
+      <div class="text-sm text-gray-500">Home Address</div>
+      <div class="font-medium text-gray-900">${users.address || ''}</div>
+    </div>
+    <div class="flex flex-col gap-1">
+      <div class="text-sm text-gray-500">Phone Number</div>
+      <div class="font-medium text-gray-900">${users.phone || ''}</div>
+    </div>
+   <div class="flex flex-col gap-1">
+  <div class="text-sm text-gray-500">Verification Status</div>
+  ${statusBadge(users.verificationStatus)}
+</div>
+
+  `;
+  renderProfileProgressBar();
+}
+</script>
+<script>
+// NEW: Renders a combined list of services and appointments
+function renderAllRequests(requests) {
+  const container = document.getElementById('serviceRequestsList');
+  if (!container) return;
+  if (!requests || requests.length === 0) {
+    container.innerHTML = "<div class='text-gray-500 text-center col-span-full'>No service or appointment requests found.</div>";
+    return;
+  }
+
+  container.innerHTML = requests.map(req => {
+    if (req.type === 'verification') {
+      // --- Card for Verification Requests ---
+      return `
+        <div class="bg-gray-50 border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col justify-between">
+            <div>
+                <div class="font-bold text-base text-purple-600">${req.serviceType}</div>
+                <div class="text-sm text-gray-700 mt-1 flex items-center gap-2">
+                    <span class="font-medium">Status:</span> 
+                    ${statusBadge(req.status)}
+                </div>
+                <div class="text-xs text-gray-500 mt-1"><span class="font-medium">Date Submitted:</span> ${new Date(req.timestamp).toLocaleString()}</div>
+                ${req.status === 'Rejected' && req.rejectionReason ? `<p class="text-sm text-red-600 mt-2"><strong>Reason:</strong> ${req.rejectionReason}</p>` : ''}
+            </div>
+            <div class="mt-3 text-sm text-gray-500">
+                This is an automatic request generated from your profile submission. The status will be updated by an admin.
+            </div>
+        </div>
+    `;
+} else {
+    // --- Card for Service and Appointment Requests (existing logic) ---
+    const viewFunction = req.type === 'appointment'
+        ? `openViewAppointmentModal('${req._key}')`
+        : `openViewRequestModal('${req._key}')`;
+
+    return `
+        <div class="bg-gray-50 border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col justify-between transition hover:border-orange-300 hover:bg-white">
+            <div>
+                <div class="font-bold text-base text-orange-600">${req.serviceType}</div>
+                <div class="text-sm text-gray-700 mt-1"><span class="font-medium">Status:</span> ${statusBadge(req.status)}</div>
+                <div class="text-xs text-gray-500 mt-1"><span class="font-medium">Date:</span> ${req.timestamp ? new Date(req.timestamp).toLocaleString() : 'N/A'}</div>
+                ${req.type === 'appointment' ? `<p class="text-sm text-gray-600 mt-2 truncate"><strong>Reason:</strong> ${req.reason}</p>` : ''}
+            </div>
+            <button onclick="${viewFunction}" class="mt-3 w-full sm:w-auto self-start px-4 py-2 bg-orange-400 text-white rounded-lg text-sm font-semibold transition hover:bg-orange-500">
+                View Details
+            </button>
+        </div>
+    `;
+}
+  }).join('');
+}
+</script>
+<script>
+function formatFieldName(key) {
+  // Converts camelCase or snake_case to readable labels
+  if (!key) return '';
+  return key
+    .replace(/([A-Z])/g, ' $1')      // camelCase to spaces
+    .replace(/_/g, ' ')              // snake_case to spaces
+    .replace(/^./, str => str.toUpperCase()); // capitalize first letter
+}
+</script>
+<!-- Admin Verification Script (for admin profile page) -->
+<script>
+  // This script block is for the admin profile page to manage user verification
+  // It should be placed in the Profile.html file where admin can manage user profiles
+
+  // Firebase config (same as your Login/Register)
+  const firebaseConfig = {
+        apiKey: "AIzaSyCDT65vncku1avdYSxrCJCM_SE-gN2E2ok",
+        authDomain: "e-serbisyong-tanong.firebaseapp.com",
+        databaseURL: "https://e-serbisyong-tanong-default-rtdb.firebaseio.com",
+        projectId: "e-serbisyong-tanong",
+        storageBucket: "e-serbisyong-tanong.firebasestorage.app",
+        messagingSenderId: "147646033817",
+        appId: "1:147646033817:web:503ac4767a4774a4afad08",
+        measurementId: "G-3TDQYZTF1H"
+        };
+  function openViewAppointmentModal(key) {
+  const modal = document.getElementById('viewAppointmentModal');
+  const content = document.getElementById('appointmentDetailsContent');
+  content.innerHTML = '<div>Loading...</div>'; // Placeholder
+  modal.classList.remove('hidden');
+
+  firebase.database().ref('appointments/' + key).once('value').then(snapshot => {
+    const appt = snapshot.val();
+    if (!appt) {
+      content.innerHTML = '<div>Error: Appointment not found.</div>';
+      return;
+    }
+    content.innerHTML = `
+      <div class="flex flex-col">
+        <span class="text-sm text-gray-500">Status</span>
+        <span class="font-medium text-lg">${appt.status || 'Pending'}</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-sm text-gray-500">Date & Time</span>
+        <span class="font-medium text-lg">${appt.date} at ${appt.time}</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="text-sm text-gray-500">Reason for Appointment</span>
+        <p class="font-medium text-lg bg-gray-50 p-2 border rounded">${appt.reason}</p>
+      </div>
+    `;
+  });
+}
+
+function closeViewAppointmentModal() {
+  const modal = document.getElementById('viewAppointmentModal');
+  if (modal) modal.classList.add('hidden');
+}
+  // Initialize Firebase only if not already initialized (prevents "already exists" errors)
+  if (typeof firebase !== 'undefined' && (!firebase.apps || firebase.apps.length === 0)) {
+    firebase.initializeApp(firebaseConfig);
+  }
+
+  const db = firebase.database();
+  const auth = firebase.auth();
+
+  // Get userId from URL query parameter
+  const userId = new URLSearchParams(window.location.search).get('userId');
+
+  function loadUserProfile() {
+    if (!userId) {
+      // Not an admin view — nothing to load
+      return;
+    }
+
+    db.ref(`users/${userId}`).once('value').then(snapshot => {
+      const user = snapshot.val();
+      if (user) {
+        const userNameEl = document.getElementById('userName');
+        const userEmailEl = document.getElementById('userEmail');
+        const verificationStatusEl = document.getElementById('verificationStatus');
+        const markVerifiedBtn = document.getElementById('markVerifiedBtn');
+
+        if (userNameEl) userNameEl.textContent = user.fullname || 'N/A';
+        if (userEmailEl) userEmailEl.textContent = user.email || 'N/A';
+        if (verificationStatusEl) verificationStatusEl.textContent = user.verificationStatus || 'Unverified';
+
+        if (user.verificationStatus === 'Pending' && markVerifiedBtn) {
+          markVerifiedBtn.style.display = 'inline-block';
+        }
+      } else {
+        alert('User not found.');
+      }
+    }).catch(error => {
+      console.error('Error loading user profile:', error);
+      alert('Failed to load user profile.');
+    });
+  }
+
+  // Add event listener only when the element exists
+  const markVerifiedBtn = document.getElementById('markVerifiedBtn');
+  if (markVerifiedBtn) {
+    markVerifiedBtn.addEventListener('click', () => {
+      if (!userId) {
+        alert('No user specified.');
+        return;
+      }
+      if (confirm('Are you sure you want to mark this user as verified?')) {
+        db.ref(`users/${userId}`).update({ verificationStatus: 'Verified' })
+          .then(() => {
+            const verificationStatusEl = document.getElementById('verificationStatus');
+            if (verificationStatusEl) verificationStatusEl.textContent = 'Verified';
+            markVerifiedBtn.style.display = 'none';
+            alert('User marked as verified.');
+          })
+          .catch(error => {
+            console.error('Error updating verification status:', error);
+            alert('Failed to update verification status.');
+          });
+      }
+    });
+  }
+
+  // Load user profile on page load (only runs if userId present)
+  loadUserProfile();
+</script>
+<script>
+/* Helpers */
+function escapeHtml(str) {
+  return String(str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+}
+function readFilesAsBase64(files) {
+  const arr = Array.from(files || []);
+  return Promise.all(arr.map(file => new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onerror = () => rej(new Error('File read error'));
+    reader.onload = () => res(reader.result);
+    reader.readAsDataURL(file);
+  })));
+}
+
+// Status badge helper (matches AdminServices)
+function statusBadge(status) {
+  const colors = {
+    Pending: "bg-yellow-100 text-yellow-800",
+    "Under Review": "bg-indigo-100 text-indigo-800",
+    "For Revision": "bg-orange-100 text-orange-800",
+    Resubmitted: "bg-teal-100 text-teal-800",
+    "For Pickup": "bg-blue-100 text-blue-800",
+    Approved: "bg-green-100 text-green-800",
+    Verified: "bg-green-100 text-green-800",               // profile verification mapping
+    "Pending Verification": "bg-yellow-100 text-yellow-800",
+    Rejected: "bg-red-100 text-red-800"
+  };
+  const display = status === "For Pickup" ? "Ready for Pickup" : (status || "Pending");
+  // inline styles to force compact appearance and avoid legacy .badge overrides
+  const inline = "display:inline-flex;align-items:center;gap:0.35rem;font-size:0.7rem;font-weight:600;line-height:1;border-radius:9999px;padding:0.12rem 0.45rem;vertical-align:middle;box-sizing:border-box;";
+  return `<span class="status-badge px-2 py-1 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}" style="${inline}">${escapeHtml(display)}</span>`;
+}
+
+/* normalize attachments from various legacy shapes */
+function extractAttachments(req) {
+  if (!req) return [];
+  const candidates = [];
+
+  // direct arrays or object maps
+  if (Array.isArray(req.attachments)) candidates.push(...req.attachments);
+  else if (req.attachments && typeof req.attachments === 'object') candidates.push(...Object.values(req.attachments));
+
+  if (Array.isArray(req.files)) candidates.push(...req.files);
+  else if (req.files && typeof req.files === 'object') candidates.push(...Object.values(req.files));
+
+  // formData nested possibilities
+  if (req.formData && typeof req.formData === 'object') {
+    const fd = req.formData;
+    if (Array.isArray(fd.attachments)) candidates.push(...fd.attachments);
+    else if (fd.attachments && typeof fd.attachments === 'object') candidates.push(...Object.values(fd.attachments));
+    if (Array.isArray(fd.files)) candidates.push(...fd.files);
+    else if (fd.files && typeof fd.files === 'object') candidates.push(...Object.values(fd.files));
+    // common single-field names
+    ['attachment','file','fileUrl','fileURL','image','images'].forEach(k => {
+      if (fd[k]) candidates.push(fd[k]);
+    });
+  }
+
+  // fallback single-field keys on root
+  ['attachment','file','fileUrl','fileURL','image','images'].forEach(k => {
+    if (req[k]) candidates.push(req[k]);
+  });
+
+  // flatten, normalize objects to URL/base64, filter empties, dedupe
+  const flat = candidates.flat(Infinity).filter(Boolean).map(a => {
+    if (typeof a === 'object') {
+      if (a.url) return a.url;
+      if (a.downloadURL) return a.downloadURL;
+      if (a.base64) return a.base64;
+      // if object looks like firebase storage full metadata, try common fields
+      if (a.fullPath && a.bucket) return a.fullPath;
+      return JSON.stringify(a);
+    }
+    return String(a);
+  });
+
+  return Array.from(new Set(flat));
+}
+/* Revised: openEditRequestModal + closeEditRequestModal
+   - Allows uploading of multiple attachments
+   - Handles both existing and new attachments
+*/
+function openEditRequestModal(key) {
+  // Close the ViewRequestModal if it is open
+  closeViewRequestModal();
+
+  if (!key) return;
+  firebase.database().ref('serviceRequestsV2/' + key).once('value').then(snapshot => {
+    const req = snapshot.val();
+    if (!req) { alert('Request not found.'); return; }
+    const currentUser = firebase.auth().currentUser;
+    if (!currentUser || currentUser.uid !== req.uid) {
+      alert('You are not authorized to edit this request.');
+      return;
+    }
+     const modal = document.getElementById('editRequestModal');
+    modal.classList.remove('hidden');
+    // Only allow edit when the admin requested revision (status === 'For Revision')
+    const editable = req.status === 'For Revision';
+    if (!editable) { alert('This request cannot be edited at this time.'); return; }
+
+    const formData = (req.formData && typeof req.formData === 'object') ? { ...req.formData } : { ...req };
+    ['_key', 'uid', 'timestamp', 'status', 'attachments', 'serviceKey', 'serviceType'].forEach(k => delete formData[k]);
+
+const formEl = document.getElementById('editRequestForm');
+if (!formEl) return;
+
+// Detect existing attachments
+const existingAttachments = Array.isArray(req.attachments) ? req.attachments.slice() : [];
+
+// Build fields HTML
+const fieldsHtml = Object.entries(formData).map(([k, v]) => {
+  const label = k.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+  const val = v == null ? '' : escapeHtml(String(v));
+  return `
+    <label class="text-sm font-medium text-gray-700 mb-1">
+      ${escapeHtml(label)}
+      <input name="${escapeHtml(k)}" value="${val}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 mt-1" />
+    </label>
+  `;
+}).join('');
+
+// Build attachments HTML (preview existing attachments)
+let attachmentsHtml = '';
+if (existingAttachments.length > 0) {
+  attachmentsHtml = `
+    <div class="mb-2">
+      <div class="text-sm text-gray-500">Existing Attachments</div>
+      <div class="flex flex-wrap gap-3 mt-2">
+        ${existingAttachments.map((a, i) => {
+          const str = String(a || '');
+          const isDataImage = str.startsWith('data:image');
+          const isUrl = /^https?:\/\//.test(str);
+          const isImageUrl = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(str);
+          if (isDataImage || (isUrl && isImageUrl)) {
+            return `<div class="relative" style="max-width:120px;">
+                      <img src="${escapeHtml(str)}" class="h-24 rounded shadow border object-contain" style="max-width:120px;" alt="attachment-${i}">
+                      <button type="button" data-remove-index="${i}" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
+                    </div>`;
+          } else {
+            return `<div class="px-3 py-2 border rounded bg-gray-50 text-xs">${escapeHtml(str)}</div>`;
+          }
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// Render form HTML
+formEl.innerHTML = `
+  <div class="text-base font-semibold mb-2">${escapeHtml(req.serviceType || 'Edit Request')}</div>
+  ${fieldsHtml}
+  ${attachmentsHtml}
+  <div class="upload-label mt-4">
+    <input type="file" id="editAttachmentsInput" class="hidden" multiple accept="image/*" />
+    <div id="newImagePreviewContainer" class="flex gap-3 flex-wrap mt-2"></div>
+    <label for="editAttachmentsInput" class="flex-1 cursor-pointer block mt-3">
+      <div class="flex items-center justify-center h-12 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 transition">
+        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+        </svg>
+        <span class="ml-2 text-gray-700 text-base font-medium">Please attach requested documents</span>
+      </div>
+    </label>
+  </div>
+
+  <div class="mt-4 text-sm text-gray-500">
+    <span class="font-medium">Note:</span> If you have previously uploaded a Barangay ID, you can skip this step unless you want to update the attachment.
+  </div>
+
+  <!-- Added buttons so user can submit or cancel directly from modal -->
+  <div class="flex gap-2 mt-4">
+    <button type="button" onclick="closeEditRequestModal()" class="flex-1 px-4 py-3 rounded-lg bg-gray-100 text-gray-700 font-semibold text-base transition hover:bg-gray-200">Cancel</button>
+    <button type="submit" class="flex-1 px-4 py-3 rounded-lg bg-orange-400 text-white font-semibold text-base transition hover:bg-orange-300">Submit Resubmission</button>
+  </div>
+`;
+
+  // --- NEW: LOGIC FOR HANDLING NEW IMAGE UPLOADS AND PREVIEWS ---
+  const newFileInput = document.getElementById('editAttachmentsInput');
+  const newPreviewContainer = document.getElementById('newImagePreviewContainer');
+  let newUploadedFiles = []; // Array to store newly added File objects
+
+  if (newFileInput) {
+      newFileInput.addEventListener('change', function(e) {
+          const files = Array.from(e.target.files);
+          files.forEach(file => {
+              if (!newUploadedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                  newUploadedFiles.push(file);
+                  const reader = new FileReader();
+                  reader.onload = (event) => {
+                      const previewWrapper = document.createElement('div');
+                      previewWrapper.className = 'relative w-24 h-24';
+                      const img = document.createElement('img');
+                      img.src = event.target.result;
+                      img.className = 'w-full h-full object-cover rounded-md border';
+                      const removeBtn = document.createElement('button');
+                      removeBtn.type = 'button';
+                      removeBtn.innerHTML = '&times;';
+                      removeBtn.className = 'absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold';
+                      removeBtn.onclick = () => {
+                          newUploadedFiles = newUploadedFiles.filter(f => f.name !== file.name || f.size !== file.size);
+                          previewWrapper.remove();
+                      };
+                      previewWrapper.appendChild(img);
+                      previewWrapper.appendChild(removeBtn);
+                      newPreviewContainer.appendChild(previewWrapper);
+                  };
+                  reader.readAsDataURL(file);
+              }
+          });
+          e.target.value = ''; // Clear input to allow re-selecting the same file
+      });
+  }
+  // --- END NEW LOGIC ---
+
+  // --- NEW: track removed existing attachments and wire remove buttons ---
+  const removedIndexes = new Set();
+  formEl.querySelectorAll('[data-remove-index]').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const idx = Number(this.getAttribute('data-remove-index'));
+      if (!Number.isNaN(idx)) removedIndexes.add(idx);
+      const wrapper = this.closest('.relative') || this.parentElement;
+      if (wrapper) wrapper.remove();
+    });
+  });
+  // --- END removedIndexes logic ---
+
+  // Submit handler: validate at least one attachment present (kept or new)
+  formEl.onsubmit = async function (e) {
+    e.preventDefault();
+
+    // Require at least one attachment: either previously existing (not removed) or newly uploaded
+    const hasExisting = Array.isArray(existingAttachments) && existingAttachments.some((_, i) => !removedIndexes.has(i));
+    const hasNew = Array.isArray(newUploadedFiles) && newUploadedFiles.length > 0;
+    if (!hasExisting && !hasNew) {
+      alert('Please upload valid ID to verify your account');
+      return;
+    }
+
+    // Collect updated fields
+    const fd = new FormData(formEl);
+    const updatedFormData = {};
+    for (const [name, value] of fd.entries()) {
+      if (name === 'editAttachmentsInput') continue;
+      updatedFormData[name] = value;
+    }
+
+    // Handle new attachments by converting the staged files to base64
+    let newAttachmentsBase64 = [];
+    for (const file of newUploadedFiles) {
+        try {
+            const base64 = await readFilesAsBase64([file]);
+            newAttachmentsBase64.push(base64[0]);
+        } catch (err) {
+            alert('Failed to read new attachments: ' + err.message);
+            return;
+        }
+    }
+
+    // Build final attachments
+    const keptAttachments = existingAttachments.filter((_, i) => !removedIndexes.has(i));
+    const finalAttachments = keptAttachments.concat(newAttachmentsBase64);
+
+    // Update request
+    const updates = {
+        formData: updatedFormData,
+        attachments: finalAttachments,
+        images: finalAttachments, // <-- ADD THIS LINE
+        status: 'Resubmitted',
+        resubmittedAt: new Date().toISOString() // Also, use toISOString() for consistency
+    };
+
+      firebase.database().ref('serviceRequestsV2/' + key).update(updates)
+        .then(() => {
+          closeEditRequestModal();
+          if (typeof fetchAllUserRequests === 'function') fetchAllUserRequests();
+          alert('Request updated successfully.');
+        })
+        .catch(err => {
+          console.error('Update failed', err);
+          alert('Failed to update request: ' + err.message);
+        });
+    };
+  }).catch(err => {
+    console.error(err);
+    alert('Failed to load request.');
+  });
+}
+
+function closeEditRequestModal() {
+  const modal = document.getElementById('editRequestModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    const formEl = document.getElementById('editRequestForm');
+    if (formEl) formEl.innerHTML = '';
+  }
+}
+</script>
+<script>
+  // Ensure functions are exposed on window (prevents "not defined" when called from other script blocks / inline onclick)
+  if (typeof openEditRequestModal === 'function') window.openEditRequestModal = openEditRequestModal;
+  if (typeof closeEditRequestModal === 'function') window.closeEditRequestModal = closeEditRequestModal;
+  if (typeof openViewRequestModal === 'function') window.openViewRequestModal = openViewRequestModal;
+  if (typeof closeViewRequestModal === 'function') window.closeViewRequestModal = closeViewRequestModal;
+  if (typeof openEditRequestModal === 'function') window.openEditRequestModal = openEditRequestModal;
+  if (typeof openEditRequestModal === 'function') window.closeViewRequestModal = closeViewRequestModal;
+  if (typeof closeEditRequestModal === 'function') window.closeEditRequestModal = closeEditRequestModal;
+</script>
+<!-- START: Mobile Bottom Navigation Bar -->
+<nav id="bottom-nav" class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg flex justify-around items-center z-50 h-16">
+    <a href="Home.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m4-8v8m5 0a2 2 0 002-2V7a2 2 0 00-2-2h-3.5a2 2 0 00-1.5.67"></path></svg>
+        <span class="text-xs mt-1">Home</span>
+    </a>
+    <a href="Services.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+        <span class="text-xs mt-1">Services</span>
+    </a>
+    <a href="Appointments.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        <span class="text-xs mt-1">Appointments</span>
+    </a>
+    <a href="Notifications.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2 relative">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+        <span class="text-xs mt-1">Alerts</span>
+        <!-- Notification badge for mobile -->
+        <span id="notifBadgeMobile" class="absolute top-1 right-1/2 translate-x-4 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+    </a>
+    <a href="Profile.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        <span class="text-xs mt-1">Profile</span>
+    </a>
+</nav>
+
+<script>
+    // Script to highlight the active bottom navigation item
+    document.addEventListener('DOMContentLoaded', function() {
+        const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
+        // Use a more reliable way to get the current page name
+        const currentPage = window.location.pathname.substring(window.location.pathname.lastIndexOf('/') + 1);
+
+        bottomNavItems.forEach(item => {
+            const itemPage = item.getAttribute('href');
+            if (currentPage === itemPage) {
+                item.classList.remove('text-gray-500');
+                item.classList.add('text-orange-500'); // Highlight color
+            }
+        });
+        
+        // --- Mobile Notification Badge Logic ---
+        // This makes the mobile badge mirror the sidebar badge
+        const desktopBadge = document.getElementById('notifBadge');
+        const mobileBadge = document.getElementById('notifBadgeMobile');
+
+        if (desktopBadge && mobileBadge) {
+            const observer = new MutationObserver(mutations => {
+                mutations.forEach(mutation => {
+                    if (mutation.type === 'attributes' || mutation.type === 'childList') {
+                        const isHidden = desktopBadge.classList.contains('hidden');
+                        const count = desktopBadge.textContent;
+                        
+                        mobileBadge.textContent = count;
+                        if (isHidden || count === '0') {
+                            mobileBadge.classList.add('hidden');
+                        } else {
+                            mobileBadge.classList.remove('hidden');
+                        }
+                    }
+                });
+            });
+
+            observer.observe(desktopBadge, { attributes: true, childList: true, subtree: true });
+        }
+    });
+</script>
+<!-- END: Mobile Bottom Navigation Bar -->
+</body>
+</html>

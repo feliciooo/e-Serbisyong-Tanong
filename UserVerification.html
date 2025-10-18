@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>User Verification - Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="icon.png">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #fff5e6 0%, #ffe4b3 100%);
+            min-height: 100vh;
+            color: #1a202c;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .header p {
+            font-size: 1rem;
+            color: #718096;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        td {
+            color: #2d3748;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .badge-pending {
+            background: #fff7ed;
+            color: #c05621;
+        }
+
+        .badge-verified {
+            background: #e6fffa;
+            color: #2c7a7b;
+        }
+
+        .badge-rejected {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .badge-success {
+            background: #48bb78;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+
+        .badge-error {
+            background: #f56565;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+
+        .view-id {
+            color: #3182ce;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .view-id:hover {
+            color: #2b6cb0;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #718096;
+            padding: 2rem;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding: 0 1rem;
+        }
+        .nav-left { flex: 0 0 auto; }
+        .nav-center {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+        }
+        .nav-right { margin-left: auto; display: flex; align-items: center; gap: 1rem; }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ff9f40 0%, #ffb366 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #4a5568;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: linear-gradient(135deg, #ffb366 0%, #ffc285 100%);
+            color: white;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .user-role {
+            font-size: 0.85rem;
+            color: #718096;
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #f56565 0%, #c53030 100%);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+        }
+
+        #idModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #idModal > div {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
+            position: relative;
+        }
+
+        #closeModal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        #modalImg {
+            max-width: 100%;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="nav-left">
+                <div class="logo">e-Serbisyong Tañong</div>
+            </div>
+
+            <div class="nav-center">
+                <div class="nav-links">
+                    <a href="AdminHome.html" class="nav-link">Dashboard</a>
+                    <a href="AdminServices.html" class="nav-link">Services</a>
+                    <a href="AdminUsers.html" class="nav-link">Users</a>
+                    <a href="UserVerification.html" class="nav-link active">User Verification</a>
+                    <a href="AdminManagement.html" class="nav-link">Admin Management</a>
+                </div>
+            </div>
+
+            <div class="nav-right">
+                <div class="user-section">
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Admin</div>
+                        <div class="user-role">Administrator</div>
+                    </div>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>Users for Verification</h1>
+            <p>Review and verify user profiles submitted for approval.</p>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>First Name</th>
+                        <th>Middle Name</th>
+                        <th>Last Name</th>
+                        <th>Email</th>
+                        <th>Age</th>
+                        <th>Sex</th>
+                        <th>Home Address</th>
+                        <th>Phone Number</th>
+                        <th>Identification Card</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="verificationTable">
+                    <tr>
+                        <td colspan="10" class="empty-state">Loading user profiles...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="idModal">
+        <div>
+            <span id="closeModal">&times;</span>
+            <h2 style="margin-bottom:1rem;">Barangay ID</h2>
+            <img id="modalImg" src="" alt="Barangay ID" />
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+        apiKey: "AIzaSyCDT65vncku1avdYSxrCJCM_SE-gN2E2ok",
+        authDomain: "e-serbisyong-tanong.firebaseapp.com",
+        databaseURL: "https://e-serbisyong-tanong-default-rtdb.firebaseio.com",
+        projectId: "e-serbisyong-tanong",
+        storageBucket: "e-serbisyong-tanong.firebasestorage.app",
+        messagingSenderId: "147646033817",
+        appId: "1:147646033817:web:503ac4767a4774a4afad08",
+        measurementId: "G-3TDQYZTF1H"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const auth = firebase.auth();
+        const verificationTable = document.getElementById("verificationTable");
+
+        function showIdModal(imgSrc) {
+            const modal = document.getElementById('idModal');
+            const modalImg = document.getElementById('modalImg');
+            modalImg.src = imgSrc;
+            modal.style.display = 'flex';
+        }
+
+        document.getElementById('closeModal').onclick = function() {
+            document.getElementById('idModal').style.display = 'none';
+            document.getElementById('modalImg').src = '';
+        };
+
+        async function loadProfiles() {
+            try {
+                const snapshot = await db.ref("userVerification").once('value');
+                verificationTable.innerHTML = "";
+
+                if (snapshot.exists()) {
+                    const users = snapshot.val();
+                    Object.entries(users).forEach(([uid, user]) => {
+                        const imgSrc = user.barangayIdBase64
+                            ? user.barangayIdBase64
+                            : (user.barangayIdUrl || '');
+
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${user.firstname || ''}</td>
+                            <td>${user.middlename || ''}</td>
+                            <td>${user.lastname || ''}</td>
+                            <td>${user.email || ''}</td>
+                            <td>${user.age || ''}</td>
+                            <td>${user.sex || ''}</td>
+                            <td>${user.address || ''}</td>
+                            <td>${user.phone || ''}</td>
+                            <td>
+                                ${imgSrc ? `<span class="view-id" onclick="showIdModal('${imgSrc}')">View ID</span>` : 'No ID'}
+                            </td>
+                            <td>
+                                <span class="badge ${
+                                    user.verificationStatus === 'Pending'
+                                        ? 'badge-pending'
+                                        : user.verificationStatus === 'Verified'
+                                        ? 'badge-verified'
+                                        : 'badge-rejected'
+                                }">
+                                    ${user.verificationStatus || 'Pending'}
+                                </span>
+                                ${
+                                    user.verificationStatus === 'Pending'
+                                        ? `
+                                        <button onclick="approveProfile('${uid}')" class="badge badge-success" style="margin-left:4px;">Approve</button>
+                                        <button onclick="rejectProfile('${uid}')" class="badge badge-error" style="margin-left:4px;">Reject</button>
+                                    `
+                                        : ''
+                                }
+                            </td>
+                        `;
+                        verificationTable.appendChild(row);
+                    });
+                } else {
+                    verificationTable.innerHTML = `<tr><td colspan="10" class="empty-state">No profiles found.</td></tr>`;
+                }
+            } catch (error) {
+                console.error("Error loading profiles:", error);
+                verificationTable.innerHTML = `<tr><td colspan="10" class="empty-state">Failed to load profiles.</td></tr>`;
+            }
+        }
+
+        function approveProfile(uid) {
+            const verificationRef = db.ref('userVerification/' + uid);
+
+            verificationRef.once('value').then(snapshot => {
+                const verificationData = snapshot.val();
+                if (!verificationData) {
+                    alert("Could not approve: verification data is missing.");
+                    return;
+                }
+
+                const profileUpdate = {
+                    firstname: verificationData.firstname || '',
+                    middlename: verificationData.middlename || '',
+                    lastname: verificationData.lastname || '',
+                    fullname: `${verificationData.firstname || ''} ${verificationData.middlename || ''} ${verificationData.lastname || ''}`.trim(),
+                    email: verificationData.email || '',
+                    age: verificationData.age || '',
+                    sex: verificationData.sex || '',
+                    address: verificationData.address || '',
+                    phone: verificationData.phone || '',
+                    verificationStatus: 'Verified'
+                };
+
+                const updates = {};
+                updates[`users/${uid}`] = profileUpdate;
+                updates[`userVerification/${uid}/verificationStatus`] = 'Verified';
+
+                db.ref().update(updates).then(() => {
+                    const notification = {
+                        userId: uid,
+                        title: "Profile Verified!",
+                        message: "Your profile information has been reviewed and verified by an admin.",
+                        timestamp: new Date().toISOString(),
+                        read: false
+                    };
+                    db.ref('notifications').push(notification);
+                    
+                    loadProfiles();
+                }).catch(error => {
+                    console.error("Failed to approve profile:", error);
+                    alert("An error occurred while approving the profile.");
+                });
+            });
+        }
+
+        function rejectProfile(uid) {
+            const reason = prompt("Please provide a reason for rejecting this profile update. This will be sent to the user.");
+
+            if (!reason || reason.trim() === "") {
+                alert("Rejection cancelled. You must provide a reason.");
+                return;
+            }
+
+            const updates = {};
+            updates[`userVerification/${uid}/verificationStatus`] = 'Rejected';
+            updates[`userVerification/${uid}/rejectionReason`] = reason;
+            updates[`users/${uid}/verificationStatus`] = 'Rejected';
+
+            db.ref().update(updates).then(() => {
+                const notification = {
+                    userId: uid,
+                    title: "Profile Update Rejected",
+                    message: `Your recent profile update was rejected. Reason: "${reason}"`,
+                    timestamp: new Date().toISOString(),
+                    read: false
+                };
+                db.ref('notifications').push(notification);
+
+                loadProfiles();
+            }).catch(error => {
+                console.error("Failed to reject profile:", error);
+                alert("An error occurred while rejecting the profile.");
+            });
+        }
+
+        // FIXED: Check if user is admin by searching with UID or email
+        // Live admin-access enforcement + admin lookup (UID -> uid child -> email)
+        window._adminAccessRef = window._adminAccessRef || null;
+        async function watchAdminAccess(user) {
+            try {
+                // detach previous
+                try { if (window._adminAccessRef) { window._adminAccessRef.off(); window._adminAccessRef = null; } } catch(e){}
+
+                const attach = (ref) => {
+                    if (!ref) return;
+                    window._adminAccessRef = ref;
+                    ref.on('value', snap => {
+                        const rec = snap && snap.val() ? snap.val() : null;
+                        const access = rec && (rec.access || rec.role) ? String(rec.access || rec.role).toLowerCase() : null;
+                        if (access !== 'full') {
+                            try { if (window._adminAccessRef) { window._adminAccessRef.off(); window._adminAccessRef = null; } } catch(e){}
+                            console.warn('Admin access revoked or not full — signing out', { access });
+                            auth.signOut().finally(() => { window.location.href = 'Login.html'; });
+                        } else {
+                            // still full — safe to load/keep page
+                        }
+                    }, err => console.error('admin access watch error', err));
+                };
+
+                // 1) direct node admins/{uid}
+                const directRef = db.ref('admins/' + user.uid);
+                const directSnap = await directRef.once('value');
+                if (directSnap && directSnap.exists()) { attach(directRef); return true; }
+
+                // 2) fallback: admins entries with child 'uid'
+                const byUidSnap = await db.ref('admins').orderByChild('uid').equalTo(user.uid).limitToFirst(1).once('value');
+                if (byUidSnap && byUidSnap.exists()) {
+                    const key = Object.keys(byUidSnap.val())[0];
+                    attach(db.ref('admins/' + key));
+                    return true;
+                }
+
+                // 3) fallback: search by email (case-insensitive)
+                const emailKey = (user.email || '').toLowerCase();
+                const byEmailSnap = await db.ref('admins').orderByChild('email').equalTo(emailKey).limitToFirst(1).once('value');
+                if (byEmailSnap && byEmailSnap.exists()) {
+                    const key = Object.keys(byEmailSnap.val())[0];
+                    attach(db.ref('admins/' + key));
+                    return true;
+                }
+
+                return false;
+            } catch (err) {
+                console.error('watchAdminAccess error', err);
+                return false;
+            }
+        }
+
+        auth.onAuthStateChanged(async function(user) {
+            if (!user) {
+                // cleanup and redirect
+                try { if (window._adminAccessRef) { window._adminAccessRef.off(); window._adminAccessRef = null; } } catch(e){}
+                window.location.href = 'Login.html';
+                return;
+            }
+
+            try {
+                const isAdmin = await watchAdminAccess(user);
+                if (!isAdmin) {
+                    alert('Access denied. Only admins can view verification requests.');
+                    try { await auth.signOut(); } catch(e) {}
+                    window.location.href = 'Login.html';
+                    return;
+                }
+
+                // admin validated and watcher attached — load profiles
+                loadProfiles();
+            } catch (err) {
+                console.error('Admin check failed:', err);
+                alert('Unable to verify admin privileges.');
+                try { await auth.signOut(); } catch(e) {}
+                window.location.href = 'Login.html';
+            }
+        });
+
+        function logout() {
+            auth.signOut().then(function() {
+                localStorage.removeItem('user');
+                window.location.href = 'Login.html';
+            });
+        }
+    </script>
+</body>
+</html>

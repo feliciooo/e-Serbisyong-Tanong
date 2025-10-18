@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>e-Serbisyong Tañong - Register</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body class="min-h-screen m-0 font-['Roboto',Arial,sans-serif] bg-gray-50">
+    <div class="flex min-h-screen">
+        <!-- Left: Barangay image -->
+        <div class="hidden md:flex w-2/3 bg-cover bg-center relative" style="background-image:url('BarangayHall.jpg')">
+            <div class="flex flex-col justify-center items-center w-full h-full bg-black bg-opacity-40 z-10">
+            
+            </div>
+            <div class="absolute top-0 right-0 h-full w-24 bg-gradient-to-r from-transparent to-white z-20 pointer-events-none"></div>
+        </div>
+        <!-- Right: Register form -->
+        <div class="flex w-full md:w-1/2 items-center justify-center md:justify-end px-4 md:px-16 bg-white">
+            <div class="bg-white px-8 py-8 rounded-2xl shadow-2xl w-full max-w-sm flex flex-col items-center slide-in-right">
+                <!-- Logo and Title -->
+                 <div class="flex flex-col items-center mb-6">
+                    <img src="icon.png" alt="Logo" class="w-16 h-16 mb-2 rounded-full shadow-md object-cover">
+                    <span class="text-lg font-bold text-orange-500 tracking-wide">e-Serbisyong Tañong</span>
+                </div>
+                <h2 class="mb-4 font-semibold text-gray-900 text-xl tracking-wide">Create Account</h2>
+                
+                <!-- Success Message -->
+                <div class="absolute top-8 left-1/2 -translate-x-1/2 bg-green-100 text-green-700 px-6 py-3 rounded-xl font-semibold shadow-lg text-sm tracking-wide z-20 hidden" id="successMsg">
+                    ✓ Registration successful! Please check your email to verify your account.
+                    <div class="text-xs text-gray-700 mt-2">
+                        Please check your email for verification to activate your account.
+                    </div>
+                </div>
+
+                <!-- Main Form Container -->
+                <form id="registerForm" autocomplete="off" class="w-full space-y-3" novalidate>
+                    <!-- First Name -->
+                    <div>
+                        <label for="firstname" class="block text-sm text-gray-700 font-medium">
+                            First Name <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="firstname" 
+                            name="firstname" 
+                            required 
+                            maxlength="50"
+                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:border-orange-400 focus:bg-white outline-none transition"
+                        >
+                        <span class="text-red-500 text-xs mt-1 hidden" id="firstnameError"></span>
+                    </div>
+
+                    <!-- Middle Name -->
+                    <div>
+                        <label for="middlename" class="block text-sm text-gray-700 font-medium">
+                            Middle Name <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="middlename" 
+                            name="middlename" 
+                            required 
+                            maxlength="50"
+                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:border-orange-400 focus:bg-white outline-none transition"
+                        >
+                        <span class="text-red-500 text-xs mt-1 hidden" id="middlenameError"></span>
+                    </div>
+
+                    <!-- Last Name -->
+                    <div>
+                        <label for="lastname" class="block text-sm text-gray-700 font-medium">
+                            Last Name <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="lastname" 
+                            name="lastname" 
+                            required 
+                            maxlength="50"
+                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:border-orange-400 focus:bg-white outline-none transition"
+                        >
+                        <span class="text-red-500 text-xs mt-1 hidden" id="lastnameError"></span>
+                    </div>
+
+                    <!-- Age -->
+                    <div>
+                        <label for="age" class="block text-sm text-gray-700 font-medium">
+                            Age <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="number" 
+                            id="age" 
+                            name="age" 
+                            required 
+                            min="0" 
+                            max="120"
+                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:border-orange-400 focus:bg-white outline-none transition"
+                        >
+                        <span class="text-red-500 text-xs mt-1 hidden" id="ageError"></span>
+                    </div>
+
+                    <!-- Gender -->
+                    <div>
+                        <label for="gender" class="block text-sm text-gray-700 font-medium">
+                            Gender <span class="text-red-500">*</span>
+                        </label>
+                        <select id="gender" name="gender" required
+                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:border-orange-400 focus:bg-white outline-none transition">
+                            <option value="">Select</option>
+                            <option>Male</option>
+                            <option>Female</option>
+                            <option>Other</option>
+                        </select>
+                        <span class="text-red-500 text-xs mt-1 hidden" id="genderError"></span>
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label for="email" class="block text-sm text-gray-700 font-medium">
+                            Email Address <span class="text-red-500">*</span>
+                        </label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            required 
+                            maxlength="100"
+                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:border-orange-400 focus:bg-white outline-none transition"
+                        >
+                        <span class="text-red-500 text-xs mt-1 hidden" id="emailError"></span>
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label for="password" class="block text-sm text-gray-700 font-medium">
+                            Password <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                required 
+                                maxlength="100"
+                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:border-orange-400 focus:bg-white outline-none pr-10"
+                            >
+                            <button 
+                                type="button" 
+                                id="togglePasswordBtn"
+                                aria-label="Toggle password visibility"
+                                class="absolute top-1/2 right-2 -translate-y-1/2 h-9 w-9 flex items-center justify-center text-gray-500 hover:text-orange-500 focus:outline-none"
+                            >
+                                <svg id="eyeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                                    <path id="eyeOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path id="eyeOpen2" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <span class="text-red-500 text-xs mt-1 hidden" id="passwordError"></span>
+                        <div class="text-xs text-gray-500 mt-1">
+                            Password must be at least 6 characters, include uppercase, lowercase, number, and special character.
+                        </div>
+                    </div>
+
+                    <!-- Terms and Conditions Checkbox -->
+                    <div class="flex items-start space-x-2 mt-2">
+                        <input type="checkbox" id="termsCheckbox" class="mt-1" />
+                        <label for="termsCheckbox" class="text-sm text-gray-700">
+                            I agree to the 
+                            <button type="button" id="openTermsBtn" class="text-orange-400 hover:text-orange-300 underline">Terms and Conditions</button>
+                            <span class="text-red-500">*</span>
+                        </label>
+                    </div>
+                    <span id="termsError" class="text-red-500 text-xs mt-1 hidden"></span>
+
+                    <!-- Submit Button -->
+                    <div class="mt-3">
+                        <button 
+                            type="submit" 
+                            id="submitBtn"
+                            class="w-full px-4 py-2 rounded-lg bg-orange-400 text-white font-semibold text-sm transition hover:bg-orange-300 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                            disabled
+                        >
+                            Register
+                        </button>
+                    </div>
+                    <a href="Login.html" class="mt-2 text-orange-400 hover:text-orange-300 hover:underline text-sm font-medium text-center block">
+                        Already have an account? Login here
+                    </a>
+                    <div id="registerError" class="text-red-600 mt-2 text-xs text-center hidden"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms & Conditions Modal -->
+    <div id="termsModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
+        <div class="bg-white rounded-lg max-w-2xl w-11/12 md:w-3/4 p-6 shadow-lg overflow-auto max-h-[80vh]">
+            <div class="flex justify-between items-start">
+                <h3 class="text-lg font-semibold">Terms and Conditions</h3>
+                <button id="closeTermsBtn" class="text-gray-500 hover:text-gray-700 text-xl leading-none" aria-label="Close">×</button>
+            </div>
+            <div class="mt-4 text-sm text-gray-700 space-y-3">
+                <p><strong>Introduction</strong></p>
+                <p>Welcome to e-Serbisyong Tañong. By creating an account and using our services you agree to these Terms and Conditions. Please read them carefully.</p>
+
+                <p><strong>Use of Service</strong></p>
+                <p>Users must provide accurate information and not use the service for unlawful activities. The service may suspend or terminate accounts that violate rules.</p>
+
+                <p><strong>Privacy</strong></p>
+                <p>We collect and use personal information as described in our Privacy Policy. By signing up you consent to that collection and use.</p>
+
+                <p><strong>Account Security</strong></p>
+                <p>You are responsible for maintaining the confidentiality of your account credentials. Notify us immediately upon any unauthorized use.</p>
+
+                <p><strong>Limitation of Liability</strong></p>
+                <p>We are not liable for indirect damages arising from use of the service. Use the service at your own risk.</p>
+
+                <p><strong>Changes</strong></p>
+                <p>We may update these terms. Continued use after changes constitutes acceptance.</p>
+
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button id="agreeTermsBtn" class="px-4 py-2 bg-orange-400 text-white rounded-lg">I Agree</button>
+                <button id="cancelTermsBtn" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .slide-in-right {
+            transform: translateX(80px);
+            opacity: 0;
+            animation: slideInRight 0.7s cubic-bezier(.68,-0.55,.27,1.55) forwards;
+        }
+        @keyframes slideInRight {
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+        apiKey: "AIzaSyCDT65vncku1avdYSxrCJCM_SE-gN2E2ok",
+        authDomain: "e-serbisyong-tanong.firebaseapp.com",
+        databaseURL: "https://e-serbisyong-tanong-default-rtdb.firebaseio.com",
+        projectId: "e-serbisyong-tanong",
+        storageBucket: "e-serbisyong-tanong.firebasestorage.app",
+        messagingSenderId: "147646033817",
+        appId: "1:147646033817:web:503ac4767a4774a4afad08",
+        measurementId: "G-3TDQYZTF1H"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // Form elements
+        const form = document.getElementById('registerForm');
+        const successMsg = document.getElementById('successMsg');
+        const registerError = document.getElementById('registerError');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Input fields
+        const firstname = document.getElementById('firstname');
+        const middlename = document.getElementById('middlename');
+        const lastname = document.getElementById('lastname');
+        const email = document.getElementById('email');
+        const password = document.getElementById('password');
+        // Add these for age and gender
+        const age = document.getElementById('age');
+        const gender = document.getElementById('gender');
+
+        // Terms elements
+        const termsCheckbox = document.getElementById('termsCheckbox');
+        const openTermsBtn = document.getElementById('openTermsBtn');
+        const termsModal = document.getElementById('termsModal');
+        const closeTermsBtn = document.getElementById('closeTermsBtn');
+        const cancelTermsBtn = document.getElementById('cancelTermsBtn');
+        const agreeTermsBtn = document.getElementById('agreeTermsBtn');
+        const termsError = document.getElementById('termsError');
+
+        // Error spans
+        const firstnameError = document.getElementById('firstnameError');
+        const middlenameError = document.getElementById('middlenameError');
+        const lastnameError = document.getElementById('lastnameError');
+        const emailError = document.getElementById('emailError');
+        const passwordError = document.getElementById('passwordError');
+        const ageError = document.getElementById('ageError');
+        const genderError = document.getElementById('genderError');
+
+        // Validation functions
+        function validateName(value, fieldName) {
+            // Remove leading/trailing spaces for validation
+            const trimmed = value.trim();
+
+            if (trimmed === '') {
+                return `${fieldName} is required`;
+            }
+
+            if (trimmed.length < 2) {
+                return `${fieldName} must be at least 2 characters long`;
+            }
+
+            // Check for numbers or special characters (only allow letters, spaces, hyphens, apostrophes)
+            if (!/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s'-]+$/.test(trimmed)) {
+                return `${fieldName} can only contain letters, spaces, hyphens, and apostrophes`;
+            }
+
+            // Check if it's all spaces after allowing spaces
+            if (!/[a-zA-ZñÑáéíóúÁÉÍÓÚ]/.test(trimmed)) {
+                return `${fieldName} must contain at least one letter`;
+            }
+
+            return null; // Valid
+        }
+
+        function validateEmail(value) {
+            const trimmed = value.trim();
+            
+            if (trimmed === '') {
+                return 'Email address is required';
+            }
+            
+            // Basic email format validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(trimmed)) {
+                return 'Please enter a valid email address (e.g., user@example.com)';
+            }
+            
+            // Check for common typos
+            const commonDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com'];
+            const domain = trimmed.split('@')[1];
+            if (domain && domain.includes('..')) {
+                return 'Email address contains consecutive dots';
+            }
+            
+            return null; // Valid
+        }
+
+        function validatePassword(value) {
+            if (value === '') {
+                return 'Password is required';
+            }
+            if (value.length < 6) {
+                return 'Password must be at least 6 characters long';
+            }
+            if (value.length > 100) {
+                return 'Password is too long (maximum 100 characters)';
+            }
+            // Must contain at least one uppercase letter
+            if (!/[A-Z]/.test(value)) {
+                return 'Password must contain at least one uppercase letter';
+            }
+            // Must contain at least one lowercase letter
+            if (!/[a-z]/.test(value)) {
+                return 'Password must contain at least one lowercase letter';
+            }
+            // Must contain at least one number
+            if (!/[0-9]/.test(value)) {
+                return 'Password must contain at least one number';
+            }
+            // Must contain at least one special character
+            if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) {
+                return 'Password must contain at least one special character';
+            }
+            // Check if password is too simple (all same character)
+            if (/^(.)\1+$/.test(value)) {
+                return 'Password is too simple (cannot be all the same character)';
+            }
+            return null; // Valid
+        }
+
+        function validateAge(value) {
+            if (value === '') return 'Age is required';
+            const num = parseInt(value, 10);
+            if (isNaN(num) || num < 0 || num > 120) return 'Please enter a valid age';
+            return null;
+        }
+        function validateGender(value) {
+            if (!value) return 'Gender is required';
+            return null;
+        }
+
+        // Show error function
+        function showError(errorElement, message) {
+            errorElement.textContent = message;
+            errorElement.classList.remove('hidden');
+            if (errorElement.previousElementSibling) {
+                errorElement.previousElementSibling.classList.add('border-red-500');
+            }
+        }
+
+        // Hide error function
+        function hideError(errorElement) {
+            errorElement.textContent = '';
+            errorElement.classList.add('hidden');
+            if (errorElement.previousElementSibling) {
+                errorElement.previousElementSibling.classList.remove('border-red-500');
+            }
+        }
+
+        // Real-time validation
+        firstname.addEventListener('blur', function() {
+            const error = validateName(this.value, 'First name');
+            if (error) {
+                showError(firstnameError, error);
+            } else {
+                hideError(firstnameError);
+            }
+        });
+
+        firstname.addEventListener('input', function() {
+            if (!firstnameError.classList.contains('hidden')) {
+                const error = validateName(this.value, 'First name');
+                if (!error) {
+                    hideError(firstnameError);
+                }
+            }
+        });
+
+        middlename.addEventListener('blur', function() {
+            const error = validateName(this.value, 'Middle name');
+            if (error) {
+                showError(middlenameError, error);
+            } else {
+                hideError(middlenameError);
+            }
+        });
+
+        middlename.addEventListener('input', function() {
+            if (!middlenameError.classList.contains('hidden')) {
+                const error = validateName(this.value, 'Middle name');
+                if (!error) {
+                    hideError(middlenameError);
+                }
+            }
+        });
+
+        lastname.addEventListener('blur', function() {
+            const error = validateName(this.value, 'Last name');
+            if (error) {
+                showError(lastnameError, error);
+            } else {
+                hideError(lastnameError);
+            }
+        });
+
+        lastname.addEventListener('input', function() {
+            if (!lastnameError.classList.contains('hidden')) {
+                const error = validateName(this.value, 'Last name');
+                if (!error) {
+                    hideError(lastnameError);
+                }
+            }
+        });
+
+        email.addEventListener('blur', function() {
+            const error = validateEmail(this.value);
+            if (error) {
+                showError(emailError, error);
+            } else {
+                hideError(emailError);
+            }
+        });
+
+        email.addEventListener('input', function() {
+            if (!emailError.classList.contains('hidden')) {
+                const error = validateEmail(this.value);
+                if (!error) {
+                    hideError(emailError);
+                }
+            }
+        });
+
+        password.addEventListener('blur', function() {
+            const error = validatePassword(this.value);
+            if (error) {
+                showError(passwordError, error);
+            } else {
+                hideError(passwordError);
+            }
+        });
+
+        // Password policy live feedback (dynamic checklist with modern icons)
+const passwordPolicyMsg = document.createElement('div');
+passwordPolicyMsg.className = "text-xs mt-1";
+password.parentNode.appendChild(passwordPolicyMsg);
+
+const policyChecks = [
+    { test: v => v.length >= 6, label: "At least 6 characters" },
+    { test: v => /[A-Z]/.test(v), label: "One uppercase letter" },
+    { test: v => /[a-z]/.test(v), label: "One lowercase letter" },
+    { test: v => /[0-9]/.test(v), label: "One number" },
+    { test: v => /[!@#$%^&*(),.?\":{}|<>]/.test(v), label: "One special character" },
+    { test: v => !(/^(.)\1+$/.test(v) && v.length > 0), label: "Not all the same character" }
+];
+
+function renderPasswordPolicyFeedback(value) {
+    passwordPolicyMsg.innerHTML = policyChecks.map(check => {
+        const passed = check.test(value);
+        // Use circle icons for a more modern, less "AI" look
+        return `<div class="flex items-center gap-2">
+            <span class="inline-block w-3 h-3 rounded-full ${passed ? 'bg-green-500 border border-green-700' : 'bg-gray-300 border border-gray-400'}"></span>
+            <span class="${passed ? 'text-gray-700' : 'text-gray-400'}">${check.label}</span>
+        </div>`;
+    }).join('');
+}
+
+password.addEventListener('input', function() {
+    renderPasswordPolicyFeedback(password.value);
+});
+
+// Initial render
+renderPasswordPolicyFeedback(password.value);
+
+        age.addEventListener('blur', function() {
+            const error = validateAge(this.value);
+            if (error) {
+                showError(ageError, error);
+            } else {
+                hideError(ageError);
+            }
+        });
+        age.addEventListener('input', function() {
+            if (!ageError.classList.contains('hidden')) {
+                const error = validateAge(this.value);
+                if (!error) hideError(ageError);
+            }
+        });
+        gender.addEventListener('blur', function() {
+            const error = validateGender(this.value);
+            if (error) {
+                showError(genderError, error);
+            } else {
+                hideError(genderError);
+            }
+        });
+        gender.addEventListener('change', function() {
+            if (!genderError.classList.contains('hidden')) {
+                const error = validateGender(this.value);
+                if (!error) hideError(genderError);
+            }
+        });
+
+        // Toggle password visibility
+        const passwordInput = document.getElementById('password');
+const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+const eyeIcon = document.getElementById('eyeIcon');
+
+togglePasswordBtn.addEventListener('click', function() {
+    const isPassword = passwordInput.type === 'password';
+    passwordInput.type = isPassword ? 'text' : 'password';
+    // Change icon
+    eyeIcon.innerHTML = isPassword
+        ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.956 9.956 0 012.042-3.368m1.528-1.664A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.956 9.956 0 01-4.422 5.255M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18" />`
+        : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>`;
+});
+
+        // Terms modal behavior
+        function openTerms() {
+            termsModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            // focus first focusable element inside modal
+            agreeTermsBtn.focus();
+        }
+        function closeTerms() {
+            termsModal.classList.add('hidden');
+            document.body.style.overflow = '';
+            openTermsBtn.focus();
+        }
+
+        openTermsBtn.addEventListener('click', openTerms);
+        closeTermsBtn.addEventListener('click', closeTerms);
+        cancelTermsBtn.addEventListener('click', closeTerms);
+
+        agreeTermsBtn.addEventListener('click', function() {
+            termsCheckbox.checked = true;
+            submitBtn.disabled = false;
+            termsError.classList.add('hidden');
+            closeTerms();
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !termsModal.classList.contains('hidden')) {
+                closeTerms();
+            }
+        });
+
+        // Checkbox toggles submit button
+        termsCheckbox.addEventListener('change', function() {
+            submitBtn.disabled = !this.checked;
+            if (this.checked) {
+                termsError.classList.add('hidden');
+            }
+        });
+
+        // Form submission
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // ensure terms accepted
+            if (!termsCheckbox.checked) {
+                termsError.textContent = 'You must agree to the Terms and Conditions to register.';
+                termsError.classList.remove('hidden');
+                return;
+            }
+
+            // Hide previous errors
+            registerError.classList.add('hidden');
+
+            // Validate all fields
+            const firstnameErr = validateName(firstname.value, 'First name');
+            const middlenameErr = validateName(middlename.value, 'Middle name');
+            const lastnameErr = validateName(lastname.value, 'Last name');
+            const ageErr = validateAge(age.value);
+            const genderErr = validateGender(gender.value);
+            const emailErr = validateEmail(email.value);
+            const passwordErr = validatePassword(password.value);
+
+            // Show all errors
+            if (firstnameErr) showError(firstnameError, firstnameErr);
+            if (middlenameErr) showError(middlenameError, middlenameErr);
+            if (lastnameErr) showError(lastnameError, lastnameErr);
+            if (ageErr) showError(ageError, ageErr);
+            if (genderErr) showError(genderError, genderErr);
+            if (emailErr) showError(emailError, emailErr);
+            if (passwordErr) showError(passwordError, passwordErr);
+
+            // Stop if there are any validation errors
+            if (firstnameErr || middlenameErr || lastnameErr || ageErr || genderErr || emailErr || passwordErr) {
+                registerError.textContent = 'Please fix the errors above before submitting';
+                registerError.classList.remove('hidden');
+                return;
+            }
+
+            // Disable submit button to prevent double submission
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Registering...';
+
+            // Get trimmed values
+            const firstnameVal = firstname.value.trim();
+            const middlenameVal = middlename.value.trim();
+            const lastnameVal = lastname.value.trim();
+            const ageVal = age.value.trim();
+            const genderVal = gender.value;
+            const emailVal = email.value.trim().toLowerCase();
+            const passwordVal = password.value;
+            
+            try {
+                // Create user in Firebase
+                const userCredential = await firebase.auth().createUserWithEmailAndPassword(emailVal, passwordVal);
+                const user = userCredential.user;
+
+                // Send email verification
+                await user.sendEmailVerification();
+
+                // Add user info to Realtime Database
+                await firebase.database().ref('users/' + user.uid).set({
+                    firstname: firstnameVal,
+                    middlename: middlenameVal,
+                    lastname: lastnameVal,
+                    fullname: `${firstnameVal} ${middlenameVal} ${lastnameVal}`,
+                    email: emailVal,
+                    emailVerified: false,
+                    age: ageVal,
+                    sex: genderVal,
+                    createdAt: new Date().toISOString(),
+                    uid: user.uid
+                });
+
+                // Show success message
+                successMsg.classList.remove('hidden');
+                form.reset();
+                
+                // Sign out the user until they verify their email
+                await firebase.auth().signOut();
+                
+                // Redirect to login after 3 seconds
+                setTimeout(() => {
+                    successMsg.classList.add('hidden');
+                    window.location.href = 'Login.html';
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Registration error:', error);
+                
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Register';
+                
+                // Handle specific Firebase errors
+                let message = '';
+                switch (error.code) {
+                    case 'auth/email-already-in-use':
+                        message = 'This email is already registered. Please use a different email or login to your existing account.';
+                        showError(emailError, 'Email already in use');
+                        break;
+                    case 'auth/weak-password':
+                        message = 'Password is too weak. Please use at least 6 characters.';
+                        showError(passwordError, 'Password is too weak');
+                        break;
+                    case 'auth/invalid-email':
+                        message = 'Invalid email format. Please enter a valid email address.';
+                        showError(emailError, 'Invalid email format');
+                        break;
+                    case 'auth/operation-not-allowed':
+                        message = 'Registration is currently disabled. Please contact support.';
+                        break;
+                    case 'auth/network-request-failed':
+                        message = 'Network error. Please check your internet connection and try again.';
+                        break;
+                    default:
+                        message = 'Registration failed. Please try again. Error: ' + error.message;
+                }
+                
+                registerError.textContent = message;
+                registerError.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

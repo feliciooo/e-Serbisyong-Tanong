@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>e-Serbisyong Tañong</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="icon.png">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #fff5e6 0%, #ffe4b3 100%);
+      min-height: 100vh;
+      color: #1a202c;
+    }
+    .navbar {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+      padding: 1rem 2rem;
+      position: sticky;
+      z-index: 100;
+    }
+    .navbar-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      position: relative;
+      padding: 0 1rem;
+    }
+    .nav-left { flex: 0 0 auto; }
+    .nav-center { position: absolute; left:50%; transform: translateX(-50%); display:flex; align-items:center; }
+    .nav-right { margin-left: auto; display:flex; align-items:center; gap:1rem; }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #ff9f40 0%, #ffb366 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+    .nav-link {
+      text-decoration: none;
+      color: #4a5568;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      transition: all 0.3s;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: linear-gradient(135deg, #ffb366 0%, #ffc285 100%);
+      color: white;
+    }
+    .user-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .user-info {
+      text-align: right;
+    }
+    .user-name {
+      font-weight: 600;
+      color: #2d3748;
+    }
+    .user-role {
+      font-size: 0.85rem;
+      color: #718096;
+    }
+    .logout-btn {
+      background: linear-gradient(135deg, #f56565 0%, #c53030 100%);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .logout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(245, 101, 101, 0.4);
+    }
+    .dashboard-container {
+      max-width: 1400px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+    }
+    .dashboard-header {
+      color: rgb(0, 0, 0);
+      margin-bottom: 2rem;
+    }
+    .dashboard-header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .dashboard-header p {
+      opacity: 0.9;
+    }
+    .card {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #2d3748;
+    }
+    .add-btn {
+      background: linear-gradient(135deg, #ffb366 0%, #ffc285 100%);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .add-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 179, 102, 0.4);
+    }
+    @media (max-width: 1024px) {
+      .dashboard-container {
+        padding: 0 1rem;
+      }
+      .card {
+        padding: 1rem;
+      }
+    }
+    @media (max-width: 768px) {
+      .navbar-content {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .nav-links {
+        gap: 1rem;
+      }
+      .dashboard-header h1 {
+        font-size: 2rem;
+      }
+    }
+    /* ===== Modal Fix ===== */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem 2rem;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: fadeInModal 0.25s ease-out;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.modal-title {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #2d3748;
+}
+
+.close-btn {
+  font-size: 1.5rem;
+  background: none;
+  border: none;
+  color: #718096;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.close-btn:hover {
+  color: #2d3748;
+}
+
+/* Confirm modal smaller */
+#confirmModal .modal-content {
+  text-align: center;
+  padding: 2rem;
+}
+
+ /* Constrain long tables so page doesn't grow — make table body scrollable with sticky header */
+    .table-scroll {
+      max-height: calc(100vh - 360px); /* adjust as needed to keep header/footer visible */
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    /* Keep horizontal scrolling for very wide tables */
+    .table-wrap { overflow-x: auto; border-radius: 0.5rem; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+
+    /* Make the table header stick to the top of the scroll container */
+       .table-scroll table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: inherit; /* preserve thead background color */
+    }
+
+    /* Small screen tweaks */
+    @media (max-width: 1024px) {
+      .table-scroll { max-height: calc(100vh - 300px); }
+    }
+    @media (max-width: 640px) {
+      .table-scroll { max-height: calc(100vh - 220px); }
+    }
+    /* Optional: subtle scrollbar styling */
+    .table-scroll::-webkit-scrollbar { width: 10px; }
+    .table-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 9999px; }
+    .table-scroll::-webkit-scrollbar-track { background: transparent; }
+
+
+/* Fade in animation */
+@keyframes fadeInModal {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+
+<body>
+  <!-- Navbar (copied design) -->
+  <nav class="navbar">
+    <div class="navbar-content">
+      <div class="nav-left">
+        <div class="logo">e-Serbisyong Tañong</div>
+      </div>
+
+      <div class="nav-center">
+        <div class="nav-links">
+          <a href="AdminHome.html" class="nav-link">Dashboard</a>
+          <a href="AdminServices.html" class="nav-link active">Services</a>
+          <a href="AdminUsers.html" class="nav-link">Users</a>
+          <a href="UserVerification.html" class="nav-link">User Verification</a>
+          <a href="AdminManagement.html" class="nav-link">Admin Management</a>
+        </div>
+      </div>
+
+      <div class="nav-right">
+        <div class="user-section">
+          <div class="user-info">
+            <div class="user-name" id="userGreet">Admin</div>
+            <div class="user-role">Administrator</div>
+          </div>
+          <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content Container (copied layout) -->
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h1 id="mainTitle">Barangay Services</h1>
+      <p id="mainDesc">Review, approve, or reject service requests from residents</p>
+    </div>
+
+    <!-- --- Add Archive Tab to Service Requests Section --- -->
+    <div id="requestTabs" class="flex gap-2 mb-6">
+      <button id="tabActive" class="px-4 py-2 rounded font-semibold bg-orange-400 text-white shadow hover:bg-orange-500 active">Active Requests</button>
+      <button id="tabArchive" class="px-4 py-2 rounded font-semibold bg-gray-200 text-gray-700 shadow hover:bg-gray-300">Archived Requests</button>
+    </div>
+
+
+<div id="activeContent">
+    <div class="card" id="servicesCard">
+      <div class="card-header">
+        <h2 class="card-title">Service Requests</h2>
+        <div class="flex items-center gap-3">
+          <input id="searchInput" type="text" placeholder="Search contact, service..." class="form-input w-64" />
+          <select id="statusFilter" class="form-input" style="width: 160px;">
+            <option value="All">All</option>
+            <option value="Pending">Pending</option>
+            <option value="Under Review">Under Review</option>
+            <option value="For Revision">For Revision</option>
+            <option value="Resubmitted">Resubmitted</option>
+            <option value="For Pickup">Ready for Pickup</option>
+            <option value="Claimed">Claimed</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+          <button id="exportActiveServiceBtn" class="add-btn ml-2">Export CSV</button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table class="min-w-full text-sm text-left border border-gray-200">
+            <thead class="bg-orange-400 text-white text-xs uppercase tracking-wider">
+              <tr>
+                <th class="px-6 py-3">Service</th>
+                <th class="px-6 py-3">Resident</th>
+                <th class="px-6 py-3">Contact</th>
+                <th class="px-6 py-3">Date requested</th>
+                <th class="px-6 py-3">Status</th>
+                <th class="px-6 py-3">Actions</th>
+              </tr>
+            </thead>
+           <tbody id="serviceRequestsTable" class="divide-y divide-gray-100 bg-white">
+              <!-- Rows dynamically injected -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+     </div>
+
+<!-- Appointments Card -->
+<div class="card mt-6" id="appointmentsCard">
+    <div class="card-header">
+        <h2 class="card-title">Appointment Requests</h2>
+        <button id="exportActiveAppointmentBtn" class="add-btn ml-2">Export CSV</button>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table class="min-w-full text-sm text-left border border-gray-200">
+          <thead class="bg-orange-400 text-white  text-xs uppercase tracking-wider">
+            <tr>
+              <th class="px-6 py-3">Reason</th>
+              <th class="px-6 py-3">Resident</th>
+              <th class="px-6 py-3">Contact</th>
+              <th class="px-6 py-3">Date & Time</th>
+              <th class="px-6 py-3">Status</th>
+              <th class="px-6 py-3">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="appointmentsTable" class="divide-y divide-gray-100 bg-white">
+            <!-- Appointment rows will be injected here -->
+          </tbody>
+        </table>
+      </div>
+   </div>
+ </div>
+ </div>
+<!-- Archived Content Wrapper (initially hidden) -->
+<div id="archivedContent" class="hidden">
+
+    <!-- Card for Archived Service Requests -->
+    <div class="card" id="archiveCard">
+        <div class="card-header">
+            <h2 class="card-title">Archived Service Requests</h2>
+            <div class="flex items-center gap-3">
+                <input id="archiveSearchInput" type="text" placeholder="Search archived requests..." class="form-input w-64" />
+                <button id="exportArchiveServiceBtn" class="add-btn ml-2">Export CSV</button>
+            </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table class="min-w-full text-sm text-left border border-gray-200">
+              <thead class="bg-gray-400 text-gray-700 text-xs uppercase tracking-wider">
+                <tr>
+                  <th class="px-6 py-3">Service</th>
+                  <th class="px-6 py-3">Resident</th>
+                  <th class="px-6 py-3">Contact</th>
+                  <th class="px-6 py-3">Date Requested</th>
+                  <th class="px-6 py-3">Status</th>
+                  <th class="px-6 py-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="archiveRequestsTable" class="divide-y divide-gray-100 bg-white">
+                <!-- Archived service request rows will be injected here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+         </div>
+    
+    <!-- Card for Archived Appointments -->
+    <div class="card mt-6" id="archivedAppointmentsCard">
+        <div class="card-header">
+            <h2 class="card-title">Archived Appointments</h2>
+            <button id="exportArchiveAppointmentBtn" class="add-btn ml-2">Export CSV</button>
+        </div>
+        <div class="table-wrap">
+              <div class="table-scroll">
+                <table class="min-w-full text-sm text-left border border-gray-200">
+                  <thead class="bg-gray-400 text-gray-700 text-xs uppercase tracking-wider">
+                    <tr>
+                      <th class="px-6 py-3">Reason</th>
+                      <th class="px-6 py-3">Resident</th>
+                      <th class="px-6 py-3">Contact</th>
+                      <th class="px-6 py-3">Date & Time</th>
+                      <th class="px-6 py-3">Status</th>
+                      <th class="px-6 py-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="archivedAppointmentsTable" class="divide-y divide-gray-100 bg-white">
+                    <!-- Archived appointment rows will be injected here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+         </div>
+
+</div>
+
+
+  <!-- Details Modal (unchanged, keep original logic/UX) -->
+  <!-- ...existing code for detailsModal, confirmModal, toastContainer... -->
+
+ <!-- Details Modal -->
+<div id="detailsModal" class="modal hidden">
+  <div class="modal-content w-full max-w-3xl">
+    <div class="modal-header">
+      <h3 class="modal-title" id="detailsModalTitle">Request Details</h3>
+      <button class="close-btn" onclick="closeModal('detailsModal')">&times;</button>
+    </div>
+
+    <p id="modalResidentLabel" class="text-sm text-gray-500 mb-2"></p>
+
+    <div class="space-y-4">
+      <!-- Summary -->
+      <div id="modalSummary" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm"></div>
+
+      <!-- Form fields rendered here -->
+      <div id="modalFormFields" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm"></div>
+
+      <!-- File attachments (hidden when none) - no toggle button, show links directly -->
+      <div id="fileSection" class="hidden">
+        <h4 class="text-sm font-semibold text-gray-900 mb-2">Attachments</h4>
+        <ul id="fileList" class="list-disc list-inside text-sm text-gray-700 mt-2"></ul>
+      </div>
+
+      <!-- Images section -->
+      <div id="imageSection" class="hidden mt-4">
+        <h4 class="text-sm font-semibold text-gray-900 mb-2">Uploaded Images</h4>
+        <div id="imageList" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+      </div>
+    </div>
+
+    <!-- Footer: status + actions -->
+    <div class="border-t mt-6 pt-4 flex flex-col sm:flex-row justify-between items-center gap-3" id="modalActions">
+      <div class="flex items-center gap-3">
+        <label for="modal-status" class="font-medium text-gray-700">Status:</label>
+        <select id="modal-status" class="border border-gray-300 rounded px-2 py-1">
+          <!-- Options will be dynamically populated -->
+        </select>
+      </div>
+
+      <div class="flex gap-2">
+        <button id="modal-save-btn" class="add-btn">Save</button>
+        <button onclick="closeModal('detailsModal')" class="bg-gray-300 text-gray-800 px-3 py-1 rounded hover:bg-gray-400">Close</button>
+      </div>
+    </div>
+
+    <!-- Rejection reason -->
+    <div id="modal-rejection" class="hidden mt-3">
+      <label class="block text-sm font-medium text-red-700 mb-1" id="rejectionReasonLabel">Reason for rejection</label>
+      <textarea id="modal-reason" class="border border-red-300 bg-red-50 text-red-700 rounded w-full p-2"
+        rows="3" placeholder="Enter reason..."></textarea>
+    </div>
+  </div>
+</div>
+
+  <!-- Confirm dialog -->
+<!-- Confirm Remove Modal -->
+<div id="confirmModal" class="modal">
+  <div class="modal-content max-w-sm">
+    <h2 class="text-lg font-bold mb-4" id="confirmModalTitle">Remove Request</h2>
+    <p class="mb-6" id="confirmModalMessage">Are you sure you want to remove this request?</p>
+    <div class="flex justify-center space-x-4">
+      <button id="confirmActionBtn" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-500">Confirm</button>
+      <button id="cancelActionBtn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
+    </div>
+  </div>
+</div>
+
+  <!-- Image viewer modal -->
+  <div id="imageViewerModal" class="modal hidden" style="align-items:center;justify-content:center;">
+    <div class="modal-content" style="background:transparent;box-shadow:none;display:flex;align-items:center;justify-content:center;position:relative;">
+      <button class="close-btn" onclick="closeImageModal()" style="position:absolute;right:1rem;top:0.6rem;color:#fff;font-size:2rem;background:none;border:none;">&times;</button>
+      <img id="imageViewerImg" src="" alt="Preview" style="max-width:90vw;max-height:80vh;border-radius:8px;object-fit:contain;box-shadow:0 10px 40px rgba(0,0,0,0.4);" />
+    </div>
+  </div>
+
+  <!-- Toasts -->
+  <div id="toastContainer" style="position:fixed;bottom:2rem;right:2rem;z-index:60;display:flex;flex-direction:column;gap:0.5rem;"></div>
+
+  <!-- Scripts (unchanged) -->
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+        apiKey: "AIzaSyCDT65vncku1avdYSxrCJCM_SE-gN2E2ok",
+        authDomain: "e-serbisyong-tanong.firebaseapp.com",
+        databaseURL: "https://e-serbisyong-tanong-default-rtdb.firebaseio.com",
+        projectId: "e-serbisyong-tanong",
+        storageBucket: "e-serbisyong-tanong.firebasestorage.app",
+        messagingSenderId: "147646033817",
+        appId: "1:147646033817:web:503ac4767a4774a4afad08",
+        measurementId: "G-3TDQYZTF1H"
+        };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // State variables
+    let allServiceRequests = {};
+    let allArchivedServiceRequests = {};
+    let allAppointments = {};
+    let allArchivedAppointments = {};
+    let allUsers = {};
+    let currentAdminRole = null; // 'full' | null
+
+    // DOM Elements
+    const serviceRequestsTable = document.getElementById('serviceRequestsTable');
+    const appointmentsTable = document.getElementById('appointmentsTable');
+    const archivedServiceRequestsTable = document.getElementById('archiveRequestsTable');
+    const archivedAppointmentsTable = document.getElementById('archivedAppointmentsTable');
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    document.getElementById('userGreet').textContent = user.displayName || 'Admin';
+    document.querySelector('.user-role').textContent = 'Administrator';
+    loadAllData(); // load all data directly
+    // start live enforcement watcher for admin access (auto sign-out if disabled)
+    try { if (typeof watchAdminAccess === 'function') watchAdminAccess(); } catch(e){ console.error('watchAdminAccess start failed', e); }
+  } else {
+    window.location.href = 'Login.html';
+  }
+});
+
+
+    // Helper to get full name and contact from user object
+    function getUserInfo(uid) {
+      const user = allUsers && uid ? allUsers[uid] : null;
+      let name = '—';
+      let contact = '—';
+
+      if (user) {
+        name = user.fullname || `${user.firstname || ''} ${user.middlename || ''} ${user.lastname || ''}`.trim();
+        contact = user.contact || user.phone || '—';
+      }
+      return { name: name || '—', contact: contact || '—' };
+    }
+
+    // Status badge
+    function statusBadge(status) {
+      const colors = {
+        Pending: "bg-yellow-100 text-yellow-800",
+        "Under Review": "bg-indigo-100 text-indigo-800",
+        "For Revision": "bg-orange-100 text-orange-800",
+        Resubmitted: "bg-teal-100 text-teal-800",
+        Claimed: "bg-purple-100 text-purple-800",
+        "For Pickup": "bg-blue-100 text-blue-800",
+        Approved: "bg-green-100 text-green-800",
+        Rejected: "bg-red-100 text-red-800"
+      };
+      // friendly display label
+      const display = status === "For Pickup" ? "Ready for Pickup" : status;
+      return `<span class="px-2 py-1 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}">${escapeHtml(display)}</span>`;
+    }
+
+    // Masked resident label helper
+    function residentLabelFromKey(key) {
+      if (!key) return 'Resident';
+      const id = String(key).slice(-4).padStart(4, '0');
+      return `Resident ${id}`;
+    }
+
+    // Search + filter helpers
+    function matchesSearch(item, query, isAppointment) {
+      if (!query) return true;
+      const q = query.toLowerCase();
+      const { name, contact } = getUserInfo(item.uid);
+      
+      const itemText = isAppointment 
+        ? `${item.reason || ''} ${name} ${contact} ${item.date || ''} ${item.time || ''}`
+        : `${item.serviceType || ''} ${name} ${contact}`;
+
+      return itemText.toLowerCase().includes(q);
+    }
+
+    // Modal open/close
+    function openModal(key, isAppointment = false, isArchived = false) {
+        let path;
+        let item;
+        let statusOptions = [];
+        let modalTitleText = '';
+
+        if (isArchived) {
+            if (isAppointment) {
+                item = allArchivedAppointments[key];
+                modalTitleText = 'Archived Appointment Details';
+                statusOptions = ['Approved', 'Rejected', 'Pending']; // Read-only for archived
+            } else {
+                item = allArchivedServiceRequests[key];
+                modalTitleText = 'Archived Service Request Details';
+                statusOptions = ['Pending', 'Under Review', 'For Revision', 'Resubmitted', 'For Pickup', 'Approved', 'Rejected']; // Read-only for archived
+            }
+        } else {
+            if (isAppointment) {
+                item = allAppointments[key];
+                modalTitleText = 'Appointment Details';
+                statusOptions = ['Pending', 'Approved', 'Rejected'];
+            } else {
+                item = allServiceRequests[key];
+                modalTitleText = 'Service Request Details';
+               statusOptions = ['Pending', 'Under Review', 'For Revision', 'Claimed', 'Resubmitted', 'For Pickup', 'Approved', 'Rejected'];
+            }
+        }
+
+        if (!item) {
+            showToast('Item not found for modal.', 'error');
+            return;
+        }
+
+        const modal = document.getElementById('detailsModal');
+        if (!modal) return;
+        
+        document.getElementById('detailsModalTitle').textContent = modalTitleText;
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+
+        document.getElementById('modalResidentLabel').textContent = residentLabelFromKey(key);
+
+        const { name, contact } = getUserInfo(item.uid);
+        const dateStr = item.timestamp || item.createdAt ? new Date(item.timestamp || item.createdAt).toLocaleString() : '—';
+        const currentStatus = item.status || 'Pending';
+
+        const summaryFields = [
+            { label: isAppointment ? 'Reason' : 'Service', value: isAppointment ? item.reason : item.serviceType },
+            { label: 'Resident', value: name },
+            { label: 'Contact', value: contact },
+            { label: isAppointment ? 'Date & Time' : 'Date Requested', value: isAppointment ? `${item.date || '—'} ${item.time || '—'}` : dateStr },
+            { label: 'Status', value: currentStatus },
+        ];
+        const modalSummaryEl = document.getElementById('modalSummary');
+        if (modalSummaryEl) {
+            modalSummaryEl.innerHTML = summaryFields
+            .map(f => `<p><strong>${escapeHtml(f.label)}:</strong> ${escapeHtml(f.value ?? '—')}</p>`)
+            .join('');
+        }
+        
+        // Form data rendering for Service Requests (Appointments don't use formData)
+        const formEl = document.getElementById('modalFormFields');
+        if (formEl) {
+            formEl.innerHTML = ''; // Clear previous content
+            if (!isAppointment && item.formData) {
+                const formData = typeof item.formData === 'string' ? JSON.parse(item.formData) : item.formData;
+                Object.entries(formData).forEach(([k, v]) => {
+                    const label = String(k).replace(/^f_\d+_/, '').replace(/_/g, ' ');
+                    formEl.innerHTML += `
+                        <div>
+                        <p class="text-gray-800 font-medium">${escapeHtml(label)}:</p>
+                        <p class="text-gray-700">${escapeHtml(v ?? '—')}</p>
+                        </div>`;
+                });
+            }
+        }
+        
+
+        // File attachments (only for Service Requests)
+        const fileSection = document.getElementById('fileSection');
+        const fileList = document.getElementById('fileList');
+        const attachments = isAppointment ? [] : (Array.isArray(item.attachments) ? item.attachments : (item.files || []));
+        if (attachments && attachments.length > 0) {
+            if (fileSection) fileSection.classList.remove('hidden');
+            if (fileList) {
+            fileList.innerHTML = attachments.map(f => {
+                const href = (typeof f === 'string') ? f : (f && f.url) ? f.url : '#';
+                const label = (f && f.name) ? f.name : 'Attachment';
+                return `<li><a href="${escapeHtml(href)}" target="_blank" class="text-orange-600 hover:underline">${escapeHtml(label)}</a></li>`;
+            }).join('');
+            }
+        } else {
+            if (fileSection) fileSection.classList.add('hidden');
+            if (fileList) fileList.innerHTML = '';
+        }
+
+        // Images section (only for Service Requests)
+        const imageSection = document.getElementById('imageSection');
+        const imageList = document.getElementById('imageList');
+        const images = isAppointment ? [] : (item.images || (attachments.filter ? attachments.filter(s => String(s).startsWith('data:') || /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(String(s))) : []));
+        if (images && images.length > 0) {
+            if (imageSection) imageSection.classList.remove('hidden');
+            if (imageList) {
+            imageList.innerHTML = images.map(src => `
+                <div class="p-1">
+                <button onclick="openImageModal('${jsEscape(src)}')" style="border:none;background:none;padding:0;cursor:pointer;">
+                    <img src="${escapeHtml(src)}" alt="Uploaded Image" style="width:100%;max-width:160px;border-radius:6px;object-fit:cover;border:1px solid #eee;" />
+                </button>
+                </div>
+            `).join('');
+            }
+        } else {
+            if (imageSection) imageSection.classList.add('hidden');
+            if (imageList) imageList.innerHTML = '';
+        }
+
+        // Status + rejection UI (hide for archived items)
+        const modalActions = document.getElementById('modalActions');
+        const statusSelect = document.getElementById('modal-status');
+        const rejectionDiv = document.getElementById('modal-rejection');
+        const rejectionInput = document.getElementById('modal-reason');
+        const rejectionReasonLabel = document.getElementById('rejectionReasonLabel');
+        const saveBtn = document.getElementById('modal-save-btn');
+
+
+        if (isArchived) {
+            modalActions.style.display = 'none';
+            rejectionDiv.style.display = 'none';
+        } else {
+            modalActions.style.display = 'flex';
+            if (statusSelect) {
+                statusSelect.innerHTML = statusOptions.map(opt => 
+                    `<option value="${opt}" ${currentStatus === opt ? 'selected' : ''}>${opt === 'For Pickup' ? 'Ready for Pickup' : opt}</option>`
+                ).join('');
+                statusSelect.value = currentStatus; // Ensure selected value is set
+                statusSelect.disabled = false; // Enable for non-archived items
+            }
+
+            const toggleRejectionUI = (status) => {
+                const show = (status === 'Rejected' || status === 'For Revision');
+                rejectionDiv.classList.toggle('hidden', !show);
+                if (rejectionReasonLabel) {
+                    rejectionReasonLabel.textContent = (status === 'For Revision') ? 'Revision note' : 'Reason for rejection';
+                }
+                if (rejectionInput) {
+                    rejectionInput.placeholder = (status === 'For Revision') ? 'Enter revision instructions or notes...' : 'Enter reason for rejection...';
+                }
+            };
+            toggleRejectionUI(currentStatus); // Initial state
+
+            if (rejectionInput) rejectionInput.value = item.rejectionReason || item.revisionNote || '';
+
+            if (statusSelect) {
+                statusSelect.onchange = () => toggleRejectionUI(statusSelect.value);
+            }
+            if (saveBtn) {
+                saveBtn.onclick = () => {
+                    const newStatus = statusSelect ? statusSelect.value : 'Pending';
+                    const reason = rejectionInput ? rejectionInput.value.trim() : '';
+                    if (newStatus === 'Rejected' && !reason) {
+                        showToast('Please enter a reason for rejection.', 'error');
+                        return;
+                    }
+                    if (isAppointment) {
+                        updateAppointmentStatus(key, newStatus, reason);
+                    } else {
+                        updateRequestStatus(key, newStatus, reason);
+                    }
+                };
+            }
+        }
+    }
+
+
+    function closeModal(id = 'detailsModal') {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+        // Ensure image modal is closed if it's open
+        closeImageModal();
+    }
+
+// Escape HTML
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+// small helper to escape single quotes/backslashes for JS string literals inside HTML attributes
+function jsEscape(str) {
+  return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+// Toasts
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const bg = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-gray-800';
+  const toast = document.createElement('div');
+  toast.className = `${bg} text-white px-4 py-3 rounded shadow flex items-center gap-2 animate-fade-in`;
+  toast.innerHTML = `
+    <span class="text-sm">${escapeHtml(message)}</span>
+    <button class="ml-2 text-white/80 hover:text-white text-xs" onclick="this.parentElement.remove()">✕</button>
+  `;
+  container.appendChild(toast);
+  setTimeout(() => {
+    if (toast && toast.parentElement) toast.remove();
+  }, 3000);
+}
+// Simple fade-in animation
+const styleEl = document.createElement('style');
+styleEl.textContent = `
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-fade-in { animation: fadeIn 200ms ease-out; }
+`;
+document.head.appendChild(styleEl);
+
+// Confirm dialog
+function confirmArchive(key, isAppointment) {
+  const confirmModal = document.getElementById('confirmModal');
+  const confirmModalTitle = document.getElementById('confirmModalTitle');
+  const confirmModalMessage = document.getElementById('confirmModalMessage');
+  const confirmActionBtn = document.getElementById('confirmActionBtn');
+  const cancelActionBtn = document.getElementById('cancelActionBtn');
+
+  const type = isAppointment ? 'appointment' : 'service request';
+  confirmModalTitle.textContent = `Archive ${type}`;
+  confirmModalMessage.textContent = `Are you sure you want to archive this ${type}?`;
+  confirmActionBtn.textContent = "Archive";
+  confirmActionBtn.classList.remove("bg-red-600");
+  confirmActionBtn.classList.add("bg-orange-500");
+
+  confirmModal.style.display = 'flex';
+
+  confirmActionBtn.onclick = () => {
+    archiveItem(key, isAppointment);
+    confirmModal.style.display = 'none';
+  };
+
+  cancelActionBtn.onclick = () => {
+    confirmModal.style.display = 'none';
+  };
+}
+
+// Update request status and close modal
+function updateRequestStatus(requestKey, newStatus, rejectionReason = null) {
+  const updateObj = { status: newStatus };
+  if (newStatus === 'Rejected') {
+    updateObj.rejectionReason = rejectionReason || '';
+    updateObj.revisionNote = null;
+  } else if (newStatus === 'For Revision') {
+    updateObj.revisionNote = rejectionReason || '';
+    updateObj.rejectionReason = null;
+  } else {
+    // clear both notes for other statuses
+    updateObj.rejectionReason = null;
+    updateObj.revisionNote = null;
+  }
+
+  db.ref('serviceRequestsV2/' + requestKey).update(updateObj)
+    .then(() => {
+      // Create notification for user
+      const request = allServiceRequests[requestKey];
+      const userId = request.uid;
+
+      if (userId) {
+        createNotification(userId, requestKey, newStatus, request.serviceType, rejectionReason)
+          .then(() => {
+            showToast(`Status updated to ${newStatus}. Notification sent successfully.`, 'success');
+            closeModal('detailsModal');
+          })
+          .catch(err => {
+            console.error('Error creating notification:', err);
+            showToast('Status updated but failed to send notification.', 'error');
+            closeModal('detailsModal');
+          });
+      } else {
+        console.error('No user ID found in request');
+        showToast('Status updated but notification failed - no user ID.', 'error');
+        closeModal('detailsModal');
+      }
+    })
+    .catch(err => {
+      console.error('Error updating status:', err);
+      showToast('Failed to update status. Please try again.', 'error');
+    });
+}
+
+// Create notification for user
+function createNotification(userId, requestId, status, documentType, rejectionReason = null) {
+  const messages = {
+    'Pending': `Your ${documentType} request has been received and is pending.`,
+    'Under Review': `Your ${documentType} request is currently being reviewed by barangay staff.`,
+    'For Revision': `Your ${documentType} request needs more information. Please review the requested changes and resubmit.`,
+    'Resubmitted': `You have resubmitted your ${documentType} request. It is queued for review.`,
+    'Claimed': `Your ${documentType} request has been claimed by barangay staff for processing.`,
+    'For Pickup': `Your ${documentType} request is approved and ready for pickup at the barangay.`,
+    'Approved': `Good news — your ${documentType} request has been approved.`,
+    'Rejected': rejectionReason
+      ? `Your ${documentType} request was rejected. Reason: ${rejectionReason}`
+      : `Your ${documentType} request was rejected.`
+  };
+
+  const notification = {
+    userId: userId,
+    title: "Request Status Update",
+    message: messages[status] || "Your request status has been updated.",
+    status: status,
+    timestamp: new Date().toISOString(),
+    read: false,
+    requestId: requestId
+  };
+
+  // Push to Firebase and return the promise
+  return db.ref('notifications').push(notification);
+}
+
+// Remove request
+function archiveItem(key, isAppointment) {
+  const sourcePath = isAppointment ? `appointments/${key}` : `serviceRequestsV2/${key}`;
+  const archivePath = isAppointment ? `archivedAppointments/${key}` : `archivedServiceRequests/${key}`;
+
+  db.ref(sourcePath).once('value')
+    .then(snapshot => {
+      const data = snapshot.val();
+      if (!data) throw new Error('Request not found.');
+      // Save to archive
+      return db.ref(archivePath).set(data);
+    })
+    .then(() => db.ref(sourcePath).remove()) // Remove from active
+    .then(() => {
+      showToast(`${isAppointment ? 'Appointment' : 'Service request'} archived successfully.`, 'success');
+      // The listeners will refresh the tables automatically
+    })
+    .catch((error) => {
+      console.error('Error archiving item:', error);
+      showToast('Failed to archive item. Please try again.', 'error');
+    });
+}
+
+
+
+    // Logout
+function logout() {
+  auth.signOut()
+    .then(() => {
+      showToast('Logged out successfully.', 'success');
+      setTimeout(() => {
+        localStorage.removeItem('user'); // Ensure local storage is cleared
+        window.location.href = 'Login.html';
+      }, 600);
+    })
+    .catch(err => {
+      console.error('Error logging out:', err);
+      showToast('Failed to log out. Please try again.', 'error');
+    });
+}
+
+
+    // Filter and search listeners
+    document.getElementById('statusFilter').addEventListener('change', renderServiceRequests);
+    document.getElementById('searchInput').addEventListener('input', renderServiceRequests);
+    document.getElementById('archiveSearchInput').addEventListener('input', renderArchivedServiceRequests);
+
+
+    // Tab switching logic
+// --- TAB SWITCHING LOGIC ---
+const tabActive = document.getElementById('tabActive');
+const tabArchive = document.getElementById('tabArchive');
+const activeContent = document.getElementById('activeContent');
+const archivedContent = document.getElementById('archivedContent');
+const mainTitle = document.getElementById('mainTitle');
+const mainDesc = document.getElementById('mainDesc');
+
+tabActive.addEventListener('click', () => {
+    // Style buttons
+    tabActive.classList.add('bg-orange-400', 'text-white');
+    tabActive.classList.remove('bg-gray-200', 'text-gray-700');
+    tabArchive.classList.remove('bg-orange-400', 'text-white');
+    tabArchive.classList.add('bg-gray-200', 'text-gray-700');
+
+    // Show/hide content blocks
+    activeContent.classList.remove('hidden');
+    archivedContent.classList.add('hidden');
+    
+    // Update header text
+    mainTitle.textContent = 'Barangay Services';
+    mainDesc.textContent = 'Review, approve, or reject service requests from residents';
+});
+
+tabArchive.addEventListener('click', () => {
+    // Style buttons
+    tabArchive.classList.add('bg-orange-400', 'text-white');
+    tabArchive.classList.remove('bg-gray-200', 'text-gray-700');
+    tabActive.classList.remove('bg-orange-400', 'text-white');
+    tabActive.classList.add('bg-gray-200', 'text-gray-700');
+
+    // Show/hide content blocks
+    archivedContent.classList.remove('hidden');
+    activeContent.classList.add('hidden');
+    
+    // Update header text
+    mainTitle.textContent = 'Archived Requests';
+    mainDesc.textContent = 'View previously archived service requests and appointments';
+});
+
+// --- Enhanced Export CSV for Active Service Requests (includes user-provided infos) ---
+function exportActiveRequestsToCSV() {
+  // Collect all possible formData keys
+  const allFormKeys = new Set();
+  Object.values(allServiceRequests || {}).forEach(req => {
+    if (req.formData) {
+      Object.keys(req.formData).forEach(k => allFormKeys.add(k));
+    }
+  });
+
+  const formKeysArr = Array.from(allFormKeys);
+  const header = ["Service", "Resident", "Contact", "Date Requested", "Status", ...formKeysArr];
+
+  const rows = [header];
+  Object.entries(allServiceRequests || {}).forEach(([key, req]) => {
+    const { name, contact } = getUserInfo(req.uid);
+    const dateStr = req.timestamp ? new Date(req.timestamp).toLocaleString() : '';
+    const baseCols = [
+      req.serviceType || '',
+      name,
+      contact,
+      dateStr,
+      req.status || 'Pending'
+    ];
+    // Add user-provided infos from formData
+    const formDataParsed = req.formData ? (typeof req.formData === 'string' ? JSON.parse(req.formData) : req.formData) : {};
+    const formCols = formKeysArr.map(k => formDataParsed[k] ? formDataParsed[k] : '');
+    rows.push([...baseCols, ...formCols]);
+  });
+
+  let csvContent = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\r\n");
+  const blob = new Blob([csvContent], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = "active_service_requests.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// --- Enhanced Export CSV for Archived Service Requests (includes user-provided infos) ---
+function exportArchivedRequestsToCSV() {
+  // Collect all possible formData keys
+  const allFormKeys = new Set();
+  Object.values(allArchivedServiceRequests || {}).forEach(req => {
+    if (req.formData) {
+      Object.keys(req.formData).forEach(k => allFormKeys.add(k));
+    }
+  });
+
+  const formKeysArr = Array.from(allFormKeys);
+  const header = ["Service", "Resident", "Contact", "Date Requested", "Status", ...formKeysArr];
+
+  const rows = [header];
+  Object.entries(allArchivedServiceRequests || {}).forEach(([key, req]) => {
+    let name = '—', contact = '—';
+    if (req.uid) { // Try to get from allUsers, then fallback to item's own fields
+      const userInfo = getUserInfo(req.uid);
+      name = userInfo.name;
+      contact = userInfo.contact;
+    } else {
+      name = req.userFullname || req.fullname || req.fullName || '—';
+      contact = req['Contact No.'] || req.contact || '—';
+    }
+    const dateStr = req.timestamp ? new Date(req.timestamp).toLocaleString() : '';
+    const baseCols = [
+      req.serviceType || '',
+      name,
+      contact,
+      dateStr,
+      req.status || 'Pending'
+    ];
+    // Add user-provided infos from formData
+    const formDataParsed = req.formData ? (typeof req.formData === 'string' ? JSON.parse(req.formData) : req.formData) : {};
+    const formCols = formKeysArr.map(k => formDataParsed[k] ? formDataParsed[k] : '');
+    rows.push([...baseCols, ...formCols]);
+  });
+
+  let csvContent = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\r\n");
+  const blob = new Blob([csvContent], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = "archived_service_requests.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// --- Export CSV for Active Appointments ---
+function exportActiveAppointmentsToCSV() {
+  const header = ["Reason", "Resident", "Contact", "Date", "Time", "Status", "Created At"];
+
+  const rows = [header];
+  Object.entries(allAppointments || {}).forEach(([key, appt]) => {
+    const { name, contact } = getUserInfo(appt.uid);
+    const createdAtStr = appt.createdAt ? new Date(appt.createdAt).toLocaleString() : '';
+    rows.push([
+      appt.reason || '',
+      name,
+      contact,
+      appt.date || '',
+      appt.time || '',
+      appt.status || 'Pending',
+      createdAtStr
+    ]);
+  });
+
+  let csvContent = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\r\n");
+  const blob = new Blob([csvContent], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = "active_appointments.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// --- Export CSV for Archived Appointments ---
+function exportArchivedAppointmentsToCSV() {
+  const header = ["Reason", "Resident", "Contact", "Date", "Time", "Status", "Created At"];
+
+  const rows = [header];
+  Object.entries(allArchivedAppointments || {}).forEach(([key, appt]) => {
+    const { name, contact } = getUserInfo(appt.uid);
+    const createdAtStr = appt.createdAt ? new Date(appt.createdAt).toLocaleString() : '';
+    rows.push([
+      appt.reason || '',
+      name,
+      contact,
+      appt.date || '',
+      appt.time || '',
+      appt.status || 'Pending',
+      createdAtStr
+    ]);
+  });
+
+  let csvContent = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\r\n");
+  const blob = new Blob([csvContent], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = "archived_appointments.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// --- Add Export Buttons to UI ---
+window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('exportActiveServiceBtn').onclick = exportActiveRequestsToCSV;
+    document.getElementById('exportArchiveServiceBtn').onclick = exportArchivedRequestsToCSV;
+    document.getElementById('exportActiveAppointmentBtn').onclick = exportActiveAppointmentsToCSV;
+    document.getElementById('exportArchiveAppointmentBtn').onclick = exportArchivedAppointmentsToCSV;
+});
+
+// Image viewer helpers
+function openImageModal(url) {
+  try {
+    const modal = document.getElementById('imageViewerModal');
+    const img = document.getElementById('imageViewerImg');
+    if (!modal || !img) return;
+    img.src = url || '';
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
+  } catch (e) {
+    console.error('Unable to open image modal', e);
+  }
+}
+
+function closeImageModal() {
+  const modal = document.getElementById('imageViewerModal');
+  const img = document.getElementById('imageViewerImg');
+  if (!modal || !img) return;
+  modal.classList.add('hidden');
+  modal.style.display = 'none';
+  // clear src to free memory
+  img.src = '';
+}
+
+// Close when clicking outside the image area
+document.addEventListener('click', function (ev) {
+  const modal = document.getElementById('imageViewerModal');
+  if (!modal || modal.classList.contains('hidden')) return;
+  if (ev.target === modal) closeImageModal();
+});
+
+// Close on ESC
+document.addEventListener('keydown', function (ev) {
+  if (ev.key === 'Escape') closeImageModal();
+});
+
+
+    // Load current admin record and apply UI permissions (defines loadCurrentAdminAndApply + applyAdminAccessUI)
+    async function loadCurrentAdminAndApply() {
+      const user = firebase.auth().currentUser;
+      window.currentAdminRole = null;
+      if (!user) {
+        applyAdminAccessUI();
+        return;
+      }
+
+      try {
+        // Prefer lookup by uid, fallback to email search (lowercased)
+        let snap = await db.ref('admins/' + user.uid).get();
+        let data = snap && snap.val() ? snap.val() : null;
+
+        if (!data) {
+          const emailKey = (user.email || '').toLowerCase();
+          const byEmail = await db.ref('admins').orderByChild('email').equalTo(emailKey).limitToFirst(1).get();
+          if (byEmail && byEmail.exists()) data = Object.values(byEmail.val())[0];
+        }
+
+        // Normalize roles: prefer explicit role, fallback from legacy 'access'
+        // NOTE: we only keep 'full' admins here — any legacy 'limited' or other values are treated as no-admin
+        const legacy = data && (data.access || data.role);
+        window.currentAdminAccess = (legacy === 'full') ? 'full' : null;
+        console.debug('[AdminServices] admin record', { found: !!data, access: legacy, resolved: window.currentAdminAccess });
+      } catch (err) {
+        console.error('loadCurrentAdminAndApply error', err);
+        window.currentAdminRole = null;
+      }
+
+      applyAdminAccessUI();
+    }
+
+   // Live admin-access watcher: forces sign-out+redirect when access !== 'full'
+   window._adminAccessRef = window._adminAccessRef || null;
+   async function watchAdminAccess() {
+       // detach previous listener
+       try { if (window._adminAccessRef) { window._adminAccessRef.off(); window._adminAccessRef = null; } } catch(e) {}
+       const user = firebase.auth().currentUser;
+       if (!user) return;
+
+      const attach = (ref) => {
+           if (!ref) return;
+          window._adminAccessRef = ref;
+          ref.on('value', snap => {
+               const rec = snap && snap.val() ? snap.val() : null;
+               const access = rec && (rec.access || rec.role) ? String(rec.access || rec.role).toLowerCase() : null;
+               if (access !== 'full') {
+                   try { if (window._adminAccessRef) { window._adminAccessRef.off(); window._adminAccessRef = null; } } catch(e){}
+                   console.warn('Admin access revoked or not full — signing out', { access });
+                   firebase.auth().signOut().finally(() => { window.location.href = 'Login.html'; });
+               } else {
+                   // keep UI in sync
+                   window.currentAdminAccess = 'full';
+                   if (typeof applyAdminAccessUI === 'function') applyAdminAccessUI();
+               }
+           }, err => console.error('admin access watch error', err));
+       };
+
+       try {
+           // 1) direct node admins/{uid}
+           const directRef = db.ref('admins/' + user.uid);
+           const directSnap = await directRef.once('value');
+           if (directSnap && directSnap.exists()) { attach(directRef); return; }
+
+           // 2) fallback: admins entries with child 'uid'
+           const byUidSnap = await db.ref('admins').orderByChild('uid').equalTo(user.uid).limitToFirst(1).once('value');
+           if (byUidSnap && byUidSnap.exists()) {
+               const key = Object.keys(byUidSnap.val())[0];
+               attach(db.ref('admins/' + key));
+               return;
+           }
+
+           // 3) fallback: search by email (case-insensitive)
+           const emailKey = (user.email || '').toLowerCase();
+           const byEmailSnap = await db.ref('admins').orderByChild('email').equalTo(emailKey).limitToFirst(1).once('value');
+           if (byEmailSnap && byEmailSnap.exists()) {
+               const key = Object.keys(byEmailSnap.val())[0];
+               attach(db.ref('admins/' + key));
+               return;
+           }
+
+           // no admin record -> sign out
+           console.warn('No admin DB record for signed-in user — signing out');
+           await firebase.auth().signOut();
+           window.location.href = 'Login.html';
+       } catch (err) {
+           console.error('watchAdminAccess error', err);
+       }
+   }
+    function applyAdminAccessUI() {
+      const role = window.currentAdminAccess; // 'full' | null
+
+      // Only 'full' admins have access to admin actions
+      const full = isFullAdmin();
+      document.querySelectorAll('.admin-add-action, .archive-action, .remove-user-action').forEach(el => { if (el) el.style.display = full ? '' : 'none'; });
+      document.querySelectorAll('.admin-edit-action').forEach(btn => { if (btn) btn.disabled = !full; });
+
+      // Export buttons: only full admins
+      document.querySelectorAll('#exportActiveServiceBtn, #exportArchiveServiceBtn, #exportActiveAppointmentBtn, #exportArchiveAppointmentBtn')
+        .forEach(btn => { if (btn) btn.style.display = (role === 'full') ? '' : 'none'; });
+
+      // Admin pages links visibility
+      const usersLink = document.querySelector('.nav-links a[href="AdminUsers.html"]');
+      const managementLink = document.querySelector('.nav-links a[href="AdminManagement.html"]');
+      if (usersLink) usersLink.style.display = (role === 'full') ? '' : 'none';
+      if (managementLink) managementLink.style.display = (role === 'full') ? '' : 'none';
+
+      // Appointments card: only full admins see it now
+      const apptCard = document.getElementById('appointmentsCard');
+      if (apptCard) apptCard.style.display = full ? '' : 'none';
+    }
+
+// --- DATA FETCHING ---
+    async function loadAllData() {
+        // Fetch all data types in parallel
+        await db.ref('users').once('value').then(snap => { allUsers = snap.val() || {}; });
+        
+        db.ref('serviceRequestsV2').on('value', snap => {
+            allServiceRequests = snap.val() || {};
+            renderServiceRequests();
+        });
+        db.ref('archivedServiceRequests').on('value', snap => {
+            allArchivedServiceRequests = snap.val() || {};
+            renderArchivedServiceRequests();
+        });
+        db.ref('appointments').on('value', snap => {
+            allAppointments = snap.val() || {};
+            renderAppointments();
+        });
+        db.ref('archivedAppointments').on('value', snap => {
+            allArchivedAppointments = snap.val() || {};
+            renderArchivedAppointments();
+        });
+    }
+
+    // --- RENDER FUNCTIONS ---
+    function renderTable(tableEl, data, isArchived = false, isAppointment = false) {
+       if (!tableEl) {
+            return; // If the table element doesn't exist on this page, do nothing.
+        }
+        tableEl.innerHTML = '';
+        const filter = document.getElementById('statusFilter')?.value || 'All';
+        const query = isArchived ? (document.getElementById('archiveSearchInput')?.value || '') : (document.getElementById('searchInput')?.value || '');
+
+  // Sort ascending: earliest (oldest) request first
+        const entries = Object.entries(data).sort((a, b) => (a[1].timestamp || a[1].createdAt || 0) - (b[1].timestamp || b[1].createdAt || 0));
+
+        const filteredEntries = entries.filter(([key, item]) => {
+            const statusMatch = (filter === 'All' || item.status === filter);
+            const searchMatch = matchesSearch(item, query, isAppointment);
+            return statusMatch && searchMatch;
+        });
+
+        if (filteredEntries.length === 0) {
+            const type = isAppointment ? 'appointments' : 'service requests';
+            tableEl.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-500">No ${isArchived ? 'archived' : ''} ${type} found.</td></tr>`;
+            return;
+        }
+
+        filteredEntries.forEach(([key, item]) => {
+            const { name, contact } = getUserInfo(item.uid);
+            const date = item.timestamp || item.createdAt;
+            const dateStr = date ? new Date(date).toLocaleString() : '—';
+            
+            // Format time for appointments if available
+            let dateTimeDisplay = dateStr;
+            if (isAppointment) {
+                let time = item.time || '';
+                if (time) {
+                    try {
+                        const [hourStr, minuteStr] = time.split(':');
+                        let hour = parseInt(hourStr, 10);
+                        const minute = minuteStr ? minuteStr.padStart(2, '0') : '00';
+                        const ampm = hour >= 12 ? 'PM' : 'AM';
+                        hour = hour % 12 || 12;
+                        time = `${hour}:${minute} ${ampm}`;
+                    } catch {
+                        time = item.time; // fallback
+                    }
+                }
+                dateTimeDisplay = `${item.date || '—'} ${time || '—'}`;
+            }
+
+            const row = document.createElement('tr');
+            row.className = "hover:bg-gray-50 transition cursor-pointer";
+            
+            row.innerHTML = `
+                <td class="px-6 py-4">${escapeHtml(isAppointment ? item.reason : item.serviceType)}</td>
+                <td class="px-6 py-4">${escapeHtml(name)}</td>
+                <td class="px-6 py-4">${escapeHtml(contact)}</td>
+                <td class="px-6 py-4">${dateTimeDisplay}</td>
+                <td class="px-6 py-4">${statusBadge(item.status)}</td>
+                <td class="px-6 py-4 space-x-2">
+                    <button class="view-btn bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm hover:bg-gray-300">View</button>
+                    ${!isArchived ? `<button class="archive-btn bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-400">Archive</button>` : ''}
+                </td>
+            `;
+            
+            row.querySelector('.view-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                openModal(key, isAppointment, isArchived);
+            });
+            if (!isArchived) {
+                row.querySelector('.archive-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    confirmArchive(key, isAppointment);
+                });
+            }
+            
+            row.onclick = () => openModal(key, isAppointment, isArchived);
+            tableEl.appendChild(row);
+        });
+    }
+
+    function renderServiceRequests() { 
+        renderTable(serviceRequestsTable, allServiceRequests, false, false); 
+    }
+    function renderArchivedServiceRequests() { 
+        renderTable(archivedServiceRequestsTable, allArchivedServiceRequests, true, false); 
+    }
+    function renderAppointments() { 
+        renderTable(appointmentsTable, allAppointments, false, true); 
+    }
+    function renderArchivedAppointments() { 
+        renderTable(archivedAppointmentsTable, allArchivedAppointments, true, true); 
+    }
+
+
+// Apply UI rules (customize per page)
+
+// run after auth ready
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    loadCurrentAdminAndApply();
+   // ensure watcher started after admin normalization
+   try { if (typeof watchAdminAccess === 'function') watchAdminAccess(); } catch (e) { console.error('watchAdminAccess invocation failed', e); }
+  }
+});
+</script>
+<!-- Modal for viewing appointment -->
+<div id="appointmentModal" class="fixed inset-0 z-50 hidden bg-black/40 justify-center items-center">
+  <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+    <button onclick="closeModal('appointmentModal')" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800">&times;</button>
+    <div id="appointmentModalContent"></div>
+    <button onclick="closeModal('appointmentModal')" class="mt-4 px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 w-full">
+      Exit
+    </button>
+  </div>
+</div>
+</body>
+</html>

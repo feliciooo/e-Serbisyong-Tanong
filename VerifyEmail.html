@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Email Verification - e-Serbisyong Tañong</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body class="min-h-screen m-0 font-['Roboto',Arial,sans-serif] flex items-center justify-center relative overflow-hidden bg-cover bg-fixed bg-center" style="background-image:url('homebg1.png')">
+    <div class="flex w-full md:w-1/2 items-center justify-center md:justify-end px-4 md:px-16 bg-white">
+        <div class="bg-white px-8 py-10 rounded-2xl shadow-2xl w-full max-w-md flex flex-col items-center">
+            <div id="verifying" class="text-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-400 mx-auto mb-4"></div>
+                <h2 class="mb-4 font-semibold text-gray-900 text-2xl tracking-wide">Verifying Email...</h2>
+                <p class="text-gray-600">Please wait while we verify your email address.</p>
+            </div>
+
+            <div id="success" class="text-center hidden">
+                <div class="text-green-500 text-6xl mb-4">✓</div>
+                <h2 class="mb-4 font-semibold text-gray-900 text-2xl tracking-wide">Email Verified!</h2>
+                <p class="text-gray-600 mb-6">Your email has been successfully verified. You can now log in to your account.</p>
+                <button onclick="window.location.href='Login.html'" 
+                        class="px-6 py-3 rounded-lg bg-orange-400 text-white font-semibold text-base transition hover:bg-orange-300">
+                    Go to Login
+                </button>
+            </div>
+
+            <div id="error" class="text-center hidden">
+                <div class="text-red-500 text-6xl mb-4">✗</div>
+                <h2 class="mb-4 font-semibold text-gray-900 text-2xl tracking-wide">Verification Failed</h2>
+                <p id="errorMsg" class="text-gray-600 mb-6"></p>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button onclick="window.location.href='Register.html'" 
+                            class="flex-1 px-6 py-3 rounded-lg bg-gray-50 text-orange-400 border border-orange-200 font-semibold text-base transition hover:bg-orange-50">
+                        Register Again
+                    </button>
+                    <button onclick="window.location.href='Login.html'" 
+                            class="flex-1 px-6 py-3 rounded-lg bg-orange-400 text-white font-semibold text-base transition hover:bg-orange-300">
+                        Go to Login
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase config
+        const firebaseConfig = {
+        apiKey: "AIzaSyCDT65vncku1avdYSxrCJCM_SE-gN2E2ok",
+        authDomain: "e-serbisyong-tanong.firebaseapp.com",
+        databaseURL: "https://e-serbisyong-tanong-default-rtdb.firebaseio.com",
+        projectId: "e-serbisyong-tanong",
+        storageBucket: "e-serbisyong-tanong.firebasestorage.app",
+        messagingSenderId: "147646033817",
+        appId: "1:147646033817:web:503ac4767a4774a4afad08",
+        measurementId: "G-3TDQYZTF1H"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Get token from URL
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+
+        const verifyingDiv = document.getElementById('verifying');
+        const successDiv = document.getElementById('success');
+        const errorDiv = document.getElementById('error');
+        const errorMsg = document.getElementById('errorMsg');
+
+        function showSuccess() {
+            verifyingDiv.classList.add('hidden');
+            successDiv.classList.remove('hidden');
+        }
+
+        function showError(message) {
+            verifyingDiv.classList.add('hidden');
+            errorMsg.textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        async function verifyEmail() {
+            if (!token) {
+                showError('Invalid verification link. Please check your email or request a new verification link.');
+                return;
+            }
+
+            try {
+                // Decode the token
+                const decoded = atob(token);
+                const parts = decoded.split(':');
+                
+                if (parts.length < 3) {
+                    showError('Invalid verification token format.');
+                    return;
+                }
+
+                const [email, uid, timestamp] = parts;
+
+                // Check if token is expired (24 hours)
+                const tokenAge = Date.now() - parseInt(timestamp);
+                const maxAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+                if (tokenAge > maxAge) {
+                    showError('This verification link has expired. Please request a new one from the login page.');
+                    return;
+                }
+
+                // Update user's emailVerified status in database
+                await db.ref('users/' + uid).update({
+                    emailVerified: true,
+                    verifiedAt: new Date().toISOString()
+                });
+
+                showSuccess();
+            } catch (error) {
+                console.error('Verification error:', error);
+                showError('An error occurred during verification. Please try again or contact support.');
+            }
+        }
+
+        // Start verification when page loads
+        verifyEmail();
+    </script>
+</body>
+</html>

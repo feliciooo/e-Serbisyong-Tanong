@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Appointments - e-Serbisyong Tañong</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,600&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="icon.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    .form-title {
+      text-align: center;
+      font-weight: bold;
+      font-size: 24px;
+      color: #1f2937;
+    }
+    .form-container {
+      background: #ffffff;
+      border-radius: 1.2rem;
+      padding: 1.5rem;
+      box-shadow: 0 10px 40px rgba(31, 38, 135, 0.12);
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .form-container label {
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    .form-container input,
+    .form-container textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 1rem;
+    }
+    .form-container button {
+      background: #fb923c;
+      color: #ffffff;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .form-container button:hover {
+      background: #f97316;
+    }
+    .feedback {
+      display: none;
+      background: #dcfce7;
+      border-left: 4px solid #16a34a;
+      padding: 10px;
+      border-radius: 6px;
+      color: #065f46;
+      margin-bottom: 12px;
+    }
+
+    /* Navbar notification badge: match Notifications.html UI/UX */
+    #notifBadge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #ef4444;
+      color: #fff;
+      border-radius: 9999px;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      line-height: 1;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+    }
+  </style>
+</head>
+<body class="min-h-screen m-0 font-['Roboto',Arial,sans-serif] flex bg-gray-50">
+  <div class="flex w-full min-h-screen">
+<!-- Sidebar -->
+<aside class="hidden md:flex bg-white shadow-lg w-64 min-h-screen flex flex-col py-8 px-4 fixed z-40 top-0 left-0 border-r border-orange-100" style="max-height:100vh;overflow-y:auto;">
+  <div class="flex items-center gap-3 mb-8">
+    <img src="icon.png" alt="Logo" class="h-10 w-10 rounded-full" />
+    <span class="font-extrabold text-xl text-orange-500 tracking-wide">e-Serbisyong Tañong</span>
+  </div>
+
+  <nav class="flex flex-col gap-3">
+    <a href="Home.html" class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-gray-800 hover:bg-orange-50 transition">
+      <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m4-8v8m5 0a2 2 0 002-2V7a2 2 0 00-2-2h-3.5a2 2 0 00-1.5.67"></path>
+      </svg>
+      Home
+    </a>
+
+    <a href="Services.html" class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-gray-800 hover:bg-orange-50 transition">
+      <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
+      </svg>
+      Services
+    </a>
+
+    <a href="Appointments.html" class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium bg-orange-400 text-white">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+      </svg>
+      Appointments
+    </a>
+
+    <a href="Notifications.html" class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-gray-800 hover:bg-orange-50 transition relative">
+      <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+      </svg>
+      Notifications
+      <span id="notifBadge" class="badge hidden" aria-hidden="true">0</span>
+            </a>
+
+    <a href="Profile.html" class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-gray-800 hover:bg-orange-50 transition">
+      <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+      </svg>
+      Profile
+    </a>
+
+    <div id="sidebarServiceList" class="mt-3"></div>
+  </nav>
+
+  <div class="mt-auto flex flex-col gap-3 pb-2">
+    <button onclick="logout()" class="w-full bg-orange-400 text-white rounded-lg px-4 py-2 font-medium transition hover:bg-orange-300">
+      Logout
+    </button>
+  </div>
+</aside>
+
+
+    <!-- Main content -->
+    <div class="flex-1 md:ml-64 flex flex-col min-h-screen pb-20 md:pb-0">
+      <div class="flex justify-center items-center mt-16">
+        <div class="form-container">
+          <h1 class="form-title">Request an Appointment</h1>
+          <p class="text-gray-600 text-sm mb-4">Fill out the form below. The barangay admin will review and contact you.</p>
+          <div id="feedback" class="feedback"></div>
+          <form id="appointmentForm">
+            <label for="name">Name</label>
+            <input id="name" type="text" required readonly style="background-color:#f9fafb; cursor:not-allowed;" />
+            <label for="contact">Contact</label>
+            <input id="contact" type="text" required readonly style="background-color:#f9fafb; cursor:not-allowed;" />
+            <label for="date">Date</label>
+            <input id="date" type="date" required />
+            <label for="time">Time</label>
+            <input id="time" type="time" required />
+            <label for="reason">Reason for Appointment</label>
+            <textarea id="reason" required></textarea>
+            <button type="submit">Submit Request</button>
+          </form>
+          <p id="warningMessage" style="color: red; display: none;">The desired date and time is already booked. Please choose another date or time.</p>
+        
+        </div>
+        
+      </div>
+              <footer class="w-full bg-orange-400 py-4 px-8 text-left text-white text-sm font-bold border-t border-orange-200 mt-auto">
+            © 2025 e-Serbisyong Tañong. All rights reserved.
+        </footer>
+    </div>
+    
+  </div>
+  
+
+  <script>
+    // Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyCDT65vncku1avdYSxrCJCM_SE-gN2E2ok",
+        authDomain: "e-serbisyong-tanong.firebaseapp.com",
+        databaseURL: "https://e-serbisyong-tanong-default-rtdb.firebaseio.com",
+        projectId: "e-serbisyong-tanong",
+        storageBucket: "e-serbisyong-tanong.firebasestorage.app",
+        messagingSenderId: "147646033817",
+        appId: "1:147646033817:web:503ac4767a4774a4afad08",
+        measurementId: "G-3TDQYZTF1H"
+        };
+    firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    const nameEl = document.getElementById("name");
+    const contactEl = document.getElementById("contact");
+    const apptForm = document.getElementById("appointmentForm");
+    const feedbackEl = document.getElementById("feedback");
+    const warningEl = document.getElementById("warningMessage");
+
+    // Helper: autofill name/contact
+    function fillUserDetails(data) {
+      const fullName = data.fullname || `${data.firstname || ''} ${data.middlename || ''} ${data.lastname || ''}`.trim();
+      nameEl.value = fullName || '';
+      contactEl.value = data.contact || data.phone || '';
+    }
+
+    // Auth check
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        window.location.href = "Login.html";
+        return;
+      }
+
+      try {
+        const userSnap = await db.ref(`users/${user.uid}`).once("value");
+        const userData = userSnap.val();
+        if (!userData) {
+          alert("User data not found.");
+          return;
+        }
+
+        // Check verification
+        if (userData.verificationStatus !== "Verified") {
+          alert("Your account is not yet verified. Redirecting to Profile...");
+          window.location.href = "Profile.html?verification=pending";
+          return;
+        }
+
+        fillUserDetails(userData);
+     // start real-time notification badge updater for this user
+        fetchNotificationCountForCurrentUser();
+      } catch (err) {
+        console.error(err);
+        alert("Failed to load user details.");
+      }
+    });
+
+    // Handle Appointment Submission
+    apptForm.addEventListener("submit", async e => {
+      e.preventDefault();
+      const user = auth.currentUser;
+      if (!user) return alert("Please log in first.");
+
+      const name = nameEl.value.trim();
+      const contact = contactEl.value.trim();
+      const date = document.getElementById("date").value;
+      const time = document.getElementById("time").value;
+      const reason = document.getElementById("reason").value.trim();
+      const dateTime = `${date} ${time}`;
+
+      if (!date || !time || !reason) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      try {
+        const snapshot = await db.ref("appointments").orderByChild("dateTime").equalTo(dateTime).once("value");
+        if (snapshot.exists()) {
+          warningEl.style.display = "block";
+          return;
+        }
+
+        warningEl.style.display = "none";
+        const apptData = {
+          uid: user.uid,
+          name,
+          contact,
+          date,
+          time,
+          reason,
+          status: "Pending",
+          createdAt: new Date().toISOString(),
+          dateTime
+        };
+
+        await db.ref("appointments").push(apptData);
+
+        feedbackEl.style.display = "block";
+        feedbackEl.textContent = "Appointment submitted successfully!";
+        feedbackEl.style.background = "#dcfce7";
+        feedbackEl.style.color = "#065f46";
+        apptForm.reset();
+        // Re-fill user details after reset to keep name/contact readonly
+        const userSnap = await db.ref(`users/${user.uid}`).once("value");
+        fillUserDetails(userSnap.val());
+
+      } catch (error) {
+        console.error(error);
+        feedbackEl.style.display = "block";
+        feedbackEl.style.background = "#fee2e2";
+        feedbackEl.style.color = "#991b1b";
+        feedbackEl.textContent = "Error submitting appointment.";
+      }
+    });
+
+   // detach notification listener and sign out
+    function logout() {
+      if (window._apptNotifRef) {
+        try { window._apptNotifRef.off(); } catch (e) { /* ignore */ }
+        window._apptNotifRef = null;
+      }
+      auth.signOut().then(() => {
+        localStorage.removeItem("user");
+        window.location.href = "Login.html";
+      });
+    }
+
+    // Real-time notification badge updater for Appointments page
+    function fetchNotificationCountForCurrentUser() {
+      const user = firebase.auth().currentUser;
+      const badge = document.getElementById('notifBadge');
+      if (!user || !badge) return;
+
+      // detach previous listener if any
+      if (window._apptNotifRef) {
+        try { window._apptNotifRef.off(); } catch (e) { /* ignore */ }
+      }
+
+      const ref = db.ref('notifications').orderByChild('userId').equalTo(user.uid);
+      ref.on('value', snapshot => {
+        const data = snapshot.val() || {};
+        let unread = 0;
+        Object.values(data).forEach(n => {
+          if (!n) return;
+          if (n.read === false || n.read === undefined || n.read === null) unread++;
+        });
+        if (unread > 0) {
+          badge.textContent = unread > 99 ? '99+' : unread;
+          badge.classList.remove('hidden');
+          badge.setAttribute('title', `${unread} unread notification${unread > 1 ? 's' : ''}`);
+          badge.setAttribute('aria-label', `${unread} unread notifications`);
+          badge.setAttribute('aria-hidden', 'false');
+       } else {
+          badge.classList.add('hidden');
+          badge.removeAttribute('title');
+          badge.setAttribute('aria-hidden', 'true');
+        }
+      }, err => {
+        console.error('fetchNotificationCount error', err);
+      });
+
+      window._apptNotifRef = ref;
+    }
+  </script>
+ <!-- START: Universal Modal, Content, and Links -->
+
+<!-- 1. Embedded Content Templates -->
+<template id="about-content">
+    <h2 class="text-2xl font-bold text-orange-600 mb-4">About e-Serbisyong Tañong</h2>
+    <div class="space-y-4 text-gray-700 leading-relaxed">
+        <p><strong>e-Serbisyong Tañong</strong> is a digital platform designed to bridge the gap between the residents of Barangay Tañong and their local government. Our mission is to provide a modern, accessible, and efficient way for community members to access essential barangay services from anywhere, at any time.</p>
+        <h3 class="text-lg font-semibold text-gray-800 pt-2">Key Features</h3>
+        <ul class="list-disc list-inside space-y-2">
+            <li><strong>Online Service Requests:</strong> Apply for clearances, permits, and other essential documents without needing to visit the barangay hall in person.</li>
+            <li><strong>Appointment Scheduling:</strong> Easily book appointments with barangay officials, reducing wait times and ensuring you are attended to promptly.</li>
+            <li><strong>Profile Management:</strong> Keep your personal information up-to-date to ensure seamless and accurate processing of your requests.</li>
+            <li><strong>Real-time Notifications:</strong> Stay informed with instant updates on the status of your service requests and appointments.</li>
+        </ul>
+        <p>This platform was developed with the goal of promoting transparency, improving public service delivery, and empowering our residents through technology. We are committed to continuously improving this service to better meet the needs of our community.</p>
+    </div>
+</template>
+
+<template id="privacy-content">
+    <h2 class="text-2xl font-bold text-orange-600 mb-4">Privacy Policy</h2>
+    <div class="space-y-4 text-gray-700 leading-relaxed">
+        <p class="text-sm text-gray-500">Last updated: October 17, 2025</p>
+        <p>e-Serbisyong Tañong ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our web application.</p>
+        <h3 class="text-lg font-semibold text-gray-800 pt-2">Information We Collect</h3>
+        <ul class="list-disc list-inside space-y-2">
+            <li><strong>Personal Data:</strong> Personally identifiable information, such as your name, address, email address, and telephone number, that you voluntarily give to us when you register or request services.</li>
+            <li><strong>Uploaded Documents:</strong> Files and images you upload, such as a Barangay ID, are collected to verify your identity and fulfill service requirements. These are stored securely.</li>
+        </ul>
+        <h3 class="text-lg font-semibold text-gray-800 pt-2">How We Use Your Information</h3>
+        <p>Having accurate information permits us to provide you with a smooth, efficient, and customized experience. We may use information collected about you to create and manage your account, process your requests, and email you regarding your account status.</p>
+        <h3 class="text-lg font-semibold text-gray-800 pt-2">Data Security</h3>
+        <p>We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that despite our efforts, no security measures are perfect or impenetrable.</p>
+        
+    </div>
+</template>
+
+<template id="contact-content">
+    <h2 class="text-2xl font-bold text-orange-600 mb-4">Contact Information</h2>
+    <div class="space-y-4 text-gray-700 leading-relaxed">
+        <p class="text-sm text-gray-500">Last updated: October 17, 2025</p>
+        <p>If you have any questions, concerns, or need assistance, you can reach us through the following channels:</p>
+
+        <h3 class="text-lg font-semibold text-gray-800 pt-2">Barangay Tañong Contact Details</h3>
+        <ul class="list-disc list-inside space-y-2">
+            <li><strong>Facebook:</strong> <a href="https://www.facebook.com/profile.php?id=61553549227340" target="_blank" class="text-blue-600 hover:underline">Barangay Tañong Council</a></li>
+            <li><strong>Email:</strong> <a href="mailto:barangaytanongcouncil@gmail.com" class="text-blue-600 hover:underline">barangaytanongcouncil@gmail.com</a></li>
+            <li><strong>Emergency Hotline:</strong> <a href="tel:0285253037" class="text-blue-600 hover:underline">02 8525 3037</a></li>
+            <li><strong>Address:</strong> <a href="https://maps.google.com/?q=5+Lopez+Jaena+Street,+1803+Marikina+City,+Philippines" target="_blank" class="text-blue-600 hover:underline">5 Lopez Jaena Street, 1803 Marikina City, Philippines</a></li>
+        </ul>
+
+        <h3 class="text-lg font-semibold text-gray-800 pt-2">Marikina City Emergency Hotlines</h3>
+        <ul class="list-disc list-inside space-y-2">
+            <li><strong>Marikina Rescue 161 Hotline:</strong> 8-646-2436 to 38 </br> 8-646-0427 </br> 7-273-6563</li>
+            <li><strong>Mobile Numbers:</strong>
+                <ul class="list-disc list-inside ml-5 space-y-1">
+                    <li>0917-584-2168 (Globe)</li>
+                    <li>0917-804-6352 (Globe)</li>
+                    <li>0928-559-3341 (Smart)</li>
+                </ul>
+            </li>
+            <li><strong>Email:</strong> <a href="mailto:drrmo.marikinacity@gmail.com" class="text-blue-600 hover:underline">drrmo.marikinacity@gmail.com</a></li>
+            <li><strong>Facebook Messenger:</strong> <a href="https://www.facebook.com/messages/t/349166318514092" target="_blank" class="text-blue-600 hover:underline">Reskyu Onesixone</a></li>
+            <li><strong>Facebook Account:</strong> <a href="https://www.facebook.com/MarikinaRescue161" target="_blank" class="text-blue-600 hover:underline">Marikina City Rescue 161</a></li>
+        </ul>
+    </div>
+</template>
+
+
+<!-- 2. Generic Modal Structure -->
+<div id="info-modal" class="fixed inset-0 z-[100] hidden bg-black bg-opacity-60 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col modal-animate">
+        <div class="flex items-center justify-between p-4 border-b">
+            <h2 id="modal-title" class="text-xl font-semibold text-gray-800"></h2>
+            <button id="modal-close-btn" class="text-gray-500 hover:text-red-500 text-3xl font-bold">&times;</button>
+        </div>
+        <div id="modal-content-body" class="p-6 overflow-y-auto">
+            <!-- Content will be injected here -->
+        </div>
+    </div>
+</div>
+
+<!-- 3. Bottom Right Links -->
+<div class="hidden md:flex fixed bottom-4 right-4 z-[90] gap-4">
+    <button id="about-link" class="text-xs text-white hover:text-orange-500 hover:underline">About</button>
+    <button id="privacy-link" class="text-xs text-white hover:text-orange-500 hover:underline">Privacy</button>
+    <button id="contact-link" class="text-xs text-white hover:text-orange-500 hover:underline">Contact</button>
+</div>
+
+<!-- 4. JavaScript to Power the Modal -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('info-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContentBody = document.getElementById('modal-content-body');
+        const closeBtn = document.getElementById('modal-close-btn');
+        const aboutLink = document.getElementById('about-link');
+        const privacyLink = document.getElementById('privacy-link');
+        const contactLink = document.getElementById('contact-link');
+
+        function openModal(title, templateId) {
+            if (!modal || !modalTitle || !modalContentBody) return;
+
+            const template = document.getElementById(templateId);
+            if (!template) {
+                modalContentBody.innerHTML = '<p class="text-center text-red-500">Content could not be found.</p>';
+            } else {
+                modalContentBody.innerHTML = template.innerHTML;
+            }
+
+            modalTitle.textContent = title;
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        if (aboutLink) aboutLink.addEventListener('click', () => openModal('About e-Serbisyong Tañong', 'about-content'));
+        if (privacyLink) privacyLink.addEventListener('click', () => openModal('Privacy Policy', 'privacy-content'));
+        if (contactLink) contactLink.addEventListener('click', () => openModal('Contact Information', 'contact-content'));
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "Escape" && !modal.classList.contains('hidden')) closeModal();
+        });
+    });
+</script>
+<!-- START: Mobile Bottom Navigation Bar -->
+<nav id="bottom-nav" class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg flex justify-around items-center z-50 h-16">
+    <a href="Home.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m4-8v8m5 0a2 2 0 002-2V7a2 2 0 00-2-2h-3.5a2 2 0 00-1.5.67"></path></svg>
+        <span class="text-xs mt-1">Home</span>
+    </a>
+    <a href="Services.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+        <span class="text-xs mt-1">Services</span>
+    </a>
+    <a href="Appointments.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        <span class="text-xs mt-1">Appointments</span>
+    </a>
+    <a href="Notifications.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2 relative">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+        <span class="text-xs mt-1">Alerts</span>
+        <!-- Notification badge for mobile -->
+        <span id="notifBadgeMobile" class="absolute top-1 right-1/2 translate-x-4 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+    </a>
+    <a href="Profile.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        <span class="text-xs mt-1">Profile</span>
+    </a>
+</nav>
+
+<script>
+    // Script to highlight the active bottom navigation item
+    document.addEventListener('DOMContentLoaded', function() {
+        const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
+        // Use a more reliable way to get the current page name
+        const currentPage = window.location.pathname.substring(window.location.pathname.lastIndexOf('/') + 1);
+
+        bottomNavItems.forEach(item => {
+            const itemPage = item.getAttribute('href');
+            if (currentPage === itemPage) {
+                item.classList.remove('text-gray-500');
+                item.classList.add('text-orange-500'); // Highlight color
+            }
+        });
+        
+        // --- Mobile Notification Badge Logic ---
+        // This makes the mobile badge mirror the sidebar badge
+        const desktopBadge = document.getElementById('notifBadge');
+        const mobileBadge = document.getElementById('notifBadgeMobile');
+
+        if (desktopBadge && mobileBadge) {
+            const observer = new MutationObserver(mutations => {
+                mutations.forEach(mutation => {
+                    if (mutation.type === 'attributes' || mutation.type === 'childList') {
+                        const isHidden = desktopBadge.classList.contains('hidden');
+                        const count = desktopBadge.textContent;
+                        
+                        mobileBadge.textContent = count;
+                        if (isHidden || count === '0') {
+                            mobileBadge.classList.add('hidden');
+                        } else {
+                            mobileBadge.classList.remove('hidden');
+                        }
+                    }
+                });
+            });
+
+            observer.observe(desktopBadge, { attributes: true, childList: true, subtree: true });
+        }
+    });
+</script>
+<!-- END: Mobile Bottom Navigation Bar -->
+</body>
+
+</html>

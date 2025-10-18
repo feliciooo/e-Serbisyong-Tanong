@@ -1,0 +1,2217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>e-Serbisyong Tañong</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="icon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+body {
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Roboto', Arial, sans-serif;
+    background: url('') center center/cover no-repeat fixed;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    display: flex;
+    overflow: hidden;
+}
+/* Constrain the search dropdown and make it scrollable */
+#search-dropdown {
+    max-height: 300px; /* Sets maximum height to 60% of the viewport's height */
+    overflow-y: auto; /* Adds a vertical scrollbar ONLY when needed */
+}
+/* Sidebar styles */
+aside {
+    background: #ffffff;
+    box-shadow: 0 4px 16px rgba(31, 38, 135, 0.08);
+    border-right: 1px solid #e5e7eb;
+    max-height: 100vh;
+    overflow-y: auto;
+}
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2.5rem;
+}
+.sidebar-logo img {
+    border-radius: 9999px;
+    height: 2.5rem;
+    width: 2.5rem;
+    object-fit: cover;
+}
+.sidebar-logo span {
+    font-weight: 800;
+    font-size: 1.125rem;
+    color: #d97706;
+    letter-spacing: 0.5px;
+}
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: auto;
+}
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    transition: background 0.2s, color 0.2s;
+}
+.sidebar-nav a:hover {
+    background: #f9f9f9;
+}
+.sidebar-nav a.active {
+    background: #d97706;
+    color: #ffffff;
+}
+.sidebar-nav svg {
+    width: 1.5rem;
+    height: 1.5rem;
+    flex-shrink: 0;
+}
+.sidebar-footer {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.logout-btn {
+    background: #d97706;
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.18s;
+    width: 100%;
+    text-align: center;
+}
+.logout-btn:hover {
+    background: #ffb877;
+}
+main {
+    overflow-y: auto; /* Allow only this container to scroll vertically */
+    height: 100vh; /* Make it take up the full viewport height */
+}
+
+/* Main content adjustment */
+.main-content {
+    flex: 1;
+    width: 100%;
+    padding: 1.5rem;
+    margin-left: 16rem; /* Leave space for the sidebar */
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+@media (max-width: 1024px) {
+    .main-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+}
+
+.services-container {
+    margin-top: 120px;
+    background: #ffffff;
+    border-radius: 1.25rem;
+    box-shadow: 0 10px 40px rgba(31, 38, 135, 0.08);
+    padding: 2.4rem; /* increased breathing room */
+    max-width: 760px; /* slightly wider to breathe */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.services-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #222;
+    margin-bottom: 2rem;
+    letter-spacing: 1px;
+}
+.service-btn {
+    background: #FFA500;
+    color: #fff;
+    border: none;
+    border-radius: 0.9rem;
+    padding: 0 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(31, 38, 135, 0.07);
+    transition: background 0.18s, transform 0.14s, box-shadow 0.14s;
+    white-space: normal;
+    word-break: break-word;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.1;
+}
+.service-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(31, 38, 135, 0.10);
+    background: #ffb15a;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0; top: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.25);
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+.modal-content {
+    background: #ffffff;
+    border-radius: 1.2rem;
+    padding: 1.1rem 1.2rem;
+    width: min(92vw, 820px);
+    max-width: 92vw;
+    box-shadow: 0 10px 40px rgba(31, 38, 135, 0.12);
+    position: relative;
+    box-sizing: border-box;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+    overflow-x: hidden; /* Prevent horizontal scrollbar */
+    word-wrap: break-word;
+    /* ADDITIONS to fix service list readability */
+    white-space: pre-line;
+    line-height: 1.6;
+    text-align: left;
+    font-size: 0.98rem;
+}
+
+
+.close-modal {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.8rem;
+    background: gray;
+    border: none;
+    font-size: 1.8rem;
+    color: #e0e0e0;
+    cursor: pointer;
+    transition: color 0.18s;
+    width: 30px;
+}
+.close-modal:hover {
+    color: #ffffff;
+    background: #333;
+}
+
+/* Landscape/wide form modal for service forms */
+#modalServiceForm .modal-content {
+    max-width: 900px;
+    width: 92vw;
+    padding: 1rem;
+}
+
+/* Landscape: wider modals for all services */
+#modalInfra .modal-content,
+#modalSocial .modal-content,
+#modalGeneral .modal-content,
+#modalOthers .modal-content {
+    max-width: 900px;
+    width: 92vw;
+    min-width: 0;
+}
+
+/* Landscape: make services-container fill modal and be more compact */
+#modalInfra .services-container,
+#modalSocial .services-container,
+#modalGeneral .services-container,
+#modalOthers .services-container {
+    max-width: 500px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 1rem 0.8rem;
+    border-radius: 0.8rem;
+    box-shadow: none;
+    background: none;
+}
+/* LANDSCAPE: More columns for each modal */
+.services-columns-3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(160px, 1fr));
+    grid-auto-rows: 84px;
+    gap: 1.6rem 1.8rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    align-items: stretch;
+}
+.services-columns-4 {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(160px, 1fr));
+    grid-auto-rows: 84px;
+    gap: 1.6rem 1.8rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    align-items: stretch;
+}
+
+/* Social-specific: if last row is incomplete, center the last button across middle columns */
+#modalSocial .services-container.services-columns-4 > .service-btn:last-child:not(:nth-child(4n)) {
+    grid-column: 2 / 4;
+    justify-self: center;
+    align-self: center;
+    max-width: 80%;
+}
+
+/* Responsive: switch back to row flow on smaller screens */
+@media (max-width: 900px) {
+    .services-columns-3,
+    .services-columns-4 {
+        grid-auto-flow: row;
+        grid-auto-columns: auto;
+        grid-template-rows: none;
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 72px;
+        gap: 1rem;
+    }
+}
+@media (max-width: 700px) {
+    .services-columns-3,
+    .services-columns-4 {
+        grid-auto-flow: row;
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
+        gap: 0.9rem 0;
+    }
+}
+/* Responsive adjustments */
+@media (max-width: 1400px) {
+    .services-columns-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    .services-columns-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    #modalInfra .modal-content,
+    #modalSocial .modal-content,
+    #modalGeneral .modal-content,
+    #modalOthers .modal-content {
+        max-width: 100vw;
+        min-width: 0;
+    }
+    #modalInfra .services-container,
+    #modalSocial .services-container,
+    #modalGeneral .services-container,
+    #modalOthers .services-container {
+        max-width: 98vw;
+    }
+}
+@media (max-width: 900px) {
+    .services-columns-4,
+    .services-columns-3 {
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 64px;
+        gap: 0.6rem;
+    }
+    .service-btn { font-size: 0.98rem; padding: 0 0.9rem; }
+    .modal-content { width: min(94vw, 780px); padding: 1rem; }
+    .services-container { padding: 1.4rem; max-width: 720px; }
+}
+@media (max-width: 700px) {
+    .services-columns-4,
+    .services-columns-3 {
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
+        gap: 0.9rem 0;
+    }
+    .service-btn {
+        padding: 0.6rem 0.9rem;
+        height: auto;
+        font-size: 0.98rem;
+    }
+    .modal-content { width: 96vw; padding: 0.8rem; }
+    .services-container { padding: 1rem; }
+}
+.requirements-box {
+    background: #fffbe6;
+    border: 1px solid #ffe08a;
+    border-radius: 0.7rem;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.01rem;
+    color: #7a5a00;
+    max-width: 100%;
+    box-shadow: 0 2px 8px rgba(255, 200, 0, 0.07);
+    /* Match form width and spacing */
+    line-height: 1.5;
+    font-family: 'Roboto', Arial, sans-serif;
+}
+
+.gcash-box {
+    background-color: #FEF9C3; /* Light yellow background */
+    border: 1px solid #FDE68A;   /* Yellow border */
+    color: #92400E;              /* Dark text color */
+    border-radius: 0.7rem;
+    padding: 1rem;
+    margin-top:auto;
+    margin-bottom: auto;
+    font-size: 0.95rem;
+    text-align: center;
+    width: 100%; /* Ensure it takes the full width of its container */
+    box-sizing: border-box;
+}
+.requirements-box b {
+    color: #b88a00;
+    font-weight: 600;
+    font-size: 1.08em;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 0.3em;
+}
+.requirements-box ul {
+    margin: 0.2em 0 0 1.2em;
+    padding: 0;
+    list-style: disc inside;
+}
+.requirements-box li {
+    margin-bottom: 0.18em;
+    font-size: 1em;
+    font-weight: 400;
+    letter-spacing: 0.1px;
+}
+
+ #notifBadge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: #fff;
+            border-radius: 9999px;
+           width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            line-height: 1;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+        }
+/* Responsive: requirements box matches form width */
+@media (max-width: 900px) {
+    .requirements-box {
+        padding: 0.8rem 0.7rem;
+        font-size: 0.98rem;
+    }
+}
+@media (max-width: 700px) {
+    .requirements-box {
+        padding: 0.7rem 0.3rem;
+        font-size: 0.96rem;
+    }
+}
+#modalServiceForm .service-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.5rem 0.8rem;
+    max-width: 100%;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
+}
+#modalServiceForm .service-form label,
+#modalServiceForm .service-form .upload-label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 0.13rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+    background: none;
+    min-width: 0;
+}
+#modalServiceForm .service-form input,
+#modalServiceForm .service-form select {
+    padding: 0.32rem 0.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+    background: #f8f8f8;
+    font-family: inherit;
+    margin-top: 0.07rem;
+    margin-bottom: 0.07rem;
+    transition: border 0.18s;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+#modalServiceForm .service-form input:focus,
+#modalServiceForm .service-form select:focus {
+    border-color: #d97706;
+    outline: none;
+}
+#modalServiceForm .service-form input:required,
+#modalServiceForm .service-form select:required {
+    border-left: 3px solid #d97706;
+}
+#modalServiceForm .service-form .submit-btn {
+    background: #d97706;
+    color: #fff;
+    border: none;
+    border-radius: 0.7rem;
+    padding: 0.45rem 0; /* smaller button */
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-top: 0.6rem;
+    cursor: pointer;
+    transition: background 0.18s;
+    grid-column: 1 / -1;
+    width: 36%;
+    max-width: 220px; /* reduced from 220px */
+    justify-self: center;
+}
+#modalServiceForm .service-form .submit-btn:hover {
+    background: #FFB877;
+}
+
+.upload-label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #333;
+    margin-top: 0.3rem;
+    margin-bottom: 0.3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+    grid-column: 1 / -1;
+}
+/* Add this new rule to your <style> block */
+#category-modal-body {
+    max-height: 60vh; /* Set a max height (e.g., 60% of viewport height) */
+    overflow-y: auto; /* Add a scrollbar only when content exceeds the max height */
+}
+.upload-input[type="file"] {
+    margin-top: 0.2rem;
+    font-size: 0.95rem;
+    border-radius: 0.5rem;
+    border: 1px solid #ccc;
+    background: #f8f8f8;
+    padding: 0.35rem 0.6rem;
+    font-family: inherit;
+}
+.upload-input[type="file"]:focus {
+    outline: 2px solid #d97706;
+}
+ 
+.form-title {
+  text-align: center;
+  text-align: center;
+  font-weight: bold;
+  font-size: 24px;
+}
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+    </style>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <!-- Add Firebase Storage SDK in <head> -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+</head>
+<body class="bg-gray-50 font-['Roboto',_Arial,_sans-serif] min-h-screen m-0">
+    <!-- Add user greet bar -->
+    <div class="fixed top-0 right-0 z-50 w-full flex justify-end pointer-events-none">
+        <div class="flex items-center gap-3 bg-white/95 shadow rounded-bl-2xl px-5 py-2 mt-0 mr-0 pointer-events-auto border-b border-l border-gray-200">
+            <img src="https://static.vecteezy.com/system/resources/previews/020/911/731/original/profile-icon-avatar-icon-user-icon-person-icon-free-png.png" alt="Profile" class="h-8 w-8 rounded-full border border-gray-200 object-cover bg-gray-100" />
+            <span class="text-base text-gray-700 font-medium" id="userGreet"></span>
+        </div>
+    </div>
+
+    <div class="flex w-full min-h-screen">
+        <!-- Sidebar -->
+        <aside class="hidden md:flex bg-white shadow-lg w-64 min-h-screen flex flex-col py-8 px-4 fixed z-40 top-0 left-0 border-r border-orange-100" style="max-height:100vh;overflow-y:auto;">
+            <div class="flex items-center gap-3 mb-8">
+                <img src="icon.png" alt="Logo" class="h-10 w-10 rounded-full" />
+                <span class="font-extrabold text-xl text-orange-500 tracking-wide">e-Serbisyong Tañong</span>
+            </div>
+            <nav class="flex flex-col gap-3">
+                <a href="Home.html" class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-gray-800 hover:bg-orange-50 transition">
+                    <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m4-8v8m5 0a2 2 0 002-2V7a2 2 0 00-2-2h-3.5a2 2 0 00-1.5.67"></path></svg>
+                    Home
+                </a>
+                <a href="Services.html" class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium bg-orange-400 text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+                    Services
+                </a>
+                <a href="Appointments.html" class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-gray-800 hover:bg-orange-50 transition">
+                    <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Appointments
+                </a>
+                <a href="Notifications.html" class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-gray-800 hover:bg-orange-50 transition relative">
+                    <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                    Notifications
+                    <span id="notifBadge" class="badge hidden" aria-hidden="true">0</span>
+                </a>
+                <a href="Profile.html" class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-gray-800 hover:bg-orange-50 transition">
+                    <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    Profile
+                </a>
+            </nav>
+            <div class="mt-auto flex flex-col gap-3 pb-2">
+                <button onclick="logout()" class="w-full bg-orange-400 text-white rounded-lg px-4 py-2 font-medium transition hover:bg-orange-300">Logout</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 md:ml-64 flex flex-col min-h-screen pb-20 md:pb-0">
+            <div class="w-full max-w-4xl mx-auto flex flex-col items-start px-4 md:px-8 py-16 md:py-24">
+                
+                <!-- Main Title & Subtitle -->
+                <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 leading-tight">
+                    Access barangay services online — <br class="hidden md:block" /> Fast, secure, and trusted.
+                </h1>
+                <p class="text-lg text-gray-700 mb-12 max-w-2xl">
+                    Apply for clearances, permits, request documents, and communicate with barangay officials — all from your phone or computer.
+                </p>
+
+                <!-- Vertical Category Cards -->
+<div class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+
+    <div class="category-box bg-white rounded-xl shadow p-6 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all" data-category="infra">
+        <img src="infra_logo.png" alt="Infrastructure Logo" class="h-10 w-10 mb-3" />
+        <h3 class="font-bold text-lg mb-2">Infrastructure</h3>
+        <p class="text-sm text-gray-600">Covers construction and upkeep of roads, drainage, lighting, water, and public facilities.</p>
+    </div>
+    <div class="category-box bg-white rounded-xl shadow p-6 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all" data-category="social">
+        <img src="social_logo.png" alt="Social Logo" class="h-10 w-10 mb-3" />
+        <h3 class="font-bold text-lg mb-2">Social</h3>
+        <p class="text-sm text-gray-600">Provides aid and certifications for indigency, jobs, legal help, IDs, clearances, and calamity support.</p>
+    </div>
+    <div class="category-box bg-white rounded-xl shadow p-6 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all" data-category="general">
+        <img src="general_logo.png" alt="General Logo" class="h-10 w-10 mb-3" />
+        <h3 class="font-bold text-lg mb-2">General</h3>
+        <p class="text-sm text-gray-600">Offers clearances, certificates, IDs, and other documents for work, residency, and legal needs.</p>
+    </div>
+    <div class="category-box bg-white rounded-xl shadow p-6 cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all" data-category="others">
+        <img src="others_logo.png" alt="Others Logo" class="h-10 w-10 mb-3" />
+        <h3 class="font-bold text-lg mb-2">Others</h3>
+        <p class="text-sm text-gray-600">Includes logistics, equipment rental, repairs, environmental upkeep, and special community support.</p>
+    </div>
+</div>
+
+
+                <!-- Google-Style Search Component -->
+                <div class="w-full max-w-2xl flex flex-col items-center self-center" id="search-section">
+                    <div id="search-wrapper" class="relative w-full">
+                        <div class="flex items-center w-full bg-white rounded-full shadow-md hover:shadow-lg focus-within:shadow-lg transition-shadow border border-gray-200 h-14">
+                            <div class="pl-5 pr-3">
+                                <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            </div>
+                            <input id="serviceSearch" type="text" placeholder="Or search for a specific service..." autocomplete="off" class="w-full h-full bg-transparent text-base md:text-lg text-gray-800 outline-none border-none pr-5" />
+                        </div>
+                        <div id="search-dropdown" class="absolute top-full w-full mt-2 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden hidden z-10 p-2 space-y-2">
+                            <div id="recentSearches"></div>
+                            <div id="servicesList"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+        
+    </div>
+
+        </div>
+        
+    </div>
+    
+
+    <!-- Remove modal popups for service categories -->
+    <!-- Instead, add a main content area for service lists -->
+    <div id="serviceCategoryList" class="mt-32 w-full flex flex-col items-center"></div>
+
+    <!-- Service Form Modal (reused for all forms) -->
+    <div class="modal" id="modalServiceForm">
+        <div class="modal-content" id="serviceFormContent">
+            <!-- Content will be injected by JS -->
+        </div>
+        
+    </div>
+
+<!-- NEW: Modal for Category Service Lists -->
+<div id="category-modal" class="hidden fixed z-50 bg-white rounded-xl shadow-lg border border-gray-200 p-6 w-full max-w-xs">
+    <button id="category-modal-close" class="absolute top-2 right-2 text-2xl text-gray-500 hover:text-gray-800 md:hidden">&times;</button>
+    <h3 id="category-modal-title" class="text-xl font-bold text-orange-600 mb-4"></h3>
+    <div id="category-modal-body" class="space-y-2">
+        <!-- Service links will be injected here -->
+    </div>
+</div>
+    
+
+    <script>
+
+        const firebaseConfig = {
+        apiKey: "AIzaSyCDT65vncku1avdYSxrCJCM_SE-gN2E2ok",
+        authDomain: "e-serbisyong-tanong.firebaseapp.com",
+        databaseURL: "https://e-serbisyong-tanong-default-rtdb.firebaseio.com",
+        projectId: "e-serbisyong-tanong",
+        storageBucket: "e-serbisyong-tanong.firebasestorage.app",
+        messagingSenderId: "147646033817",
+        appId: "1:147646033817:web:503ac4767a4774a4afad08",
+        measurementId: "G-3TDQYZTF1H"
+        };
+
+        
+
+// --- START: NEW INTERACTIVE UI LOGIC ---
+
+// --- DOM Elements ---
+const searchInput = document.getElementById('serviceSearch');
+const searchWrapper = document.getElementById('search-wrapper');
+const searchDropdown = document.getElementById('search-dropdown');
+const recentSearchesContainer = document.getElementById('recentSearches');
+const servicesListContainer = document.getElementById('servicesList');
+
+const categoryModal = document.getElementById('category-modal');
+const categoryModalTitle = document.getElementById('category-modal-title');
+const categoryModalBody = document.getElementById('category-modal-body');
+const categoryBoxes = document.querySelectorAll('.category-box');
+const categoryModalCloseBtn = document.getElementById('category-modal-close');
+let hideModalTimer;
+
+// --- Helper to check for mobile screen size ---
+function isMobile() {
+    return window.innerWidth < 768; // Tailwind's 'md' breakpoint
+}
+
+// --- CATEGORY HOVER/CLICK LOGIC ---
+function showCategoryModal(category, element) {
+    clearTimeout(hideModalTimer); // Cancel any pending hide actions
+
+    const categoryTitles = {
+        infra: "Infrastructure Services",
+        social: "Social Services",
+        general: "General Services",
+        others: "Other Services"
+    };
+    
+    const categoryPrefix = category === 'general' ? 'gen' : (category === 'others' ? 'other' : category);
+    const filteredServices = allServices.filter(service => service.key.startsWith(categoryPrefix));
+
+    categoryModalTitle.textContent = categoryTitles[category] || "Services";
+    
+    if (filteredServices.length > 0) {
+        categoryModalBody.innerHTML = filteredServices.map(service => `
+            <button onclick="openServiceForm('${service.key}'); hideCategoryModal();" class="w-full text-left p-3 rounded-lg text-gray-700 hover:bg-orange-50 hover:text-orange-600 font-medium transition-colors">
+                ${escapeHtml(service.name)}
+            </button>
+        `).join('');
+    } else {
+        categoryModalBody.innerHTML = '<p class="text-gray-500">No services in this category.</p>';
+    }
+
+    categoryModal.classList.remove('hidden');
+
+    if (isMobile()) {
+        // Center the modal on mobile
+        categoryModal.style.top = '50%';
+        categoryModal.style.left = '50%';
+        categoryModal.style.transform = 'translate(-50%, -50%)';
+    } else {
+        // Position next to the card on desktop
+        const rect = element.getBoundingClientRect();
+        const modalHeight = categoryModal.offsetHeight;
+        const viewportHeight = window.innerHeight;
+        let topPosition = rect.top;
+
+        if (topPosition + modalHeight > viewportHeight - 20) {
+            topPosition = viewportHeight - modalHeight - 20;
+        }
+        if (topPosition < 20) {
+            topPosition = 20;
+        }
+        categoryModal.style.top = `${topPosition}px`;
+        categoryModal.style.left = `${rect.right + 10}px`;
+        categoryModal.style.transform = 'none'; // Reset transform for desktop
+    }
+}
+
+function hideCategoryModal() {
+    categoryModal.classList.add('hidden');
+}
+
+function setupCategoryInteractions() {
+    categoryBoxes.forEach(box => {
+        // Remove any existing listeners to avoid duplication on resize
+        box.replaceWith(box.cloneNode(true));
+    });
+
+    // Re-select the cloned boxes
+    const newCategoryBoxes = document.querySelectorAll('.category-box');
+
+    newCategoryBoxes.forEach(box => {
+        if (isMobile()) {
+            box.addEventListener('click', (e) => {
+                const category = e.currentTarget.dataset.category;
+                showCategoryModal(category, e.currentTarget);
+            });
+        } else {
+            box.addEventListener('mouseenter', (e) => {
+                const category = e.currentTarget.dataset.category;
+                showCategoryModal(category, e.currentTarget);
+            });
+            box.addEventListener('mouseleave', () => {
+                hideModalTimer = setTimeout(hideCategoryModal, 200);
+            });
+        }
+    });
+}
+
+// Initial setup
+setupCategoryInteractions();
+
+// Re-run setup on window resize to switch between click and hover
+window.addEventListener('resize', setupCategoryInteractions);
+
+
+// Keep modal open if the mouse enters it on desktop
+if (!isMobile()) {
+    categoryModal.addEventListener('mouseenter', () => clearTimeout(hideModalTimer));
+    categoryModal.addEventListener('mouseleave', () => hideModalTimer = setTimeout(hideCategoryModal, 200));
+}
+
+// Close button logic
+categoryModalCloseBtn.addEventListener('click', hideCategoryModal);
+
+
+// --- GOOGLE-STYLE SEARCH LOGIC (remains the same) ---
+function getRecentSearches() { return JSON.parse(localStorage.getItem('recentServiceSearches')) || []; }
+function saveRecentSearch(term) { if (!term || term.trim().length < 2) return; term = term.trim(); let searches = getRecentSearches(); searches = searches.filter(s => s.toLowerCase() !== term.toLowerCase()); searches.unshift(term); searches = searches.slice(0, 5); localStorage.setItem('recentServiceSearches', JSON.stringify(searches)); }
+function removeRecentSearch(term) { let searches = getRecentSearches(); searches = searches.filter(s => s.toLowerCase() !== term.toLowerCase()); localStorage.setItem('recentServiceSearches', JSON.stringify(searches)); }
+function clearAllRecentSearches() { localStorage.removeItem('recentServiceSearches'); }
+function renderDropdownContent(filter = "") { const q = filter.trim().toLowerCase(); const recentSearches = getRecentSearches(); let filteredServices = []; if (q) 
+    { const startsWith = allServices.filter(s => s.name.toLowerCase().startsWith(q)); const includes = allServices.filter(s => !s.name.toLowerCase().startsWith(q) && s.name.toLowerCase().includes(q)); filteredServices = [...startsWith, ...includes]; } servicesListContainer.innerHTML = ''; recentSearchesContainer.innerHTML = ''; if (!q && recentSearches.length === 0) { searchDropdown.classList.add('hidden'); return; } searchDropdown.classList.remove('hidden'); if (filteredServices.length > 0) { servicesListContainer.innerHTML = filteredServices.map(s => `<div class="service-item rounded-lg px-4 py-3 text-gray-800 font-medium cursor-pointer hover:bg-orange-100 hover:border-orange-300" data-key="${s.key}">${escapeHtml(s.name)}</div>`).join(''); } if (recentSearches.length > 0) { const separator = filteredServices.length > 0 ? '<hr class="my-2 border-gray-100">' : ''; const recentItemsHtml = recentSearches.map(term => `<div class="recent-item flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer group rounded-lg"><svg class="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="flex-grow text-gray-600 group-hover:text-black">${escapeHtml(term)}</span><button class="remove-recent-btn hidden group-hover:flex items-center justify-center w-5 h-5 rounded-full hover:bg-gray-200 ml-2 flex-shrink-0" data-term="${escapeHtml(term)}"><svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>`).join(''); const clearAllHtml = `<div class="text-center pt-2 pb-1"><button class="clear-all-btn text-xs text-blue-500 hover:underline">Remove recent searches</button></div>`; recentSearchesContainer.innerHTML = separator + recentItemsHtml + clearAllHtml; } }
+searchInput.addEventListener('focus', () => renderDropdownContent(searchInput.value));
+searchInput.addEventListener('input', () => renderDropdownContent(searchInput.value));
+document.addEventListener('click', (e) => { if (!searchWrapper.contains(e.target)) searchDropdown.classList.add('hidden'); });
+searchDropdown.addEventListener('click', (e) => { const serviceItem = e.target.closest('.service-item'); const recentItem = e.target.closest('.recent-item'); const removeBtn = e.target.closest('.remove-recent-btn'); const clearAllBtn = e.target.closest('.clear-all-btn'); if (removeBtn) { e.stopPropagation(); const termToRemove = removeBtn.dataset.term; removeRecentSearch(termToRemove); renderDropdownContent(searchInput.value); return; } if (clearAllBtn) { e.stopPropagation(); clearAllRecentSearches(); renderDropdownContent(searchInput.value); searchDropdown.classList.add('hidden'); return; } if (serviceItem) { const serviceKey = serviceItem.dataset.key; const serviceName = serviceItem.textContent.trim(); searchInput.value = serviceName; saveRecentSearch(serviceName); searchDropdown.classList.add('hidden'); openServiceForm(serviceKey); } if (recentItem) { const searchTerm = recentItem.querySelector('span').textContent; searchInput.value = searchTerm; renderDropdownContent(searchTerm); } });
+searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); saveRecentSearch(searchInput.value); searchDropdown.classList.add('hidden'); searchInput.blur(); } });
+function escapeHtml(str) { return String(str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x27;'})[m]); }
+
+// --- END OF SCRIPT REPLACEMENT ---
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        const auth = firebase.auth();
+        const db = firebase.database();
+        
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+        }
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+        // Close modal when clicking outside modal-content
+        document.addEventListener('click', function(e) {
+            document.querySelectorAll('.modal').forEach(function(modal) {
+                if (e.target === modal) modal.style.display = 'none';
+            });
+        });
+
+        function hasNumbers(str) {
+            return /\d/.test(str);
+        }
+function showFieldError(input, message) {
+    let err = input.parentNode.querySelector('.modal-field-error');
+    if (!err) {
+        err = document.createElement('span');
+        err.className = 'modal-field-error text-red-500 text-xs mt-1';
+        input.parentNode.appendChild(err);
+    }
+    err.textContent = message;
+    input.classList.add('border-red-500');
+}
+function clearFieldError(input) {
+    let err = input.parentNode.querySelector('.modal-field-error');
+    if (err) err.textContent = '';
+    input.classList.remove('border-red-500');
+}
+    function logout() {
+        localStorage.removeItem('user');
+        window.location.href = 'Login.html';
+    }
+    function fetchNotificationCount() {
+       const user = firebase.auth().currentUser || getUser && getUser();
+       const uid = user && user.uid ? user.uid : null;
+       const badge = document.getElementById('notifBadge');
+       if (!uid || !badge) return;
+
+       // detach previous listener if any
+       if (window._servicesNotifRef) {
+           try { window._servicesNotifRef.off(); } catch (e) { /* ignore */ }
+       }
+
+       const ref = firebase.database().ref('notifications').orderByChild('userId').equalTo(uid);
+       ref.on('value', snapshot => {
+           const data = snapshot.val() || {};
+           let unread = 0;
+           Object.values(data).forEach(n => {
+               if (!n) return;
+               if (n.read === false || n.read === undefined || n.read === null) unread++;
+           });
+           if (unread > 0) {
+               badge.textContent = unread > 99 ? '99+' : unread;
+               badge.classList.remove('hidden');
+               badge.setAttribute('title', `${unread} unread notification${unread > 1 ? 's' : ''}`);
+               badge.setAttribute('aria-label', `${unread} unread notifications`);
+               badge.setAttribute('aria-hidden', 'false');
+           } else {
+               badge.classList.add('hidden');
+               badge.removeAttribute('title');
+               badge.setAttribute('aria-hidden', 'true');
+           }
+       }, err => {
+          console.error('fetchNotificationCount error', err);
+       });
+
+       window._servicesNotifRef = ref;
+   }
+
+   // detach notification listener on logout to avoid leaking handlers
+   const _origLogout = window.logout;
+   window.logout = function() {
+       if (window._servicesNotifRef) {
+           try { window._servicesNotifRef.off(); } catch (e) {}
+           window._servicesNotifRef = null;
+       }
+       if (typeof _origLogout === 'function') return _origLogout();
+       localStorage.removeItem('user');
+       window.location.href = 'Login.html';
+   };
+
+    // --- START: ADD THIS MISSING FUNCTION ---
+function validatePhoneNumber(value) {
+    if (!value) { // Handles null or undefined
+        return 'Contact number is required.';
+    }
+    const trimmed = value.trim();
+    if (trimmed === '') {
+        return 'Contact number is required.';
+    }
+    // Must be exactly 11 digits and start with "09"
+    if (!/^09\d{9}$/.test(trimmed)) {
+        return 'Contact number must be 11 digits and start with "09".';
+    }
+    return null; // Return null if valid
+}
+// --- END: ADD THIS MISSING FUNCTION ---
+
+// --- START: REPLACEMENT FOR openServiceForm ---
+
+function openServiceForm(key) {
+    const def = serviceForms[key] || { title: (key || 'Service'), fields: [] };
+    const fields = def.fields || [];
+
+    const localUser = getUser();
+    if (!localUser || !localUser.uid) {
+        alert('Please sign in before submitting a service request.');
+        return;
+    }
+
+    const container = document.getElementById('serviceFormContent');
+    container.innerHTML = `<div class="text-center py-8 text-lg text-gray-700">Loading your profile...</div>`;
+    openModal('modalServiceForm');
+
+    firebase.database().ref('users/' + localUser.uid).once('value').then(snapshot => {
+        const data = snapshot.val() || {};
+        const merged = { uid: localUser.uid, ...data };
+        localStorage.setItem('user', JSON.stringify(merged));
+
+        const user = merged;
+        const escapeHtml = (str) => String(str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x27;'})[m]);
+
+        const firstName = escapeHtml(user.firstname || '');
+        const middleName = escapeHtml(user.middlename || '');
+        const lastName = escapeHtml(user.lastname || '');
+
+        const title = def.title || 'Service Form';
+        let requirementsHtml = def.requirements || '';
+        const isAlreadyPaidService = def.requirements && /payment|₱|php|fee/i.test(def.requirements);
+
+        if (isAlreadyPaidService) {
+            if (requirementsHtml.includes('<ul>') && !/Payment Receipt/i.test(requirementsHtml)) {
+                requirementsHtml = requirementsHtml.replace('</ul>', '<li><strong>Payment Receipt</strong> (GCash, Bank Transfer)</li></ul>');
+            } else if (!requirementsHtml.includes('<ul>')) {
+                requirementsHtml += '<ul><li><strong>Payment Receipt</strong> (GCash, Bank Transfer)</li></ul>';
+            }
+        }
+        
+        const ctcToggleHtml = `
+            <div class="col-span-full flex items-center justify-between gap-3 p-3 bg-gray-100 rounded-lg">
+                <label for="requestCTCCheckbox" class="font-semibold text-gray-800">Request for Certified True Copy?</label>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-gray-500">(Adds a fee of ₱50.00)</span>
+                    <input type="checkbox" id="requestCTCCheckbox" name="request_ctc" value="true" class="h-5 w-5 text-orange-600 border-gray-300 rounded focus:ring-orange-500">
+                </div>
+            </div>
+        `;
+
+        let fieldsHtml = `
+            <label>First Name*<input type="text" name="first_name" value="${firstName}" required readonly class="bg-gray-100 cursor-not-allowed" /></label>
+            <label>Middle Name<input type="text" name="middle_name" value="${middleName}" readonly class="bg-gray-100 cursor-not-allowed" /></label>
+            <label>Last Name*<input type="text" name="last_name" value="${lastName}" required readonly class="bg-gray-100 cursor-not-allowed" /></label>
+        `;
+
+        fieldsHtml += fields
+            .filter(f => !/first name|middle name|surname|last name/i.test(f.label))
+            .map((f, i) => {
+                const name = 'f_' + i + '_' + f.label.replace(/[\s*\/.#$[\]]+/g, '_').toLowerCase();
+                const required = f.required ? 'required' : '';
+                // Treat any contact/contact number/emergency contact field consistently.
+                // Use class "service-phone" so we can attach validation to ALL phone fields (contact, emergency contact, etc.)
+                if (/contact\s*(no|number)/i.test(f.label) || /emergency contact/i.test(f.label)) {
+                    const inputId = `service_${name}`;
+                    return `<label>${f.label}<input type="tel" id="${inputId}" name="${name}" ${required} maxlength="11" pattern="^09\\d{9}$" title="Must start with 09 and be exactly 11 digits." inputmode="numeric" class="numeric-only service-phone" /><span class="contact-error text-red-500 text-xs mt-1 hidden"></span></label>`;
+                }
+                if (f.type === 'select') {
+                    const options = (f.options || []).map(opt => `<option value="${opt}">${opt}</option>`).join('');
+                    return `<label>${f.label}<select name="${name}" ${required}>${options}</select></label>`;
+                }
+                const inputType = f.type === 'number' ? 'number' : (f.type === 'date' ? 'date' : 'text');
+                return `<label>${f.label}<input type="${inputType}" name="${name}" ${required} /></label>`;
+            }).join('');
+
+        const gcashRefHtml = `<label>GCash Payment Reference #<input type="text" name="gcash_reference" class="numeric-only" /></label>`;
+        const gcashBoxHtml = `<div class="gcash-box">GCash Account — 0919 874 2869 — Arvinne Vergara (Barangay Secretary)</div>`;
+        const uploadHtml = `
+            <div class="upload-label">
+                <span id="upload-label-text">Images (you can select multiple)</span>
+                <input type="file" name="images" id="imageUploadInput" class="visually-hidden" accept="image/*" multiple />
+                <label for="imageUploadInput" class="mt-2 inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150 cursor-pointer">
+                    Choose Files
+                </label>
+                <div id="imagePreviewContainer" class="flex gap-2 flex-wrap mt-4"></div>
+            </div>
+        `;
+
+        container.innerHTML = `
+            <button class="close-modal" onclick="closeModal('modalServiceForm')">&times;</button>
+            <div class="form-title">${title}</div>
+            <div class="requirements-box" style="display:none;" id="serviceReqBox"></div>
+            <form id="serviceForm" class="service-form">
+                ${fieldsHtml}
+                ${ctcToggleHtml}
+                <div id="payment-section" class="col-span-full space-y-4 hidden">
+                    ${gcashBoxHtml}
+                    ${gcashRefHtml}
+                </div>
+                ${uploadHtml}
+                <div style="grid-column:1/-1;display:flex;justify-content:center;margin-top:8px;">
+                    <button type="submit" class="submit-btn">Submit</button>
+                </div>
+            </form>
+        `;
+
+        const form = document.getElementById('serviceForm');
+        const reqBox = document.getElementById('serviceReqBox');
+        if (requirementsHtml) {
+            reqBox.style.display = 'block';
+            reqBox.innerHTML = requirementsHtml;
+        }
+
+        const requestCTCCheckbox = document.getElementById('requestCTCCheckbox');
+        const paymentSection = document.getElementById('payment-section');
+        const gcashRefInput = form.querySelector('[name="gcash_reference"]');
+        const uploadLabelText = document.getElementById('upload-label-text');
+
+        const updatePaymentRequirements = () => {
+            const isPaymentDue = isAlreadyPaidService || (requestCTCCheckbox && requestCTCCheckbox.checked);
+            paymentSection.classList.toggle('hidden', !isPaymentDue);
+            if (gcashRefInput) gcashRefInput.required = isPaymentDue;
+            if (uploadLabelText) {
+                uploadLabelText.innerHTML = isPaymentDue
+                    ? 'Images* <span class="font-normal text-gray-600">(Proof of payment required)</span>'
+                    : 'Images <span class="font-normal text-gray-600">(Optional)</span>';
+            }
+        };
+
+        updatePaymentRequirements(); // Set initial state
+
+        if (requestCTCCheckbox) {
+            requestCTCCheckbox.addEventListener('change', updatePaymentRequirements);
+        }
+        
+        form.querySelectorAll('.numeric-only').forEach(input => {
+            input.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            });
+        });
+
+        const phoneInput = document.getElementById('service_contact_no');
+        // Attach validation to all phone fields created with class .service-phone (contact, emergency contact, etc.)
+        document.querySelectorAll('.service-phone').forEach(phoneInputEl => {
+            const errorSpan = phoneInputEl.parentNode.querySelector('.contact-error');
+            phoneInputEl.addEventListener('blur', () => {
+                const error = validatePhoneNumber(phoneInputEl.value);
+                if (error) {
+                    if (errorSpan) { errorSpan.textContent = error; errorSpan.classList.remove('hidden'); }
+                    phoneInputEl.classList.add('border-red-500');
+                } else {
+                    if (errorSpan) { errorSpan.classList.add('hidden'); errorSpan.textContent = ''; }
+                    phoneInputEl.classList.remove('border-red-500');
+                }
+            });
+            // enforce numeric-only while typing
+            phoneInputEl.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            });
+        });
+
+        const imageUploadInput = document.getElementById('imageUploadInput');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        let uploadedImageFiles = [];
+        if (imageUploadInput) {
+            imageUploadInput.addEventListener('change', function(e) {
+                const files = Array.from(e.target.files);
+                files.forEach(file => {
+                    if (!uploadedImageFiles.some(f => f.name === file.name && f.size === file.size)) {
+                        uploadedImageFiles.push(file);
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            const previewWrapper = document.createElement('div');
+                            previewWrapper.className = 'relative w-24 h-24';
+                            const img = document.createElement('img');
+                            img.src = event.target.result;
+                            img.className = 'w-full h-full object-cover rounded-md border';
+                            const removeBtn = document.createElement('button');
+                            removeBtn.type = 'button';
+                            removeBtn.innerHTML = '&times;';
+                            removeBtn.className = 'absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold';
+                            removeBtn.onclick = () => {
+                                uploadedImageFiles = uploadedImageFiles.filter(f => f.name !== file.name || f.size !== file.size);
+                                previewWrapper.remove();
+                            };
+                            previewWrapper.appendChild(img);
+                            previewWrapper.appendChild(removeBtn);
+                            imagePreviewContainer.appendChild(previewWrapper);
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+                e.target.value = '';
+            });
+        }
+
+        form.onsubmit = async function(ev) {
+            ev.preventDefault();
+
+            const isPaymentRequired = isAlreadyPaidService || (requestCTCCheckbox && requestCTCCheckbox.checked);
+            if (isPaymentRequired && uploadedImageFiles.length === 0) {
+                alert('A payment is required for this request. Please upload an image of your payment receipt to continue.');
+                return; 
+            }
+            
+            // Validate all phone inputs before submit
+            const invalidPhone = Array.from(form.querySelectorAll('.service-phone')).some(inp => {
+                const err = validatePhoneNumber(inp.value);
+                const span = inp.parentNode.querySelector('.contact-error');
+                if (err) {
+                    if (span) { span.textContent = err; span.classList.remove('hidden'); }
+                    inp.classList.add('border-red-500');
+                    return true;
+                } else {
+                    if (span) { span.classList.add('hidden'); span.textContent = ''; }
+                    inp.classList.remove('border-red-500');
+                    return false;
+                }
+            });
+            if (invalidPhone) {
+                alert('Please fix the errors before submitting.');
+                return;
+            }
+
+            const formData = new FormData(form);
+            const dataObj = {};
+            for (const [key, value] of formData.entries()) {
+                if (!(value instanceof File)) {
+                    dataObj[key] = value;
+                }
+            }
+
+            let imageBase64Array = [];
+            for (const file of uploadedImageFiles) {
+                const base64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = e => resolve(e.target.result);
+                    reader.onerror = error => reject(error);
+                    reader.readAsDataURL(file);
+                });
+                imageBase64Array.push(base64);
+            }
+            
+            const payload = {
+                uid: user.uid,
+                userFullname: user.fullname || '',
+                serviceKey: key,
+                serviceType: title,
+                formData: dataObj,
+                images: imageBase64Array,
+                status: 'Pending',
+                timestamp: Date.now()
+            };
+
+            try {
+                const newRef = db.ref('serviceRequestsV2').push();
+                await newRef.set(payload);
+                closeModal('modalServiceForm');
+                
+                let notif = document.getElementById('requestNotifModal');
+                if (notif) notif.remove();
+                notif = document.createElement('div');
+                notif.id = 'requestNotifModal';
+                Object.assign(notif.style, {
+                    position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    zIndex: 99999, background: 'rgba(0,0,0,0.18)', backdropFilter: 'blur(6px)'
+                });
+                const inner = document.createElement('div');
+                Object.assign(inner.style, { background: '#fff', borderRadius: '1.25rem', boxShadow: '0 10px 40px rgba(0,0,0,0.15)', padding: '1.5rem 2rem', maxWidth: 'min(90vw, 360px)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' });
+                const titleEl = document.createElement('div');
+                titleEl.textContent = 'Your request has been submitted!';
+                Object.assign(titleEl.style, { fontWeight: 'bold', fontSize: '1.15rem', color: '#333' });
+                const gif = document.createElement('img');
+                gif.src = 'submittedgif.gif';
+                gif.alt = 'Request Submitted';
+                Object.assign(gif.style, { width: '120px', height: '120px', margin: '0.5rem 0' });
+                const exitBtn = document.createElement('button');
+                exitBtn.textContent = 'OK';
+                Object.assign(exitBtn.style, { background: '#fb923c', color: '#fff', border: 'none', borderRadius: '0.5rem', fontWeight: '600', fontSize: '0.9rem', padding: '0.6rem 2rem', marginTop: '0.5rem', cursor: 'pointer', transition: 'background 0.2s' });
+                exitBtn.onmouseover = () => exitBtn.style.background = '#f97316';
+                exitBtn.onmouseout = () => exitBtn.style.background = '#fb923c';
+                exitBtn.onclick = function () { notif.remove(); };
+                inner.appendChild(titleEl);
+                inner.appendChild(gif);
+                inner.appendChild(exitBtn);
+                notif.appendChild(inner);
+                document.body.appendChild(notif);
+
+            } catch (err) {
+                console.error('Failed to submit request:', err);
+                alert('Failed to submit request: ' + err.message);
+            }
+        };
+    });
+}
+
+// --- END: REPLACEMENT FOR openServiceForm ---
+        
+        
+        // Unified fields for all forms as specified
+        const unifiedFields = [
+            { label: "First Name*", type: "text", required: true },
+            { label: "Middle Name*", type: "text", required: true },
+            { label: "Surname*", type: "text", required: true },
+            { label: "Birthday*", type: "date", required: true },
+            { label: "Birthplace*", type: "text", required: true },
+            { label: "Gender", type: "select", options: ["Select", "Male", "Female", "Prefer not to say"], required: false },
+            { label: "Citizenship", type: "text", required: false },
+            { label: "Address*", type: "text", required: true },
+            { label: "Civil Status", type: "select", options: ["Select", "Single", "Married", "Widowed", "Separated"], required: false },
+            { label: "Religion", type: "text", required: false },
+            { label: "Precint No.", type: "text", required: false },
+            { label: "Brgy. ID", type: "text", required: false },
+            { label: "Contact No.*", type: "text", required: true },
+            { label: "Occupation", type: "text", required: false },
+            { label: "In case of Emergency (Name)*", type: "text", required: true },
+            { label: "Emergency Contact No.*", type: "text", required: true }
+
+
+            
+        ];
+
+        // Custom fields for specific forms
+
+        const indigencyFields = [
+            { label: "First Name*", type: "text", required: true },
+            { label: "Middle Name*", type: "text", required: true },
+            { label: "Surname*", type: "text", required: true },
+            { label: "Address*", type: "text", required: true },
+            { label: "Contact Number*", type: "text", required: true },
+            { label: "Civil Status", type: "select", options: ["Select", "Single", "Married", "Widowed", "Separated"], required: false },
+            { label: "Precint No.", type: "text", required: false },
+            { label: "Brgy. ID", type: "text", required: false },
+            { label: "Purpose*", type: "text", required: true },
+            { label: "Occupation*", type: "text", required: true },
+            { label: "Monthly Income*(N/A if No Occupation or Student)", type: "text", required: true },
+            { label: "Number of Dependents*", type: "number", required: true },
+            
+        ];
+        const hakotKuyagotFields = [
+            { label: "Name of Requestor*", type: "text", required: true },
+            { label: "Date of Hakot*", type: "date", required: true },
+            { label: "Location for Collection/Hauling*", type: "text", required: true },
+            { label: "Contact Number*", type: "text", required: true },
+            { label: "Type of Waste/Debris*", type: "text", required: true }
+        ];
+
+        const tentsChairsFields = [
+            { label: "Address*", type: "text", required: true },
+            { label: "Contact Number*", type: "text", required: true },
+            { label: "Date (dd/mm/yyyy)*", type: "date", required: true },
+            { label: "Number of Chairs*", type: "number", required: true },
+            { label: "Number of Tables*", type: "number", required: true },
+            { label: "Number of Tents*", type: "number", required: true },
+            { label: "Venue*", type: "text", required: true },
+            { label: "Purpose/Event*", type: "text", required: true },
+            { label: "Time*", type: "text", required: true }
+        ];
+
+        const barangayVehicleRentalFields = [
+            { label: "Name*", type: "text", required: true },
+            { label: "Pick up*", type: "text", required: true },
+            { label: "Destination*", type: "text", required: true },
+            { label: "Telephone Number*", type: "text", required: true },
+            { label: "No. of Passengers*", type: "text", required: true },
+            { label: "Purpose*", type: "text", required: true },
+            { label: "Date of Rental*", type: "date", required: true },
+            { label: "Time of Rental*", type: "text", required: true }
+        ];
+
+        const shootingClearanceFields = [
+            { label: "Date of Shooting*", type: "date", required: true },
+            { label: "Location of Shooting*", type: "text", required: true },
+            { label: "Contact Number*", type: "text", required: true },
+            { label: "Purpose of Shooting*", type: "text", required: true }
+        ];
+
+        const petMemorialFields = [
+            { label: "Pet's Name*", type: "text", required: true },
+            { label: "Type of Pet*", type: "text", required: true },
+            { label: "Date of Passing*", type: "date", required: true },
+            { label: "Contact Number*", type: "text", required: true },
+            { label: "Burial Location*", type: "text", required: true }
+        ];
+
+        const buildingFields = [
+            { label: "First Name*", type: "text", required: true },
+            { label: "Middle Name*", type: "text", required: true },
+            { label: "Surname*", type: "text", required: true },
+            { label: "Brgy. ID", type: "text", required: false },
+            { label: "Contact No.*", type: "text", required: true },
+            { label: "In case of Emergency*", type: "text", required: true },
+            { label: "Type of Building*", type: "text", required: true },
+            { label: "Purpose of Building*", type: "text", required: true },
+            { label: "Location of Building*", type: "text", required: true },
+            { label: "Total Floor Area (in sq.m.)*", type: "number", required: true },
+            { label: "Number of Storeys*", type: "number", required: true }
+        ];
+
+        const businessPermitFields = [
+            { label: "Business Name*", type: "text", required: true },
+            { label: "Business Address*", type: "text", required: true },
+            { label: "Owner's Name*", type: "text", required: true },
+            { label: "Contact Number*", type: "text", required: true },
+            { label: "Type of Business*", type: "text", required: true },
+            { label: "Number of Employees*", type: "number", required: true },
+            { label: "Business Start Date*", type: "date", required: true },
+            { label: "Business Class (A/B/C/D/E)*", type: "text", required: true }
+        ];
+
+        // ... after firebaseConfig ...
+
+        // All service forms now use the same fields
+        const serviceForms = {
+    // INFRASTRUCTURE
+    infraFencing: { 
+        title: "Fencing Form",
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID (Original and 1 Photocopy)</li><li>Land title (Original/CTC and 1 Photocopy)</li><li>Deed of Absolute Sale (Original and Photocopy)</li><li>HOA Clearance (Subdivision), If not applied, submit Special Power of Attorney</li><b><li>Payment: ₱500.00</li></b></ul>`
+    },
+    infraExcavationRes: { 
+        title: "Excavation / Digging / Driveway Ramp (Residential Area) Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID (Original and 1 Photocopy)</li><li>Land title (Original/CTC and 1 Photocopy)</li><li>Deed of Absolute Sale (Original and Photocopy)</li><li>HOA Clearance (Subdivision), If not applied, submit Special Power of Attorney</li><b><li>Payment:<br> Main Road: ₱3,000.00<br> Secondary Road: ₱2,000.00</li></b></ul>`
+
+
+    },
+    infraExcavationCom: { 
+        title: "Excavation (Commercial Area, except Telcos) Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID (Original and 1 Photocopy)</li><li>Land title (Original/CTC and 1 Photocopy)</li><li>Contract Agreement (Original and Photocopy)</li><li>HOA Clearance (if applicable); if not personally applied, submit Special Power of Attorney</li><b><li>Payment:<br> Main Road: ₱3,000.00<br> Secondary Road: ₱2,000.00</li></b></ul>`
+
+
+    },
+    infraRenovation: { 
+        title: "Renovation (Vertical/Horizontal Improvements) Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID (Original and 1 Photocopy)</li><li>Land title (Original/CTC and 1 Photocopy)</li><li>Deed of Absolute Sale (Original and Photocopy)</li><li>HOA Clearance (Subdivision), If not applied, submit Special Power of Attorney</li></ul>`
+
+
+    },
+    infraRetrofitting: { 
+        title: "Retrofitting (Complex Structure – Above 3 Storeys / Industrial) Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID (Original and 1 Photocopy)</li><li>Land title (Original/CTC and 1 Photocopy)</li><li>Perspective plan (Original/CTC and 1 Photocopy)</li><li>Deed of Absolute Sale (Original and Photocopy)</li><li>HOA Clearance (if applicable); if not personally applied, submit Special Power of Attorney</li></ul>`
+
+
+    },
+    infraBuilding: { 
+        title: "Building Form", 
+        fields: buildingFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID (Original and 1 Photocopy)</li><li>Land title (Original/CTC and 1 Photocopy)</li><li>For CMP programs: Certificate of Full Payment or Contract (Original/CTC and 1 Photocopy)</li><li>Building plan (Original/CTC and 1 Photocopy)</li><li>Perspective plan (Original/CTC and 1 Photocopy)</li><li>Deed of Absolute Sale (Original and Photocopy)</li><li>HOA Clearance (if applicable); if not personally applied, submit Special Power of Attorney</li><b><li>Payment:<br>-Loyola Grand Villas and Provident Villages – ₱24.00 per sq. meter
+            -Other Locations(Subject to Location)</li></ul>`
+
+
+    },
+    infraDemolition: { 
+        title: "Demolition Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID (Original and 1 Photocopy)</li><li>Land title (Original/CTC and 1 Photocopy)</li><li>For CMP programs: Certificate of Full Payment or Contract (Original/CTC and 1 Photocopy)</li><li>Deed of Absolute Sale (Original and Photocopy)</li><li>HOA Clearance (if applicable); if not personally applied, submit Special Power of Attorney</li><li>Latest picture of the building to be demolished</li></ul>`
+
+
+    },
+    infraPostsMeralco: { 
+        title: "Posts for Utility Companies – Meralco Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID (Original and 1 Photocopy)</li><li>Scope of Work (1 Original and 1 Photocopy)</li><li>Letter of Intent</li></ul>`
+
+
+    },
+    infraPostsTelcos: { 
+        title: "Posts for Utility Companies – Telcos Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Subject for inquiry (refer to Memorandum)</li></ul>`
+
+
+    },
+    infraCablingTelco: { 
+        title: "Cabling/Wiring from Telecommunications Company Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID (Original and 1 Photocopy)</li><li>Scope of Work (1 Original and 1 Photocopy)</li><li>Letter of Intent</li><li>Approved Request to Attach from MERALCO</li><b><li>Payment:<br>For Residents: ₱1,000<br>For Company: ₱2,000</li></b></ul>`
+
+
+    },
+    infraPipelayingMW: { 
+        title: "Pipelaying of Manila Water Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID (Original and 1 Photocopy)</li><li>Manila Water Form (1 Photocopy + Presentation of Original)</li><li>Letter of Intent</li></ul>`
+
+
+    },
+    infraAppElectric: { 
+        title: "Application for Electric Meter Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID (Original and 1 Photocopy)</li><li>Land Title (Original/CTC and 1 Photocopy) OR CMP Certificate/Contract OR Deed of Absolute Sale (Original and Photocopy)</li><li>HOA Clearance (if applicable); if not personally applied, submit Special Power of Attorney</li><b><li>Payment: ₱100.00</li></b></ul>`
+
+
+    },
+    infraAppWater: { 
+        title: "Application for Water Meter Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID (Original and 1 Photocopy)</li><li>Land Title (Original/CTC and 1 Photocopy) OR CMP Certificate/Contract OR Deed of Absolute Sale (Original and Photocopy)</li><li>HOA Clearance (if applicable); if not personally applied, submit Special Power of Attorney</li><b><li>Payment: ₱100.00</li></b></ul>`
+
+
+    },
+    infraAppInternet: { 
+        title: "Application for Internet / Cable / Telecommunication Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID (Original and 1 Photocopy)</li><li>Land Title (Original/CTC and 1 Photocopy) OR CMP Certificate/Contract OR Deed of Absolute Sale (Original and Photocopy)</li><li>HOA Clearance (if applicable); if not personally applied, submit Special Power of Attorney</li><b><li>Payment: ₱100.00</li></b></ul>`
+
+
+    },
+
+    // SOCIAL
+    socialIndigency: { 
+        title: "Certificate of Indigency Form", 
+        fields: indigencyFields,
+        requirements: `<b>Requirements</b><ul><li>1 Government-issued Valid ID</li><li>Secondary ID (Barangay ID, School ID, Postal, TIN, Police Clearance, Company ID) OR HOA Certification + any ID</li><li>Filled-out form</li><li>Current Community Tax Certificate (Cedula)</li></ul>`
+
+
+    },
+    socialJobseekers: { 
+        title: "First-Time Jobseekers (RA 11261) Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Same as Indigency requirements</li><li>Filled-out form</li><li>Current Community Tax Certificate (Cedula)</li></ul>`
+
+
+    },
+    socialPAO: { 
+        title: "PAO Assistance (Low/No Income) Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>1 Government-issued Valid ID</li><li>Secondary ID OR HOA Cert + ID</li><li>Filled-out form</li><li>Current Community Tax Certificate (Cedula)</li></ul>`
+
+
+    },
+    socialBurial: { 
+        title: "Burial Certification (Death at Home, Non-COVID) Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>1 Valid ID of immediate family</li><li>Secondary ID</li><li>Filled-out form</li><li>Current Community Tax Certificate (Cedula)</li><li>Response Sheet from Rescue 161 OR Physician’s Declaration (with license number)</li></ul>`
+
+
+
+
+
+    },
+    socialResidencyEmployment: { 
+        title: "Certificate of Residency – Employment Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>1 Government-issued Valid ID</li><li>Secondary ID OR HOA Cert + ID</li><li>Filled-out form</li><li>Current Community Tax Certificate (Cedula)</li><li>If not personally applied → Authorization + valid ID</li><b><li>Payment: ₱50.00</li></ul>`
+
+
+    },
+    socialBailBond: { 
+        title: "Bail Bond Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>1 Valid ID of co-habitant or immediate family</li><li>Secondary ID or any ID</li><li>Filled-out form</li><li>Current Community Tax Certificate (Cedula)</li><li>Certificate of Detention</li><li>If not personally applied → Authorization + valid ID</li></ul>`
+
+
+    },
+    socialLoans: { 
+        title: "Loans Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Same as Residency/Employment requirements</li><li>Filled-out form</li><li>Current Community Tax Certificate (Cedula)</li></ul>`
+
+
+    },
+    socialBankTrans: { 
+        title: "Bank Transactions Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Same as Loans requirements</li><li>Filled-out form</li><li>Cedula</li><li>Authorization + valid ID if not personally applied</li></ul>`
+
+
+    },
+    socialLateReg: { 
+        title: "Late Registration (Birth Certificate) Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID + Secondary ID (OR HOA Cert + ID)</li><li>Filled-out form</li><li>Cedula</li><li>PSA Negative Result OR Affidavit of Two Disinterested Persons</li><b><li>Payment: ₱50.00 </li></b> </ul>`
+
+
+    },
+    socialNBIPolice: { 
+        title: "NBI / Police Clearance Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID + Secondary ID (OR HOA Cert + ID)</li><li>Filled-out form</li><li>Cedula</li></ul>`
+
+
+    },
+    socialSeniorID: { 
+        title: "Senior Citizen ID Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Same as NBI clearance requirements</li><li>Filled-out form</li><li>Cedula</li></ul>`
+
+
+    },
+    socialPWDID: { 
+        title: "PWD ID Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Same as Senior Citizen ID requirements</li><li>Filled-out form</li><li>Cedula</li></ul>`
+
+
+    },
+    socialPostalID: { 
+        title: "Postal ID Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Same as PWD ID requirements</li><li>Filled-out form</li><li>Cedula</li></ul>`
+
+
+    },
+    socialVisa: { 
+        title: "Visa Application Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Same as Postal ID requirements</li><li>Filled-out form</li><li>Cedula</li></ul>`
+
+
+    },
+    socialCalamity: { 
+        title: "Calamity Victims (Flood/Typhoon) Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Same as Visa Application requirements</li><li>Filled-out form</li><li>Cedula</li></ul>`
+
+
+    },
+    socialLocalEmployment: { 
+        title: "Local Employment / TNVS Application Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Same as standard employment clearance</li><li>Filled-out form</li><li>Cedula</li></ul>`
+
+
+    },
+
+    // GENERAL / SPECIAL CERTIFICATIONS
+    genClearance: { 
+        title: "Barangay Clearance Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Government-issued Valid ID</li><li>Secondary ID OR HOA Cert + ID</li><li>Filled-out form</li><li>Cedula</li><b><li>Payment:<br> For Employment: ₱50.00 / For Loan: ₱100.00 / For Legal use: ₱100.00 / For Bank: ₱100.00 / For Police: ₱100.00</li></b></ul>`
+
+
+    },
+    genResidency: { 
+        title: "Barangay Residency Certificate Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Government-issued Valid ID</li><li>Secondary ID OR HOA Cert + ID</li><li>Filled-out form</li><li>Cedula</li><b><li>Payment: ₱50.00 </li></b></ul>`
+
+
+    },
+    genGoodMoral: { 
+        title: "Certificate of Good Moral Character Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Government-issued Valid ID</li><li>Secondary ID OR HOA Cert + ID</li><li>Filled-out form</li><li>Cedula</li><b><li>Payment: ₱100.00</li></b></ul>`
+
+
+    },
+    genEmployment: { 
+        title: "Certificate of Employment Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Government-issued Valid ID</li><li>Secondary ID OR HOA Cert + ID</li><li>Filled-out form</li><li>Cedula</li><b><li>Payment: ₱100.00</li></b></ul>`
+
+
+    },
+    genBusinessPermit: { 
+        title: "Barangay Business Permit Form", 
+        fields: businessPermitFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID of business owner / representative</li><li>DTI Business Name Registration</li><li>Mayor’s Permit (if renewal)</li><li>Barangay Clearance (if renewal)</li><li>Sketch of Business Location</li><li>Contract of Lease / Land Title (if owned)</li><li>Barangay Occupancy Permit (if renewal)</li><li>Sanitary Permit (if renewal)</li><li>Fire Safety Inspection Certificate (if renewal)</li><li>Cedula</li><b><li>Payment: Class AA – ₱3,000.00
+Class A – ₱2,000.00
+Class B – ₱2,000.00
+Class C – ₱1,000.00
+Class D – None
+Class E – None
+(Secondary Business: 50% discount upon approval)</li></b></ul>`
+    },
+    genBrgyID: {
+        title: "Barangay ID Form",
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Proof of Address</li><b><li>Payment: ₱100.00 <br> Senior/PWD/Student: ₱50.00</li></b></ul>`
+
+
+    },
+    genNoBirthCert: { 
+        title: "No Birth Certificate Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Secondary ID OR HOA Cert + ID</li><li>Cedula</li><b><li>Payment: ₱100.00</li></b></ul>`
+
+
+    },
+    genMissingPerson: { 
+        title: "Missing Person Assistance Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Secondary ID</li></ul>`
+
+
+    },
+    genKP: { 
+        title: "Katarungang Pambarangay Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Secondary ID</li><b><li>Payment:<br> Ordinary Case: ₱150.00 / Monetary Case: ₱200.00</li></b></ul>`
+
+
+    },
+    genFacilities: { 
+        title: "Barangay Facilities Rental Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Barangay Clearance</li></ul>`
+
+
+    },
+    genEscort: { 
+        title: "Escort – Interment Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Barangay Clearance</li></ul>`
+
+
+    },
+    genLicenseToCarry: { 
+        title: "License to Carry Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Government-issued Valid ID</li><li>Secondary ID OR HOA Cert + ID</li><li>Duly accomplished request form</li><li>Cedula</li></ul>`
+
+
+    },
+    genNonResidence: { 
+        title: "Certification for Non-Residence Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Secondary ID OR HOA Cert + ID</li><li>Filled-out form</li><li>Cedula</li></ul>`
+
+
+    },
+    genDeceasedResident: { 
+        title: "Certification for Deceased Resident Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID of next of kin / family member</li><li>Secondary ID</li><li>Cedula</li><li>Proof of death (Death Certificate / Physician’s Declaration / Barangay record)</li></ul>`
+
+
+    },
+    genDeathAtHome: { 
+        title: "Certification for Death at Home (Non-COVID) Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID of immediate family</li><li>Secondary ID</li><li>Cedula</li><li>Response Sheet from Rescue 161 OR Physician’s Declaration (with license number)</li></ul>`
+
+
+    },
+    genTransferResidence: { 
+        title: "Transfer of Residence Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Secondary ID OR HOA Cert + ID</li><li>Cedula</li><li>Proof of new address (if available)</li></ul>`
+
+
+    },
+    genTransferBelongings: { 
+        title: "Transfer of Belongings Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Secondary ID</li><li>Cedula</li><li>Barangay Inspection Report (if required)</li></ul>`
+
+
+    },
+        genCessationBusiness: { 
+        title: "Cessation of Business Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID of business owner / representative</li><li>Barangay Business Permit</li><li>Cedula</li><li>Affidavit of Business Closure</li></ul>`
+
+
+    },
+    genNoIncome: { 
+        title: "No Income / Low Income Certification Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Secondary ID OR HOA Cert + ID</li><li>Cedula</li></ul>`
+
+
+    },
+    genChangeHouseNo: { 
+        title: "Change of House Number Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID of homeowner</li><li>Secondary ID OR HOA Cert + ID</li><li>Cedula</li><li>Proof of address (utility bill, deed of sale, lease contract, or old house number certificate)</li></ul>`
+
+
+    },
+    genSeniorBedridden: { 
+        title: "Certification for Senior Citizen (Bedridden) / Certification of Relationship Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID of Senior Citizen / immediate family</li><li>Secondary ID OR HOA Cert + ID</li><li>Cedula</li><li>Medical Certificate (if bedridden)</li><li>Proof of relationship (PSA documents / Affidavit if needed)</li></ul>`
+
+
+    },
+    genLogistics: { 
+        title: "Logistical Support Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Request letter</li></ul>`
+
+
+    },
+    genLeave: { 
+        title: "Application of Leave of Absence Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Letter of request</li></ul>`
+
+
+    },
+    genRoadClosure: { 
+        title: "Road Closure Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Request letter</li><li>Barangay clearance or authorization</li></ul>`
+
+
+    },
+
+    // OTHERS
+    otherPetMemorial: { 
+        title: "Pet Memorial Garden Form", 
+        fields: petMemorialFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Request letter</li></ul>`
+
+
+    },
+    otherFlushing: { 
+        title: "Flushing Operation Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Request letter</li></ul>`
+
+
+    },
+    otherTrimming: { 
+        title: "Trimming Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Request letter</li></ul>`
+
+
+    },
+    otherManhole: { 
+        title: "Repair of Manhole Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Request letter</li></ul>`
+
+
+    },
+    otherHakotKuyagot: { 
+        title: "Hakot Kuyagot Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Request letter</li><b><li>Payment for Private Companies: ₱1,000.00 per truckload</li></b></ul>`
+
+
+    },
+    otherHakotPanambak: { 
+        title: "Hakot Panambak Form", 
+        fields: unifiedFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Request letter</li></ul>`
+
+
+    },
+    otherShootingClearance: { 
+        title: "Shooting Clearance Form", 
+        fields: shootingClearanceFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Letter of Intent</li><li>Barangay Clearance</li><b><li>Payment: ₱5,000.00/day</li></b></ul>`
+    },
+
+    otherTentsandChairs: { 
+        title: "Tents, Tables and Chairs Form", 
+        fields: tentsChairsFields,
+        requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Request letter</li></ul>`
+    }, 
+
+    otherBarangayVehicleRental: { 
+        title: "Barangay Vehicle Rental Form",
+        fields: barangayVehicleRentalFields,
+        requirements: '<b>Requirements</b><ul><li>Valid ID</li><li>Request letter</li></ul>'
+    },
+        };
+            
+
+        
+
+        // --- SERVICES DATA (copied from Home.html) ---
+
+        const allServices = [
+    { key: 'infraFencing', name: 'Fencing' },
+    { key: 'infraExcavationRes', name: 'Excavation / Digging / Driveway Ramp (Residential Area)' },
+    { key: 'infraExcavationCom', name: 'Excavation (Commercial Area, except Telcos)' },
+    { key: 'infraRenovation', name: 'Renovation (Vertical/Horizontal Improvements)' },
+    { key: 'infraRetrofitting', name: 'Retrofitting (Complex Structure – Above 3 Storeys / Industrial)' },
+    { key: 'infraBuilding', name: 'Building' },
+    { key: 'infraDemolition', name: 'Demolition' },
+    { key: 'infraPostsMeralco', name: 'Posts for Utility Companies – Meralco' },
+    { key: 'infraPostsTelcos', name: 'Posts for Utility Companies – Telcos' },
+    { key: 'infraCablingTelco', name: 'Cabling/Wiring from Telecommunications Company' },
+    { key: 'infraPipelayingMW', name: 'Pipelaying of Manila Water' },
+    { key: 'infraAppElectric', name: 'Application for Electric Meter' },
+    { key: 'infraAppWater', name: 'Application for Water Meter' },
+    { key: 'infraAppInternet', name: 'Application for Internet / Cable / Telecommunication' },
+
+    // Social
+    { key: 'socialIndigency', name: 'Certificate of Indigency' },
+    { key: 'socialJobseekers', name: 'First-Time Jobseekers (RA 11261)' },
+    { key: 'socialPAO', name: 'PAO Assistance (Low/No Income)' },
+    { key: 'socialBurial', name: 'Burial Certification (Death at Home, Non-COVID)' },
+    { key: 'socialResidencyEmployment', name: 'Certificate of Residency – Employment' },
+    { key: 'socialBailBond', name: 'Bail Bond' },
+    { key: 'socialLoans', name: 'Loans' },
+    { key: 'socialBankTrans', name: 'Bank Transactions' },
+    { key: 'socialLateReg', name: 'Late Registration (Birth Certificate)' },
+    { key: 'socialNBIPolice', name: 'NBI / Police Clearance' },
+    { key: 'socialSeniorID', name: 'Senior Citizen ID' },
+    { key: 'socialPWDID', name: 'PWD ID' },
+    { key: 'socialPostalID', name: 'Postal ID' },
+    { key: 'socialVisa', name: 'Visa Application' },
+    { key: 'socialCalamity', name: 'Calamity Victims (Flood/Typhoon)' },
+    { key: 'socialLocalEmployment', name: 'Local Employment / TNVS Application' },
+
+    // General
+    { key: 'genClearance', name: 'Barangay Clearance' },
+    { key: 'genResidency', name: 'Barangay Residency Certificate' },
+    { key: 'genGoodMoral', name: 'Certificate of Good Moral Character' },
+    { key: 'genEmployment', name: 'Certificate of Employment' },
+    { key: 'genBusinessPermit', name: 'Barangay Business Permit' },
+    { key: 'genBrgyID', name: 'Barangay ID' },
+    { key: 'genNoBirthCert', name: 'No Birth Certificate' },
+    { key: 'genMissingPerson', name: 'Missing Person Assistance' },
+    { key: 'genKP', name: 'Katarungang Pambarangay' },
+    { key: 'genFacilities', name: 'Barangay Facilities Rental' },
+    { key: 'genEscort', name: 'Escort – Interment' },
+    { key: 'genLicenseToCarry', name: 'License to Carry' },
+    { key: 'genNonResidence', name: 'Certification for Non-Residence' },
+    { key: 'genDeceasedResident', name: 'Certification for Deceased Resident' },
+    { key: 'genDeathAtHome', name: 'Certification for Death at Home (Non-COVID)' },
+    { key: 'genTransferResidence', name: 'Transfer of Residence' },
+    { key: 'genTransferBelongings', name: 'Transfer of Belongings' },
+    { key: 'genCessationBusiness', name: 'Cessation of Business' },
+    { key: 'genNoIncome', name: 'No Income / Low Income Certification' },
+    { key: 'genChangeHouseNo', name: 'Change of House Number' },
+    { key: 'genSeniorBedridden', name: 'Certification for Senior Citizen (Bedridden) / Certification of Relationship' },
+    { key: 'genLogistics', name: 'Logistical Support' },
+    { key: 'genLeave', name: 'Application of Leave of Absence' },
+    { key: 'genRoadClosure', name: 'Road Closure' },
+
+    // Others
+    { key: 'otherPetMemorial', name: 'Pet Memorial Garden' },
+    { key: 'otherFlushing', name: 'Flushing Operation' },
+    { key: 'otherTrimming', name: 'Trimming' },
+    { key: 'otherManhole', name: 'Repair of Manhole' },
+    { key: 'otherHakotKuyagot', name: 'Hakot Kuyagot' },
+    { key: 'otherHakotPanambak', name: 'Hakot Panambak' },
+    { key: 'otherShootingClearance', name: 'Shooting Clearance(Movies, Projects, etc.)' },
+    { key: 'otherTentsandChairs', name: 'Tents, Tables and Chairs Rental' },
+    { key: 'otherBarangayVehicleRental', name: 'Barangay Vehicle Rental' }
+];
+        // --- SERVICE SEARCH AND RENDER (copied from Home.html) ---
+        // Update the renderServicesList function
+function renderServicesList(filter = "") {
+    const list = document.getElementById('servicesList');
+    const q = filter.trim().toLowerCase();
+    if (!q) {
+        list.innerHTML = "";
+        return;
+    }
+    
+    // Filter services that START WITH the search query
+    const filtered = allServices.filter(s => 
+        s.name.toLowerCase().startsWith(q)
+    );
+
+    if (!filtered.length) {
+        list.innerHTML = `<div class="text-center text-gray-500 py-8">No services found.</div>`;
+        return;
+    }
+}
+
+// Keep the event listener the same
+document.getElementById('serviceSearch').addEventListener('input', function() {
+    renderServicesList(this.value);
+});
+
+        // Do NOT render services by default
+        renderServicesList("");
+
+        // Remove old form submit handlers (handled dynamically above)
+// --- Global helper to get logged-in user and split fullname ---
+
+// Add this function after your other JavaScript code
+function showSidebarServiceList(category) {
+    const servicesList = document.getElementById('servicesList');
+    const filteredServices = allServices.filter(service => {
+        switch(category) {
+            case 'infra':
+                return service.key.startsWith('infra');
+            case 'social':
+                return service.key.startsWith('social');
+            case 'general':
+                return service.key.startsWith('gen');
+            case 'others':
+                return service.key.startsWith('other');
+            default:
+                return false;
+        }
+    });
+
+    if (!filteredServices.length) {
+        servicesList.innerHTML = `<div class="text-center text-gray-500 py-8">No services found in this category.</div>`;
+        return;
+    }
+
+
+    // Scroll services list into view
+    servicesList.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function getUser() {
+    try {
+        const stored = localStorage.getItem('user');
+        if (!stored) return null;
+        const parsed = JSON.parse(stored);
+
+        // Use explicit fields if available, fallback to fullname split
+        let firstName = parsed.firstname || '';
+        let middleName = parsed.middlename || '';
+        let lastName = parsed.lastname || '';
+
+        if (!firstName && !middleName && !lastName && parsed.fullname) {
+            // Fallback: try to split fullname if explicit fields are missing
+            const nameParts = (parsed.fullname || '').trim().split(/\s+/);
+            firstName = nameParts[0] || '';
+            lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+            middleName = nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : '';
+        }
+
+        return {
+            uid: parsed.uid || '',
+            email: parsed.email || '',
+            firstname: firstName,
+            middlename: middleName,
+            lastname: lastName,
+        };
+    } catch (err) {
+        console.warn('Failed to parse stored user:', err);
+        return null;
+    }
+}
+
+
+// Redirect to Login.html if not logged in
+(function checkLogin() {
+    const user = getUser();
+    if (!user || !user.uid) {
+        window.location.href = "Login.html";
+    }
+})();
+
+function showUserGreet() {
+    const user = getUser();
+    const greetEl = document.getElementById('userGreet');
+    if (user && greetEl) {
+        greetEl.textContent = user.firstname
+            ? `Hello, ${user.firstname}!`
+            : "Welcome!";
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (!user) {
+            localStorage.removeItem('user');
+            window.location.href = 'Login.html';
+            return;
+        }
+
+        const uid = user.uid;
+        // Check user's verificationStatus before rendering services
+        firebase.database().ref('users/' + uid + '/verificationStatus').once('value')
+        .then(statusSnap => {
+            const status = statusSnap.val();
+            if (status !== 'Verified') {
+                // Keep user on Profile page to finish verification/upload ID
+                alert('Your account is not yet verified by the admin. You must complete verification before accessing Services.');
+                // Store a minimal user object and redirect to Profile where user can upload ID
+                localStorage.setItem('user', JSON.stringify({ uid: uid, email: user.email || '', fullname: user.displayName || '' }));
+                window.location.href = 'Profile.html?verification=pending';
+                return;
+            }
+
+            // Verified — fetch profile and continue
+            firebase.database().ref('users/' + uid).once('value').then(snapshot => {
+                const userData = snapshot.val() || {};
+                localStorage.setItem('user', JSON.stringify({
+                    uid: uid,
+                    fullname: userData.fullname || "",
+                    email: user.email
+                }));
+                // Optional notifications fetch if implemented
+                 // start notification badge updater (if function available)
+                if (typeof fetchNotificationCount === 'function') fetchNotificationCount();
+        }).catch(err => {
+                console.error('Failed to fetch user profile:', err);
+                alert('Failed to fetch user profile. Please reload the page or try again later.');
+            });
+        }).catch(err => {
+            console.error('Failed to read verificationStatus:', err);
+            alert('Unable to verify account status. Please try again from your Profile.');
+            window.location.href = 'Profile.html';
+        });
+    });
+});
+
+    </script>
+    <!-- START: Universal Modal, Content, and Links -->
+
+<!-- 1. Embedded Content Templates -->
+<template id="about-content">
+    <h2 class="text-2xl font-bold text-orange-600 mb-4">About e-Serbisyong Tañong</h2>
+    <div class="space-y-4 text-gray-700 leading-relaxed">
+        <p><strong>e-Serbisyong Tañong</strong> is a digital platform designed to bridge the gap between the residents of Barangay Tañong and their local government. Our mission is to provide a modern, accessible, and efficient way for community members to access essential barangay services from anywhere, at any time.</p>
+        <h3 class="text-lg font-semibold text-gray-800 pt-2">Key Features</h3>
+        <ul class="list-disc list-inside space-y-2">
+            <li><strong>Online Service Requests:</strong> Apply for clearances, permits, and other essential documents without needing to visit the barangay hall in person.</li>
+            <li><strong>Appointment Scheduling:</strong> Easily book appointments with barangay officials, reducing wait times and ensuring you are attended to promptly.</li>
+            <li><strong>Profile Management:</strong> Keep your personal information up-to-date to ensure seamless and accurate processing of your requests.</li>
+            <li><strong>Real-time Notifications:</strong> Stay informed with instant updates on the status of your service requests and appointments.</li>
+        </ul>
+        <p>This platform was developed with the goal of promoting transparency, improving public service delivery, and empowering our residents through technology. We are committed to continuously improving this service to better meet the needs of our community.</p>
+    </div>
+</template>
+
+<template id="privacy-content">
+    <h2 class="text-2xl font-bold text-orange-600 mb-4">Privacy Policy</h2>
+    <div class="space-y-4 text-gray-700 leading-relaxed">
+        <p class="text-sm text-gray-500">Last updated: October 17, 2025</p>
+        <p>e-Serbisyong Tañong ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our web application.</p>
+        <h3 class="text-lg font-semibold text-gray-800 pt-2">Information We Collect</h3>
+        <ul class="list-disc list-inside space-y-2">
+            <li><strong>Personal Data:</strong> Personally identifiable information, such as your name, address, email address, and telephone number, that you voluntarily give to us when you register or request services.</li>
+            <li><strong>Uploaded Documents:</strong> Files and images you upload, such as a Barangay ID, are collected to verify your identity and fulfill service requirements. These are stored securely.</li>
+        </ul>
+        <h3 class="text-lg font-semibold text-gray-800 pt-2">How We Use Your Information</h3>
+        <p>Having accurate information permits us to provide you with a smooth, efficient, and customized experience. We may use information collected about you to create and manage your account, process your requests, and email you regarding your account status.</p>
+        <h3 class="text-lg font-semibold text-gray-800 pt-2">Data Security</h3>
+        <p>We use administrative, technical, and physical security measures to help protect your personal information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that despite our efforts, no security measures are perfect or impenetrable.</p>
+        
+    </div>
+</template>
+
+<!-- 2. Generic Modal Structure -->
+<div id="info-modal" class="fixed inset-0 z-[100] hidden bg-black bg-opacity-60 backdrop-blur-sm items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col modal-animate">
+        <div class="flex items-center justify-between p-4 border-b">
+            <h2 id="modal-title" class="text-xl font-semibold text-gray-800"></h2>
+            <button id="modal-close-btn" class="text-gray-500 hover:text-red-500 text-3xl font-bold">&times;</button>
+        </div>
+        <div id="modal-content-body" class="p-6 overflow-y-auto">
+            <!-- Content will be injected here -->
+        </div>
+    </div>
+</div>
+
+<!-- 3. Bottom Right Links -->
+<div class="hidden md:flex fixed bottom-4 right-4 z-[90] gap-4">
+<button id="about-link" class="text-xs text-white hover:text-orange-500 hover:underline">About</button>
+<button id="privacy-link" class="text-xs text-white hover:text-orange-500 hover:underline">Privacy</button>
+</div>
+
+<!-- 4. JavaScript to Power the Modal -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('info-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContentBody = document.getElementById('modal-content-body');
+        const closeBtn = document.getElementById('modal-close-btn');
+        const aboutLink = document.getElementById('about-link');
+        const privacyLink = document.getElementById('privacy-link');
+
+        function openModal(title, templateId) {
+            if (!modal || !modalTitle || !modalContentBody) return;
+
+            const template = document.getElementById(templateId);
+            if (!template) {
+                modalContentBody.innerHTML = '<p class="text-center text-red-500">Content could not be found.</p>';
+            } else {
+                modalContentBody.innerHTML = template.innerHTML;
+            }
+
+            modalTitle.textContent = title;
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        if (aboutLink) aboutLink.addEventListener('click', () => openModal('About e-Serbisyong Tañong', 'about-content'));
+        if (privacyLink) privacyLink.addEventListener('click', () => openModal('Privacy Policy', 'privacy-content'));
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "Escape" && !modal.classList.contains('hidden')) closeModal();
+        });
+    });
+</script>
+<!-- START: Mobile Bottom Navigation Bar -->
+<nav id="bottom-nav" class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg flex justify-around items-center z-50 h-16">
+    <a href="Home.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m4-8v8m5 0a2 2 0 002-2V7a2 2 0 00-2-2h-3.5a2 2 0 00-1.5.67"></path></svg>
+        <span class="text-xs mt-1">Home</span>
+    </a>
+    <a href="Services.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+        <span class="text-xs mt-1">Serviceshaha</span>
+    </a>
+    <a href="Appointments.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+        <span class="text-xs mt-1">Appointments</span>
+    </a>
+    <a href="Notifications.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2 relative">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+        <span class="text-xs mt-1">Alerts</span>
+        <!-- Notification badge for mobile -->
+        <span id="notifBadgeMobile" class="absolute top-1 right-1/2 translate-x-4 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
+    </a>
+    <a href="Profile.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        <span class="text-xs mt-1">Profile</span>
+    </a>
+</nav>
+
+<script>
+    // Script to highlight the active bottom navigation item
+    document.addEventListener('DOMContentLoaded', function() {
+        const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
+        // Use a more reliable way to get the current page name
+        const currentPage = window.location.pathname.substring(window.location.pathname.lastIndexOf('/') + 1);
+
+        bottomNavItems.forEach(item => {
+            const itemPage = item.getAttribute('href');
+            if (currentPage === itemPage) {
+                item.classList.remove('text-gray-500');
+                item.classList.add('text-orange-500'); // Highlight color
+            }
+        });
+        
+        // --- Mobile Notification Badge Logic ---
+        // This makes the mobile badge mirror the sidebar badge
+        const desktopBadge = document.getElementById('notifBadge');
+        const mobileBadge = document.getElementById('notifBadgeMobile');
+
+        if (desktopBadge && mobileBadge) {
+            const observer = new MutationObserver(mutations => {
+                mutations.forEach(mutation => {
+                    if (mutation.type === 'attributes' || mutation.type === 'childList') {
+                        const isHidden = desktopBadge.classList.contains('hidden');
+                        const count = desktopBadge.textContent;
+                        
+                        mobileBadge.textContent = count;
+                        if (isHidden || count === '0') {
+                            mobileBadge.classList.add('hidden');
+                        } else {
+                            mobileBadge.classList.remove('hidden');
+                        }
+                    }
+                });
+            });
+
+            observer.observe(desktopBadge, { attributes: true, childList: true, subtree: true });
+        }
+    });
+</script>
+<!-- END: Mobile Bottom Navigation Bar -->
+<!-- END: Universal Modal and Content -->
+    <footer class="w-full bg-orange-400 py-4 px-8 text-left text-white text-sm font-bold border-t border-orange-300 mt-auto">
+        © 2025 e-Serbisyong Tañong. All rights reserved.
+    </footer>
+</body>
+</html>
