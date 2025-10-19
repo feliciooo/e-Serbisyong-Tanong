@@ -33,7 +33,6 @@
             <div class="bg-white px-8 py-10 rounded-2xl shadow-2xl w-full max-w-sm flex flex-col items-center slide-in-right">
                 <div class="flex flex-col items-center mb-6">
                     <img src="icon.png" alt="Logo" class="w-16 h-16 mb-2 rounded-full shadow-md object-cover">
-                    <span class="text-lg font-bold text-orange-500 tracking-wide">e-Serbisyong Tañong</span>
                 </div>
                 <h2 class="mb-6 font-semibold text-gray-900 text-2xl tracking-wide">Welcome Back</h2>
                 <form id="loginForm" class="w-full">
@@ -194,39 +193,28 @@
         }
 
         function handleAuthError(error) {
-    const loginError = document.getElementById('loginError');
-    let code = (error && error.code) ? error.code : '';
-    const firebaseMsg = (error && error.message) ? error.message : '';
-
-    if (!code && firebaseMsg) {
-        const m = firebaseMsg.match(/\(auth\/([^)]+)\)/i);
-        if (m && m[1]) code = 'auth/' + m[1];
-    }
-
-    const c = (code || '').toString().toLowerCase();
-    let message = "An error occurred. Please try again.";
-
-    if (c === 'auth/user-not-found' || c === 'auth/wrong-password' || /invalid.*(login|credential|credentials|password)/.test(c)) {
-        message = "Incorrect email or password.";
-    } else if (c === 'auth/invalid-email') {
-        message = "Please enter a valid email address.";
-    } else if (c === 'auth/too-many-requests') {
-        message = "Too many failed attempts. Please try again later.";
-    } else if (c === 'auth/network-request-failed') {
-        message = "Network error. Please check your connection.";
-    } else if (c === 'auth/user-disabled') {
-        message = "This user account has been disabled.";
-    } else {
-        if (firebaseMsg) {
-            let cleaned = firebaseMsg.replace(/^Firebase:\s*/i, '').trim();
-            cleaned = cleaned.replace(/^Error\s*\([^)]+\)\.?\s*/i, '');
-            message = cleaned || message;
+            const loginError = document.getElementById('loginError');
+            let message = "Incorrect email or password";
+            switch (error.code) {
+                case "auth/user-not-found":
+                case "auth/wrong-password":
+                case "auth/invalid-credential":
+                    message = "Incorrect email or password.";
+                    break;
+                case "auth/invalid-email":
+                    message = "Please enter a valid email address.";
+                    break;
+                case "auth/too-many-requests":
+                    message = "Too many failed attempts. Please try again later.";
+                    break;
+                case "auth/network-request-failed":
+                    message = "Network error. Please check your connection.";
+                    break;
+                default:
+                    console.log("Auth error:", error);
+            }
+            loginError.textContent = message;
         }
-        console.log("Auth error:", error);
-    }
-
-    loginError.textContent = message;
-}
 
         async function resendVerification(user) {
             const loginError = document.getElementById('loginError');
