@@ -862,48 +862,84 @@ function confirmArchive(key, isAppointment) {
     confirmModal.style.display = 'none';
   };
 }
-
-// Update request status and close modal
 function updateRequestStatus(requestKey, newStatus, rejectionReason = null) {
   const updateObj = { status: newStatus };
   if (newStatus === 'Rejected') {
-    updateObj.rejectionReason = rejectionReason || '';
-    updateObj.revisionNote = null;
+    updateObj.rejectionReason = rejectionReason || 'No reason provided.';
+    updateObj.revisionNote = null; // Clear revision note if rejecting
   } else if (newStatus === 'For Revision') {
-    updateObj.revisionNote = rejectionReason || '';
-    updateObj.rejectionReason = null;
+    updateObj.revisionNote = rejectionReason || 'Please provide more details.'; // Use the reason field for revision notes
+    updateObj.rejectionReason = null; // Clear rejection reason
   } else {
-    // clear both notes for other statuses
+    // For other statuses, clear both fields
     updateObj.rejectionReason = null;
     updateObj.revisionNote = null;
   }
 
   db.ref('serviceRequestsV2/' + requestKey).update(updateObj)
     .then(() => {
-      // Create notification for user
       const request = allServiceRequests[requestKey];
-      const userId = request.uid;
-
-      if (userId) {
-        createNotification(userId, requestKey, newStatus, request.serviceType, rejectionReason)
-          .then(() => {
-            showToast(`Status updated to ${newStatus}. Notification sent successfully.`, 'success');
-            closeModal('detailsModal');
-          })
-          .catch(err => {
-            console.error('Error creating notification:', err);
-            showToast('Status updated but failed to send notification.', 'error');
-            closeModal('detailsModal');
-          });
-      } else {
-        console.error('No user ID found in request');
-        showToast('Status updated but notification failed - no user ID.', 'error');
+      if (!request || !request.uid) {
+        console.error('No user ID found in request to notify.');
+        showToast('Status updated but notification could not be sent (no user ID).', 'error');
         closeModal('detailsModal');
+        return;
       }
+
+      // Now call the existing createNotification function
+      return createNotification(request.uid, requestKey, newStatus, request.serviceType, rejectionReason);
+    })
+    .then(() => {
+      showToast(`Status updated to ${newStatus}. Notification sent.`, 'success');
+      closeModal('detailsModal');
     })
     .catch(err => {
       console.error('Error updating status:', err);
       showToast('Failed to update status. Please try again.', 'error');
+    });
+}
+// Update request status and close modal
+function updateAppointmentStatus(appointmentKey, newStatus, rejectionReason = null) {
+  const updateObj = { status: newStatus };
+  if (newStatus === 'Rejected') {
+    updateObj.rejectionReason = rejectionReason || 'No reason provided.';
+  } else {
+    updateObj.rejectionReason = null;
+  }
+
+  db.ref('appointments/' + appointmentKey).update(updateObj)
+    .then(() => {
+      const appointment = allAppointments[appointmentKey];
+      if (!appointment || !appointment.uid) {
+        console.error('No user ID found in appointment');
+        showToast('Status updated but notification failed - no user ID.', 'error');
+        closeModal('detailsModal');
+        return;
+      }
+
+      // Create a specific notification for appointments
+      const notificationMessage = `Your appointment for ${appointment.date} at ${appointment.time} has been ${newStatus}.` + 
+                                  (newStatus === 'Rejected' && rejectionReason ? ` Reason: ${rejectionReason}` : '');
+
+      const notification = {
+        userId: appointment.uid,
+        title: "Appointment Status Update",
+        message: notificationMessage,
+        status: newStatus,
+        timestamp: new Date().toISOString(),
+        read: false,
+        requestId: appointmentKey 
+      };
+
+      return db.ref('notifications').push(notification);
+    })
+    .then(() => {
+      showToast(`Appointment status updated to ${newStatus}.`, 'success');
+      closeModal('detailsModal');
+    })
+    .catch(err => {
+      console.error('Error updating appointment status:', err);
+      showToast('Failed to update appointment status.', 'error');
     });
 }
 
@@ -1227,6 +1263,11 @@ document.addEventListener('keydown', function (ev) {
   if (ev.key === 'Escape') closeImageModal();
 });
 
+
+function isFullAdmin() {
+  // Helper to check the globally stored admin role
+  return window.currentAdminAccess === 'full';
+}
 
     // Load current admin record and apply UI permissions (defines loadCurrentAdminAndApply + applyAdminAccessUI)
     async function loadCurrentAdminAndApply() {
