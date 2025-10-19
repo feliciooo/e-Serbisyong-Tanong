@@ -598,21 +598,24 @@
   </div>
 </div>
 <!-- Edit/View Service Request Modal -->
-<div id="editRequestModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden">
-  
-  <div class="bg-white rounded
-    <!-- Header stays visible -->
+<div id="editRequestModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/40 p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl relative modal-animate flex flex-col max-h-[90vh]">
+    <!-- Modal Header -->
     <div class="flex items-center justify-between px-6 py-4 border-b">
-      <div class="text-xl font-semibold text-gray-900">Edit Service Request</div>
+      <h3 class="text-xl font-semibold text-gray-900" id="editModalTitle">Edit Service Request</h3>
       <button onclick="closeEditRequestModal()" class="text-gray-400 hover:text-orange-400 text-2xl font-bold" aria-label="Close">&times;</button>
     </div>
-    <!-- Scrollable content area -->
-    <div class="modal-scroll-inner px-6 py-4">
-      <form id="editRequestForm" class="flex flex-col gap-4 w-full"></form>
+    
+    <!-- Scrollable Modal Body -->
+    <div class="overflow-y-auto px-6 py-5">
+      <form id="editRequestForm"></form>
     </div>
-    <!-- Optional footer (keeps buttons visible) -->
-    <div class="px-6 py-3 border-t text-right">
-      <!-- Buttons populated by form or kept empty; form can include its own buttons -->
+
+    <!-- Modal Footer -->
+    <div class="px-6 py-4 border-t bg-gray-50 rounded-b-2xl">
+      <div class="flex justify-end gap-3">
+
+      </div>
     </div>
   </div>
 </div>
@@ -1648,6 +1651,8 @@ function openEditRequestModal(key) {
     }
      const modal = document.getElementById('editRequestModal');
     modal.classList.remove('hidden');
+    // Ensure the modal displays as flex so it centers properly
+    modal.style.display = 'flex';
     // Only allow edit when the admin requested revision (status === 'For Revision')
     const editable = req.status === 'For Revision';
     if (!editable) { alert('This request cannot be edited at this time.'); return; }
@@ -1844,6 +1849,8 @@ function closeEditRequestModal() {
   const modal = document.getElementById('editRequestModal');
   if (modal) {
     modal.classList.add('hidden');
+    // Also explicitly hide the element to avoid layout/positioning issues
+    modal.style.display = 'none';
     const formEl = document.getElementById('editRequestForm');
     if (formEl) formEl.innerHTML = '';
   }
@@ -1880,7 +1887,7 @@ function closeEditRequestModal() {
         <span id="notifBadgeMobile" class="absolute top-1 right-1/2 translate-x-4 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
     </a>
     <a href="Profile.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
         <span class="text-xs mt-1">Profile</span>
     </a>
 </nav>
