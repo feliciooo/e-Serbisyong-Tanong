@@ -673,7 +673,11 @@ togglePasswordBtn.addEventListener('click', function() {
                     emailVerified: false,
                     age: ageVal,
                     sex: genderVal,
-                    createdAt: new Date().toISOString(),
+                    // ISO string (human readable) + server numeric timestamp for reliable sorting/display
+                    createdAtISO: new Date().toISOString(),
+                    createdAt: firebase.database.ServerValue.TIMESTAMP,
+                    // optional: also set registeredAt to match AdminUsers expectations
+                    registeredAt: firebase.database.ServerValue.TIMESTAMP,
                     uid: user.uid
                 });
 
