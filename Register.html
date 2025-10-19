@@ -343,38 +343,39 @@
             return null; // Valid
         }
 
-        function validatePassword(value) {
-            if (value === '') {
-                return 'Password is required';
-            }
-            if (value.length < 6) {
-                return 'Password must be at least 6 characters long';
-            }
-            if (value.length > 100) {
-                return 'Password is too long (maximum 100 characters)';
-            }
-            // Must contain at least one uppercase letter
-            if (!/[A-Z]/.test(value)) {
-                return 'Password must contain at least one uppercase letter';
-            }
-            // Must contain at least one lowercase letter
-            if (!/[a-z]/.test(value)) {
-                return 'Password must contain at least one lowercase letter';
-            }
-            // Must contain at least one number
-            if (!/[0-9]/.test(value)) {
-                return 'Password must contain at least one number';
-            }
-            // Must contain at least one special character
-            if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) {
-                return 'Password must contain at least one special character';
-            }
-            // Check if password is too simple (all same character)
-            if (/^(.)\1+$/.test(value)) {
-                return 'Password is too simple (cannot be all the same character)';
-            }
-            return null; // Valid
-        }
+     function validatePassword(value) {
+    if (value === '') {
+        return 'Password is required';
+    }
+    if (value.length < 6) {
+        return 'Password must be at least 6 characters long';
+    }
+    if (value.length > 100) {
+        return 'Password is too long (maximum 100 characters)';
+    }
+    if (!/[A-Z]/.test(value)) {
+        return 'Password must contain at least one uppercase letter';
+    }
+    if (!/[a-z]/.test(value)) {
+        return 'Password must contain at least one lowercase letter';
+    }
+    if (!/[0-9]/.test(value)) {
+        return 'Password must contain at least one number';
+    }
+    const specialCharRegex = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/;
+
+    if (!specialCharRegex.test(value)) {
+        return 'Password must contain at least one special character (e.g. ! @ # $ % _ )';
+    }
+
+    if (/^(.)\1+$/.test(value)) {
+        return 'Password is too simple (cannot be all the same character)';
+    }
+
+    return null; // Valid
+}
+
+
 
         function validateAge(value) {
             if (value === '') return 'Age is required';
@@ -497,9 +498,10 @@ const policyChecks = [
     { test: v => /[A-Z]/.test(v), label: "One uppercase letter" },
     { test: v => /[a-z]/.test(v), label: "One lowercase letter" },
     { test: v => /[0-9]/.test(v), label: "One number" },
-    { test: v => /[!@#$%^&*(),.?\":{}|<>]/.test(v), label: "One special character" },
+    { test: v => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(v), label: "One special character" },
     { test: v => !(/^(.)\1+$/.test(v) && v.length > 0), label: "Not all the same character" }
 ];
+
 
 function renderPasswordPolicyFeedback(value) {
     passwordPolicyMsg.innerHTML = policyChecks.map(check => {
@@ -676,7 +678,6 @@ togglePasswordBtn.addEventListener('click', function() {
                     // ISO string (human readable) + server numeric timestamp for reliable sorting/display
                     createdAtISO: new Date().toISOString(),
                     createdAt: firebase.database.ServerValue.TIMESTAMP,
-                    // optional: also set registeredAt to match AdminUsers expectations
                     registeredAt: firebase.database.ServerValue.TIMESTAMP,
                     uid: user.uid
                 });
