@@ -105,34 +105,37 @@
 </head>
 
 <body>
-  <!-- Navbar -->
   <nav class="navbar">
     <div class="navbar-content">
-      <div class="nav-left">
-        <div class="logo">e-Serbisyong Tañong</div>
-      </div>
-
-      <div class="nav-center">
-        <div class="nav-links">
-          <a href="AdminHome.html" class="nav-link">Dashboard</a>
-          <a href="AdminServices.html" class="nav-link">Services</a>
-          <a href="AdminUsers.html" class="nav-link active">Users</a>
-          <a href="UserVerification.html" class="nav-link">User Verification</a>
-          <a href="AdminManagement.html" class="nav-link">Admin Management</a>
+        <!-- Logo and App Name -->
+        <div class="flex items-center gap-3"> <!-- Removed mb-8 from here -->
+            <img src="icon.png" alt="Logo" class="h-8 w-8 rounded-full" />
+            <span class="font-extrabold text-xl text-orange-500 tracking-wide">e-Serbisyong Tañong</span>
         </div>
-      </div>
 
-       <div class="nav-right">
-        <div class="user-section">
-          <div class="user-info">
-            <div class="user-name" id="userGreet">Admin</div>
-            <div class="user-role">Administrator</div>
-          </div>
-          <button class="logout-btn" onclick="logout()">Logout</button>
+        <!-- Navigation Links -->
+        <div class="nav-center">
+            <div class="nav-links">
+                <a href="AdminHome.html" class="nav-link">Dashboard</a>
+                <a href="AdminServices.html" class="nav-link">Services</a>
+                <a href="AdminUsers.html" class="nav-link active">Users</a>
+                <a href="UserVerification.html" class="nav-link">User Verification</a>
+                <a href="AdminManagement.html" class="nav-link">Admin Management</a>
+            </div>
         </div>
-      </div>
+
+        <!-- User Info and Logout -->
+        <div class="nav-right">
+            <div class="user-section">
+                <div class="user-info">
+                    <div class="user-name" id="userGreet">Admin</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
     </div>
-  </nav>
+</nav>
 
   <div class="max-w-6xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-lg">
     <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
