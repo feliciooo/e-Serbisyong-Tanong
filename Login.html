@@ -194,7 +194,7 @@
 
         function handleAuthError(error) {
             const loginError = document.getElementById('loginError');
-            let message = "Incorrect email or password";
+            let message = "Incorrect email or password.";
             switch (error.code) {
                 case "auth/user-not-found":
                 case "auth/wrong-password":
