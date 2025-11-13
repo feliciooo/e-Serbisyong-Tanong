@@ -148,13 +148,17 @@
         .nav-right { margin-left: auto; display: flex; align-items: center; gap: 1rem; }
 
         .logo {
-            font-size: 1.5rem;
+      font-size: 1.5rem;
             font-weight: 700;
             background: linear-gradient(135deg, #ff9f40 0%, #ffb366 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-        }
+            font-size: 1.25rem; /* match AdminServices text-xl */
+            font-weight: 800;  /* match font-extrabold */
+            color: #f97316;    /* tailwind text-orange-500 */
+            letter-spacing: 0.05em; /* tracking-wide */
+    }
 
         .nav-links {
             display: flex;
@@ -247,12 +251,15 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
     </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
     <nav class="navbar">
         <div class="navbar-content">
-            <div class="nav-left">
-                <div class="logo">e-Serbisyong Tañong</div>
+
+            <div class="flex items-center gap-3">
+                <img src="icon.png" alt="Logo" class="h-8 w-8 rounded-full" />
+                <span class="font-extrabold text-xl text-orange-500 tracking-wide">e-Serbisyong Tañong</span>
             </div>
 
             <div class="nav-center">
