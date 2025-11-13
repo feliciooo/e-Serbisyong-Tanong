@@ -277,10 +277,6 @@
 </head>
 <body class="min-h-screen m-0 font-['Roboto',Arial,sans-serif] flex bg-cover bg-fixed bg-center" style="background-image:url('')">
 <div class="fixed top-0 right-0 z-50 w-full flex justify-end pointer-events-none">
-  <div class="flex items-center gap-3 bg-white/95 shadow rounded-bl-2xl px-5 py-2 mt-0 mr-0 pointer-events-auto border-b border-l border-gray-200">
-    <img src="https://static.vecteezy.com/system/resources/previews/020/911/731/original/profile-icon-avatar-icon-user-icon-person-icon-free-png.png" alt="Profile" class="h-8 w-8 rounded-full border border-gray-200 object-cover bg-gray-100" />
-    <span class="text-base text-gray-700 font-medium" id="userGreet"></span>
-  </div>
 </div>
 <div class="flex w-full min-h-screen">
   <!-- Sidebar -->
@@ -597,25 +593,25 @@
     </div>
   </div>
 </div>
-<!-- Edit/View Service Request Modal -->
-<div id="editRequestModal" class="fixed inset-0 z-50 flex hidden items-center justify-center bg-black/40 p-4">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl relative modal-animate flex flex-col max-h-[90vh]">
+
+<!-- Edit Service Request Modal -->
+<div id="editRequestModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col modal-animate">
     <!-- Modal Header -->
     <div class="flex items-center justify-between px-6 py-4 border-b">
-      <h3 class="text-xl font-semibold text-gray-900" id="editModalTitle">Edit Service Request</h3>
+      <h3 class="text-xl font-semibold text-gray-900">Edit Service Request</h3>
       <button onclick="closeEditRequestModal()" class="text-gray-400 hover:text-orange-400 text-2xl font-bold" aria-label="Close">&times;</button>
     </div>
+
+    <!-- Scrollable Form Area -->
+    <form id="editRequestForm" class="modal-scroll-inner px-6 py-4 space-y-6">
+      <!-- JS will inject form content here -->
+    </form>
     
-    <!-- Scrollable Modal Body -->
-    <div class="overflow-y-auto px-6 py-5">
-      <form id="editRequestForm"></form>
-    </div>
-
-    <!-- Modal Footer -->
-    <div class="px-6 py-4 border-t bg-gray-50 rounded-b-2xl">
-      <div class="flex justify-end gap-3">
-
-      </div>
+    <!-- Modal Footer with Buttons -->
+    <div class="px-6 py-4 bg-gray-50 border-t rounded-b-xl flex justify-end gap-3">
+      <button type="button" onclick="closeEditRequestModal()" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 font-semibold text-sm transition hover:bg-gray-300">Cancel</button>
+      <button type="submit" form="editRequestForm" class="px-4 py-2 rounded-lg bg-orange-400 text-white font-semibold text-sm transition hover:bg-orange-500">Resubmit Request</button>
     </div>
   </div>
 </div>
@@ -1649,208 +1645,152 @@ function openEditRequestModal(key) {
       alert('You are not authorized to edit this request.');
       return;
     }
-     const modal = document.getElementById('editRequestModal');
-    modal.classList.remove('hidden');
-    // Ensure the modal displays as flex so it centers properly
-    modal.style.display = 'flex';
+    const modal = document.getElementById('editRequestModal');
+    
     // Only allow edit when the admin requested revision (status === 'For Revision')
     const editable = req.status === 'For Revision';
-    if (!editable) { alert('This request cannot be edited at this time.'); return; }
+    if (!editable) { 
+        alert('This request cannot be edited at this time because its status is not "For Revision".'); 
+        return; 
+    }
 
-    const formData = (req.formData && typeof req.formData === 'object') ? { ...req.formData } : { ...req };
-    ['_key', 'uid', 'timestamp', 'status', 'attachments', 'serviceKey', 'serviceType'].forEach(k => delete formData[k]);
+    modal.classList.remove('hidden');
 
-const formEl = document.getElementById('editRequestForm');
-if (!formEl) return;
+    const formEl = document.getElementById('editRequestForm');
+    if (!formEl) return;
 
-// Detect existing attachments
-const existingAttachments = Array.isArray(req.attachments) ? req.attachments.slice() : [];
+    // --- LOGIC FOR ATTACHMENTS ---
+    const existingAttachments = Array.isArray(req.images) ? req.images.slice() : [];
+    let newUploadedFiles = [];
+    const removedIndexes = new Set();
+    
+    // --- BUILD THE FORM'S INNER HTML ---
+    const formData = req.formData || {};
+    
+    // Create a two-column layout for form fields
+    const formDataEntries = Object.entries(formData);
+    const midpoint = Math.ceil(formDataEntries.length / 2);
+    const column1Fields = formDataEntries.slice(0, midpoint);
+    const column2Fields = formDataEntries.slice(midpoint);
 
-// Build fields HTML
-const fieldsHtml = Object.entries(formData).map(([k, v]) => {
-  const label = k.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
-  const val = v == null ? '' : escapeHtml(String(v));
-  return `
-    <label class="text-sm font-medium text-gray-700 mb-1">
-      ${escapeHtml(label)}
-      <input name="${escapeHtml(k)}" value="${val}" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 mt-1" />
-    </label>
-  `;
-}).join('');
-
-// Build attachments HTML (preview existing attachments)
-let attachmentsHtml = '';
-if (existingAttachments.length > 0) {
-  attachmentsHtml = `
-    <div class="mb-2">
-      <div class="text-sm text-gray-500">Existing Attachments</div>
-      <div class="flex flex-wrap gap-3 mt-2">
-        ${existingAttachments.map((a, i) => {
-          const str = String(a || '');
-          const isDataImage = str.startsWith('data:image');
-          const isUrl = /^https?:\/\//.test(str);
-          const isImageUrl = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(str);
-          if (isDataImage || (isUrl && isImageUrl)) {
-            return `<div class="relative" style="max-width:120px;">
-                      <img src="${escapeHtml(str)}" class="h-24 rounded shadow border object-contain" style="max-width:120px;" alt="attachment-${i}">
-                      <button type="button" data-remove-index="${i}" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
-                    </div>`;
-          } else {
-            return `<div class="px-3 py-2 border rounded bg-gray-50 text-xs">${escapeHtml(str)}</div>`;
-          }
-        }).join('')}
+    formEl.innerHTML = `
+      <div>
+        <h4 class="font-semibold text-gray-800 mb-3">User-Provided Information</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <div>
+                ${column1Fields.map(([k, v]) => `
+                    <label class="block text-sm font-medium text-gray-600">${escapeHtml(formatFieldName(k))}</label>
+                    <input name="${escapeHtml(k)}" value="${escapeHtml(v)}" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50"/>
+                `).join('')}
+            </div>
+            <div>
+                ${column2Fields.map(([k, v]) => `
+                    <label class="block text-sm font-medium text-gray-600">${escapeHtml(formatFieldName(k))}</label>
+                    <input name="${escapeHtml(k)}" value="${escapeHtml(v)}" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50"/>
+                `).join('')}
+            </div>
+        </div>
       </div>
-    </div>
-  `;
-}
 
-// Render form HTML
-formEl.innerHTML = `
-  <div class="text-base font-semibold mb-2">${escapeHtml(req.serviceType || 'Edit Request')}</div>
-  ${fieldsHtml}
-  ${attachmentsHtml}
-  <div class="upload-label mt-4">
-    <input type="file" id="editAttachmentsInput" class="hidden" multiple accept="image/*" />
-    <div id="newImagePreviewContainer" class="flex gap-3 flex-wrap mt-2"></div>
-    <label for="editAttachmentsInput" class="flex-1 cursor-pointer block mt-3">
-      <div class="flex items-center justify-center h-12 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 transition">
-        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
-        </svg>
-        <span class="ml-2 text-gray-700 text-base font-medium">Please attach requested documents</span>
+      <div class="border-t pt-4 mt-4">
+        <h4 class="font-semibold text-gray-800 mb-3">Attachments</h4>
+        <p class="text-xs text-gray-500 mb-3">Please re-upload all necessary documents, including those that were correct previously.</p>
+        <div id="existingAttachmentsContainer" class="flex flex-wrap gap-3 ${existingAttachments.length === 0 ? 'hidden' : ''}">
+          ${existingAttachments.map((src, i) => `
+            <div class="relative w-28 h-28">
+              <img src="${escapeHtml(src)}" class="w-full h-full object-cover rounded-md border"/>
+              <button type="button" data-remove-index="${i}" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">&times;</button>
+            </div>
+          `).join('')}
+        </div>
+        <div id="newImagePreviewContainer" class="flex flex-wrap gap-3 mt-3"></div>
+        <label for="editAttachmentsInput" class="mt-4 block cursor-pointer">
+          <div class="flex items-center justify-center h-16 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 transition">
+            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            <span class="ml-2 text-gray-700 font-medium">Add or Replace Attachments</span>
+          </div>
+        </label>
+        <input type="file" id="editAttachmentsInput" class="hidden" multiple accept="image/*" />
       </div>
-    </label>
-  </div>
+    `;
 
-  <div class="mt-4 text-sm text-gray-500">
-    <span class="font-medium">Note:</span> If you have previously uploaded a Barangay ID, you can skip this step unless you want to update the attachment.
-  </div>
-
-  <!-- Added buttons so user can submit or cancel directly from modal -->
-  <div class="flex gap-2 mt-4">
-    <button type="button" onclick="closeEditRequestModal()" class="flex-1 px-4 py-3 rounded-lg bg-gray-100 text-gray-700 font-semibold text-base transition hover:bg-gray-200">Cancel</button>
-    <button type="submit" class="flex-1 px-4 py-3 rounded-lg bg-orange-400 text-white font-semibold text-base transition hover:bg-orange-300">Submit Resubmission</button>
-  </div>
-`;
-
-  // --- NEW: LOGIC FOR HANDLING NEW IMAGE UPLOADS AND PREVIEWS ---
-  const newFileInput = document.getElementById('editAttachmentsInput');
-  const newPreviewContainer = document.getElementById('newImagePreviewContainer');
-  let newUploadedFiles = []; // Array to store newly added File objects
-
-  if (newFileInput) {
-      newFileInput.addEventListener('change', function(e) {
-          const files = Array.from(e.target.files);
-          files.forEach(file => {
-              if (!newUploadedFiles.some(f => f.name === file.name && f.size === file.size)) {
-                  newUploadedFiles.push(file);
-                  const reader = new FileReader();
-                  reader.onload = (event) => {
-                      const previewWrapper = document.createElement('div');
-                      previewWrapper.className = 'relative w-24 h-24';
-                      const img = document.createElement('img');
-                      img.src = event.target.result;
-                      img.className = 'w-full h-full object-cover rounded-md border';
-                      const removeBtn = document.createElement('button');
-                      removeBtn.type = 'button';
-                      removeBtn.innerHTML = '&times;';
-                      removeBtn.className = 'absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold';
-                      removeBtn.onclick = () => {
-                          newUploadedFiles = newUploadedFiles.filter(f => f.name !== file.name || f.size !== file.size);
-                          previewWrapper.remove();
-                      };
-                      previewWrapper.appendChild(img);
-                      previewWrapper.appendChild(removeBtn);
-                      newPreviewContainer.appendChild(previewWrapper);
-                  };
-                  reader.readAsDataURL(file);
-              }
-          });
-          e.target.value = ''; // Clear input to allow re-selecting the same file
-      });
-  }
-  // --- END NEW LOGIC ---
-
-  // --- NEW: track removed existing attachments and wire remove buttons ---
-  const removedIndexes = new Set();
-  formEl.querySelectorAll('[data-remove-index]').forEach(btn => {
-    btn.addEventListener('click', function () {
-      const idx = Number(this.getAttribute('data-remove-index'));
-      if (!Number.isNaN(idx)) removedIndexes.add(idx);
-      const wrapper = this.closest('.relative') || this.parentElement;
-      if (wrapper) wrapper.remove();
+    // --- ATTACH EVENT LISTENERS ---
+    formEl.querySelectorAll('[data-remove-index]').forEach(btn => {
+        btn.addEventListener('click', function () {
+            removedIndexes.add(Number(this.dataset.removeIndex));
+            this.parentElement.remove();
+        });
     });
-  });
-  // --- END removedIndexes logic ---
 
-  // Submit handler: validate at least one attachment present (kept or new)
-  formEl.onsubmit = async function (e) {
-    e.preventDefault();
+    const newFileInput = document.getElementById('editAttachmentsInput');
+    const newPreviewContainer = document.getElementById('newImagePreviewContainer');
+    newFileInput.addEventListener('change', (e) => {
+        Array.from(e.target.files).forEach(file => {
+            if (!newUploadedFiles.some(f => f.name === file.name)) {
+                newUploadedFiles.push(file);
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const previewWrapper = document.createElement('div');
+                    previewWrapper.className = 'relative w-28 h-28';
+                    previewWrapper.innerHTML = `
+                        <img src="${event.target.result}" class="w-full h-full object-cover rounded-md border"/>
+                        <button type="button" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">&times;</button>
+                    `;
+                    previewWrapper.querySelector('button').onclick = () => {
+                        newUploadedFiles = newUploadedFiles.filter(f => f.name !== file.name);
+                        previewWrapper.remove();
+                    };
+                    newPreviewContainer.appendChild(previewWrapper);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        e.target.value = '';
+    });
 
-    // Require at least one attachment: either previously existing (not removed) or newly uploaded
-    const hasExisting = Array.isArray(existingAttachments) && existingAttachments.some((_, i) => !removedIndexes.has(i));
-    const hasNew = Array.isArray(newUploadedFiles) && newUploadedFiles.length > 0;
-    if (!hasExisting && !hasNew) {
-      alert('Please upload valid ID to verify your account');
-      return;
-    }
+    // --- FORM SUBMISSION LOGIC ---
+    formEl.onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(formEl);
+        const updatedFormData = {};
+        for (const [name, value] of formData.entries()) {
+            updatedFormData[name] = value;
+        }
 
-    // Collect updated fields
-    const fd = new FormData(formEl);
-    const updatedFormData = {};
-    for (const [name, value] of fd.entries()) {
-      if (name === 'editAttachmentsInput') continue;
-      updatedFormData[name] = value;
-    }
+        const keptAttachments = existingAttachments.filter((_, i) => !removedIndexes.has(i));
+        const newAttachmentsBase64 = await readFilesAsBase64(newUploadedFiles);
+        const finalAttachments = [...keptAttachments, ...newAttachmentsBase64];
 
-    // Handle new attachments by converting the staged files to base64
-    let newAttachmentsBase64 = [];
-    for (const file of newUploadedFiles) {
-        try {
-            const base64 = await readFilesAsBase64([file]);
-            newAttachmentsBase64.push(base64[0]);
-        } catch (err) {
-            alert('Failed to read new attachments: ' + err.message);
+        if (finalAttachments.length === 0) {
+            alert('Please provide at least one attachment for resubmission.');
             return;
         }
-    }
 
-    // Build final attachments
-    const keptAttachments = existingAttachments.filter((_, i) => !removedIndexes.has(i));
-    const finalAttachments = keptAttachments.concat(newAttachmentsBase64);
+        const updates = {
+            formData: updatedFormData,
+            images: finalAttachments,
+            status: 'Resubmitted',
+            resubmittedAt: new Date().toISOString()
+        };
 
-    // Update request
-    const updates = {
-        formData: updatedFormData,
-        attachments: finalAttachments,
-        images: finalAttachments, // <-- ADD THIS LINE
-        status: 'Resubmitted',
-        resubmittedAt: new Date().toISOString() // Also, use toISOString() for consistency
+        db.ref('serviceRequestsV2/' + key).update(updates)
+            .then(() => {
+                closeEditRequestModal();
+                showSuccessModal('Request Updated!', 'Your changes have been resubmitted for admin review.');
+                fetchAllUserRequests(); // Refresh the list
+            })
+            .catch(err => alert('Failed to update: ' + err.message));
     };
 
-      firebase.database().ref('serviceRequestsV2/' + key).update(updates)
-        .then(() => {
-          closeEditRequestModal();
-          if (typeof fetchAllUserRequests === 'function') fetchAllUserRequests();
-          alert('Request updated successfully.');
-        })
-        .catch(err => {
-          console.error('Update failed', err);
-          alert('Failed to update request: ' + err.message);
-        });
-    };
   }).catch(err => {
-    console.error(err);
+    console.error('Error loading request for edit:', err);
     alert('Failed to load request.');
   });
 }
-
 function closeEditRequestModal() {
   const modal = document.getElementById('editRequestModal');
   if (modal) {
     modal.classList.add('hidden');
-    // Also explicitly hide the element to avoid layout/positioning issues
-    modal.style.display = 'none';
     const formEl = document.getElementById('editRequestForm');
     if (formEl) formEl.innerHTML = '';
   }
@@ -1887,7 +1827,7 @@ function closeEditRequestModal() {
         <span id="notifBadgeMobile" class="absolute top-1 right-1/2 translate-x-4 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
     </a>
     <a href="Profile.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
         <span class="text-xs mt-1">Profile</span>
     </a>
 </nav>
