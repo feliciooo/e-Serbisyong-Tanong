@@ -1,3 +1,5 @@
+--- START OF FILE Appointments.html ---
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -195,6 +197,14 @@
     const apptForm = document.getElementById("appointmentForm");
     const feedbackEl = document.getElementById("feedback");
     const warningEl = document.getElementById("warningMessage");
+    const dateEl = document.getElementById("date"); // Get the date input element
+
+    // Set the minimum date for the date input to today
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+    const day = String(today.getDate()).padStart(2, '0');
+    dateEl.min = `${year}-${month}-${day}`;
 
     // Helper: autofill name/contact
     function fillUserDetails(data) {
@@ -249,6 +259,12 @@
 
       if (!date || !time || !reason) {
         alert("Please fill in all fields.");
+        return;
+      }
+
+      // Check if the selected date is in the past
+      if (new Date(date) < new Date(dateEl.min)) {
+        alert("You cannot select a past date for your appointment.");
         return;
       }
 
@@ -500,53 +516,4 @@
         <span id="notifBadgeMobile" class="absolute top-1 right-1/2 translate-x-4 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden">0</span>
     </a>
     <a href="Profile.html" class="bottom-nav-item flex flex-col items-center justify-center text-gray-500 hover:text-orange-500 w-full pt-2">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-        <span class="text-xs mt-1">Profile</span>
-    </a>
-</nav>
-
-<script>
-    // Script to highlight the active bottom navigation item
-    document.addEventListener('DOMContentLoaded', function() {
-        const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
-        // Use a more reliable way to get the current page name
-        const currentPage = window.location.pathname.substring(window.location.pathname.lastIndexOf('/') + 1);
-
-        bottomNavItems.forEach(item => {
-            const itemPage = item.getAttribute('href');
-            if (currentPage === itemPage) {
-                item.classList.remove('text-gray-500');
-                item.classList.add('text-orange-500'); // Highlight color
-            }
-        });
-        
-        // --- Mobile Notification Badge Logic ---
-        // This makes the mobile badge mirror the sidebar badge
-        const desktopBadge = document.getElementById('notifBadge');
-        const mobileBadge = document.getElementById('notifBadgeMobile');
-
-        if (desktopBadge && mobileBadge) {
-            const observer = new MutationObserver(mutations => {
-                mutations.forEach(mutation => {
-                    if (mutation.type === 'attributes' || mutation.type === 'childList') {
-                        const isHidden = desktopBadge.classList.contains('hidden');
-                        const count = desktopBadge.textContent;
-                        
-                        mobileBadge.textContent = count;
-                        if (isHidden || count === '0') {
-                            mobileBadge.classList.add('hidden');
-                        } else {
-                            mobileBadge.classList.remove('hidden');
-                        }
-                    }
-                });
-            });
-
-            observer.observe(desktopBadge, { attributes: true, childList: true, subtree: true });
-        }
-    });
-</script>
-<!-- END: Mobile Bottom Navigation Bar -->
-</body>
-
-</html>
+        <svg class="w-6 h-6" fill="none" stroke
