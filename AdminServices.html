@@ -257,37 +257,41 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 </head>
 
 <body>
-  <!-- Navbar (copied design) -->
   <nav class="navbar">
     <div class="navbar-content">
-      <div class="nav-left">
-        <div class="logo">e-Serbisyong Tañong</div>
-      </div>
-
-      <div class="nav-center">
-        <div class="nav-links">
-          <a href="AdminHome.html" class="nav-link">Dashboard</a>
-          <a href="AdminServices.html" class="nav-link active">Services</a>
-          <a href="AdminUsers.html" class="nav-link">Users</a>
-          <a href="UserVerification.html" class="nav-link">User Verification</a>
-          <a href="AdminManagement.html" class="nav-link">Admin Management</a>
+        <!-- Logo and App Name -->
+        <div class="flex items-center gap-3"> <!-- Removed mb-8 from here -->
+            <img src="icon.png" alt="Logo" class="h-8 w-8 rounded-full" />
+            <span class="font-extrabold text-xl text-orange-500 tracking-wide">e-Serbisyong Tañong</span>
         </div>
-      </div>
 
-      <div class="nav-right">
-        <div class="user-section">
-          <div class="user-info">
-            <div class="user-name" id="userGreet">Admin</div>
-            <div class="user-role">Administrator</div>
-          </div>
-          <button class="logout-btn" onclick="logout()">Logout</button>
+        <!-- Navigation Links -->
+        <div class="nav-center">
+            <div class="nav-links">
+                <a href="AdminHome.html" class="nav-link">Dashboard</a>
+                <a href="AdminServices.html" class="nav-link active">Services</a>
+                <a href="AdminUsers.html" class="nav-link">Users</a>
+                <a href="UserVerification.html" class="nav-link">User Verification</a>
+                <a href="AdminManagement.html" class="nav-link">Admin Management</a>
+            </div>
         </div>
-      </div>
+
+        <!-- User Info and Logout -->
+        <div class="nav-right">
+            <div class="user-section">
+                <div class="user-info">
+                    <div class="user-name" id="userGreet">Admin</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
     </div>
-  </nav>
+</nav>
 
   <!-- Main Content Container (copied layout) -->
   <div class="dashboard-container">
@@ -298,10 +302,9 @@
 
     <!-- --- Add Archive Tab to Service Requests Section --- -->
     <div id="requestTabs" class="flex gap-2 mb-6">
-      <button id="tabActive" class="px-4 py-2 rounded font-semibold bg-orange-400 text-white shadow hover:bg-orange-500 active">Active Requests</button>
+      <button id="tabActive" class="px-4 py-2 rounded font-semibold bg-orange-400 text-white shadow hover:bg-orange-500">Active Requests</button>
       <button id="tabArchive" class="px-4 py-2 rounded font-semibold bg-gray-200 text-gray-700 shadow hover:bg-gray-300">Archived Requests</button>
     </div>
-
 
 <div id="activeContent">
     <div class="card" id="servicesCard">
@@ -352,26 +355,14 @@
         <h2 class="card-title">Appointment Requests</h2>
         <button id="exportActiveAppointmentBtn" class="add-btn ml-2">Export CSV</button>
     </div>
-
-    <div class="table-wrap">
-      <div class="table-scroll">
-        <table class="min-w-full text-sm text-left border border-gray-200">
-          <thead class="bg-orange-400 text-white  text-xs uppercase tracking-wider">
-            <tr>
-              <th class="px-6 py-3">Reason</th>
-              <th class="px-6 py-3">Resident</th>
-              <th class="px-6 py-3">Contact</th>
-              <th class="px-6 py-3">Date & Time</th>
-              <th class="px-6 py-3">Status</th>
-              <th class="px-6 py-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="appointmentsTable" class="divide-y divide-gray-100 bg-white">
-            <!-- Appointment rows will be injected here -->
-          </tbody>
-        </table>
-      </div>
-   </div>
+    
+    <!-- This part is now a flexible container, not a table scroll -->
+    <div class="overflow-x-auto rounded-lg shadow">
+        <div id="appointmentsList" class="p-4 space-y-3">
+            <!-- Appointment cards will be injected here -->
+        </div>
+    </div>
+</div>
  </div>
  </div>
 <!-- Archived Content Wrapper (initially hidden) -->
@@ -438,9 +429,49 @@
 
 
   <!-- Details Modal (unchanged, keep original logic/UX) -->
-  <!-- ...existing code for detailsModal, confirmModal, toastContainer... -->
+<!-- Signature Modal -->
+<div id="signatureModal" class="modal">
+  <div class="modal-content w-full max-w-4xl"> <!-- Made the modal wider -->
+    <div class="modal-header">
+      <h3 class="modal-title">Claim Document & Signatures</h3>
+    </div>
+    
+    <!-- Grid for two signature pads -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Requester Signature -->
+      <div>
+        <label class="block font-semibold text-gray-700 mb-2">Requester's Signature</label>
+        <div class="bg-gray-100 border border-gray-300 rounded-md">
+          <canvas id="requesterSignatureCanvas" class="w-full h-48"></canvas>
+        </div>
+        <button onclick="requesterSignaturePad.clear()" class="mt-2 text-sm text-gray-600 hover:text-red-600">Clear</button>
+      </div>
+      
+      <!-- Admin Signature -->
+      <div>
+        <label class="block font-semibold text-gray-700 mb-2">Admin/Releasing Officer's Signature</label>
+        <div class="bg-gray-100 border border-gray-300 rounded-md">
+          <canvas id="adminSignatureCanvas" class="w-full h-48"></canvas>
+        </div>
+        <button onclick="adminSignaturePad.clear()" class="mt-2 text-sm text-gray-600 hover:text-red-600">Clear</button>
+      </div>
+    </div>
 
- <!-- Details Modal -->
+    <!-- Requester's Name Input -->
+    <div class="mt-6">
+        <label for="requesterNameInput" class="block font-semibold text-gray-700 mb-2">Requester's Full Name*</label>
+        <input type="text" id="requesterNameInput" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Enter the full name of the person claiming the document">
+    </div>
+
+    <!-- Modal Actions -->
+    <div class="mt-6 flex justify-end gap-3 border-t pt-4">
+      <button onclick="closeSignatureModal()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300">Cancel</button>
+      <button onclick="saveSignatures()" class="add-btn">Save & Mark as Claimed</button>
+    </div>
+  </div>
+</div>
+
+<!-- Details Modal -->
 <div id="detailsModal" class="modal hidden">
   <div class="modal-content w-full max-w-3xl">
     <div class="modal-header">
@@ -451,45 +482,42 @@
     <p id="modalResidentLabel" class="text-sm text-gray-500 mb-2"></p>
 
     <div class="space-y-4">
-      <!-- Summary -->
-      <div id="modalSummary" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm"></div>
-
-      <!-- Form fields rendered here -->
-      <div id="modalFormFields" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm"></div>
-
-      <!-- File attachments (hidden when none) - no toggle button, show links directly -->
-      <div id="fileSection" class="hidden">
-        <h4 class="text-sm font-semibold text-gray-900 mb-2">Attachments</h4>
-        <ul id="fileList" class="list-disc list-inside text-sm text-gray-700 mt-2"></ul>
-      </div>
+      <!-- Summary and Form Fields will be injected here by JS -->
+      <div id="modalSummaryAndFields" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm"></div>
 
       <!-- Images section -->
       <div id="imageSection" class="hidden mt-4">
-        <h4 class="text-sm font-semibold text-gray-900 mb-2">Uploaded Images</h4>
-        <div id="imageList" class="grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+        <h4 class="font-semibold text-base mb-2 text-gray-800">UPLOADED IMAGES</h4>
+        <div id="imageList" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
+      </div>
+      
+      <!-- Signature section -->
+      <div id="signatureSection" class="hidden mt-4">
+        <h4 class="font-semibold text-base mb-2 text-gray-800">SIGNATURE ON CLAIM</h4>
+        <div class="border rounded-md p-2 inline-block bg-gray-50">
+            <img id="signatureImage" src="" alt="Resident's signature" class="max-w-xs"/>
+        </div>
       </div>
     </div>
 
     <!-- Footer: status + actions -->
-    <div class="border-t mt-6 pt-4 flex flex-col sm:flex-row justify-between items-center gap-3" id="modalActions">
-      <div class="flex items-center gap-3">
-        <label for="modal-status" class="font-medium text-gray-700">Status:</label>
-        <select id="modal-status" class="border border-gray-300 rounded px-2 py-1">
-          <!-- Options will be dynamically populated -->
-        </select>
-      </div>
-
-      <div class="flex gap-2">
-        <button id="modal-save-btn" class="add-btn">Save</button>
-        <button onclick="closeModal('detailsModal')" class="bg-gray-300 text-gray-800 px-3 py-1 rounded hover:bg-gray-400">Close</button>
-      </div>
-    </div>
-
-    <!-- Rejection reason -->
-    <div id="modal-rejection" class="hidden mt-3">
-      <label class="block text-sm font-medium text-red-700 mb-1" id="rejectionReasonLabel">Reason for rejection</label>
-      <textarea id="modal-reason" class="border border-red-300 bg-red-50 text-red-700 rounded w-full p-2"
-        rows="3" placeholder="Enter reason..."></textarea>
+    <div class="border-t mt-6 pt-4 space-y-3" id="modalActions">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <label for="modal-status" class="font-medium text-gray-700">STATUS:</label>
+                <select id="modal-status" class="border border-gray-300 rounded px-2 py-1"></select>
+            </div>
+            <div class="flex gap-2">
+                <button id="modal-save-btn" class="add-btn">Save</button>
+                <button onclick="closeModal('detailsModal')" class="bg-gray-300 text-gray-800 px-3 py-1 rounded hover:bg-gray-400">Close</button>
+            </div>
+        </div>
+        
+        <!-- The rejection/revision box is now INSIDE the modal content and footer -->
+        <div id="modal-rejection" class="hidden">
+            <label class="block text-sm font-medium text-red-700 mb-1" id="rejectionReasonLabel">REASON FOR REJECTION</label>
+            <textarea id="modal-reason" class="border border-red-300 bg-red-50 text-red-700 rounded w-full p-2" rows="2" placeholder="Enter reason..."></textarea>
+        </div>
     </div>
   </div>
 </div>
@@ -535,6 +563,7 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
+    
 
     // State variables
     let allServiceRequests = {};
@@ -546,7 +575,8 @@
 
     // DOM Elements
     const serviceRequestsTable = document.getElementById('serviceRequestsTable');
-    const appointmentsTable = document.getElementById('appointmentsTable');
+    // const appointmentsTable = document.getElementById('appointmentsTable'); // not used; appointments render uses appointmentsList
+    // FIX: the table id in the HTML is "archiveRequestsTable" (no 'd'), ensure JS references the same element
     const archivedServiceRequestsTable = document.getElementById('archiveRequestsTable');
     const archivedAppointmentsTable = document.getElementById('archivedAppointmentsTable');
 
@@ -561,6 +591,41 @@ auth.onAuthStateChanged(user => {
     window.location.href = 'Login.html';
   }
 });
+
+    function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// This is the main function to fix the canvas drawing area
+function resizeCanvas() {
+    if (!signaturePad) return;
+    const canvas = document.getElementById('signatureCanvas');
+    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+    canvas.width = canvas.offsetWidth * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
+    canvas.getContext("2d").scale(ratio, ratio);
+    signaturePad.clear(); // Clearing is important after resize
+}
+
+// A new function to properly close the signature modal and clean up listeners
+function closeSignatureModal() {
+    // Remove the resize listener to prevent memory leaks
+    window.removeEventListener('resize', debouncedResize);
+    closeModal('signatureModal');
+}
+
+// Create a debounced version of the resize function
+const debouncedResize = debounce(resizeCanvas, 250);
+
+// --- END: NEW CANVAS RESIZING & CLEANUP ---```
 
 
     // Helper to get full name and contact from user object
@@ -592,6 +657,41 @@ auth.onAuthStateChanged(user => {
       const display = status === "For Pickup" ? "Ready for Pickup" : status;
       return `<span class="px-2 py-1 rounded-full text-xs font-medium ${colors[status] || 'bg-gray-100 text-gray-800'}">${escapeHtml(display)}</span>`;
     }
+    function checkAndAutoRejectExpiredRequests() {
+    const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const expiredKeys = [];
+    const updates = {};
+    
+    let needsUpdate = false;
+    let expiredCount = 0;
+
+    for (const key in allServiceRequests) {
+        const req = allServiceRequests[key];
+        const readyDate = req.readyForPickupAt;
+
+        // Check if status is 'For Pickup' and 'readyForPickupAt' is older than 30 days
+        if (req.status === 'For Pickup' && readyDate && (now - readyDate) > THIRTY_DAYS_MS) {
+            updates[`serviceRequestsV2/${key}/status`] = 'Rejected';
+            updates[`serviceRequestsV2/${key}/rejectionReason`] = 'Automatically rejected: Document unclaimed after 30 days.';
+            updates[`serviceRequestsV2/${key}/updatedBy`] = 'System';
+            updates[`serviceRequestsV2/${key}/updatedAt`] = firebase.database.ServerValue.TIMESTAMP;
+            expiredKeys.push(key);
+            expiredCount++;
+            needsUpdate = true;
+        }
+    }
+
+    if (needsUpdate) {
+        db.ref().update(updates)
+            .then(() => {
+                showToast(`System rejected ${expiredCount} requests: Unclaimed after 30 days.`, 'warning');
+                // Create a generic system notification (optional)
+                // db.ref('notifications').push({ userId: 'Admin', title: 'System Alert', message: `${expiredCount} requests rejected due to being unclaimed.`, timestamp: new Date().toISOString() });
+            })
+            .catch(err => console.error("Auto-reject failed:", err));
+    }
+}
 
     // Masked resident label helper
     function residentLabelFromKey(key) {
@@ -615,188 +715,128 @@ auth.onAuthStateChanged(user => {
 
     // Modal open/close
     function openModal(key, isAppointment = false, isArchived = false) {
-        let path;
-        let item;
-        let statusOptions = [];
-        let modalTitleText = '';
+    const item = isArchived 
+        ? (isAppointment ? allArchivedAppointments[key] : allArchivedServiceRequests[key])
+        : (isAppointment ? allAppointments[key] : allServiceRequests[key]);
 
-        if (isArchived) {
-            if (isAppointment) {
-                item = allArchivedAppointments[key];
-                modalTitleText = 'Archived Appointment Details';
-                statusOptions = ['Approved', 'Rejected', 'Pending']; // Read-only for archived
-            } else {
-                item = allArchivedServiceRequests[key];
-                modalTitleText = 'Archived Service Request Details';
-                statusOptions = ['Pending', 'Under Review', 'For Revision', 'Resubmitted', 'For Pickup', 'Approved', 'Rejected']; // Read-only for archived
-            }
-        } else {
-            if (isAppointment) {
-                item = allAppointments[key];
-                modalTitleText = 'Appointment Details';
-                statusOptions = ['Pending', 'Approved', 'Rejected'];
-            } else {
-                item = allServiceRequests[key];
-                modalTitleText = 'Service Request Details';
-               statusOptions = ['Pending', 'Under Review', 'For Revision', 'Claimed', 'Resubmitted', 'For Pickup', 'Approved', 'Rejected'];
-            }
-        }
+    if (!item) return showToast('Item not found.', 'error');
 
-        if (!item) {
-            showToast('Item not found for modal.', 'error');
-            return;
-        }
+    const modal = document.getElementById('detailsModal');
+    document.getElementById('detailsModalTitle').textContent = `SERVICE REQUEST DETAILS`;
+    document.getElementById('modalResidentLabel').textContent = `RESIDENT ${String(key).slice(-4)}`;
+    
+    const { name, contact } = getUserInfo(item.uid);
+    const currentStatus = item.status || 'Pending';
 
-        const modal = document.getElementById('detailsModal');
-        if (!modal) return;
-        
-        document.getElementById('detailsModalTitle').textContent = modalTitleText;
-        modal.classList.remove('hidden');
-        modal.style.display = 'flex';
+    // --- Build the two-column layout ---
+    const summaryAndFieldsContainer = document.getElementById('modalSummaryAndFields');
+    let column1Html = `
+        <div>
+            <p><strong>SERVICE:</strong> ${escapeHtml(item.serviceType).toUpperCase()}</p>
+            <p><strong>STATUS:</strong> ${statusBadge(currentStatus)}</p>
+            <p><strong>DATE REQUESTED:</strong> ${new Date(item.timestamp).toLocaleString()}</p>
+            ${item.readyForPickupAt ? `<p><strong>READY FOR PICKUP:</strong> ${new Date(item.readyForPickupAt).toLocaleString()}</p>` : ''}
+            ${item.claimedAt ? `<p><strong>DATE CLAIMED:</strong> ${new Date(item.claimedAt).toLocaleString()}</p>` : ''}
+        </div>
+    `;
+    let column2Html = `
+        <div>
+            <p><strong>RESIDENT:</strong> ${escapeHtml(name).toUpperCase()}</p>
+            <p><strong>CONTACT:</strong> ${escapeHtml(contact)}</p>
+        </div>
+    `;
 
-        document.getElementById('modalResidentLabel').textContent = residentLabelFromKey(key);
+     // *** PASTE THESE TWO LINES HERE ***
+    if (item.updatedBy) column2Html += `<p class="mt-4"><strong>LAST UPDATED BY:</strong> ${escapeHtml(item.updatedBy)}</p>`;
+    if (item.updatedAt) column2Html += `<p><strong>LAST UPDATED AT:</strong> ${new Date(item.updatedAt).toLocaleString()}</p>`;
+    // *** END OF ADDITION ***
 
-        const { name, contact } = getUserInfo(item.uid);
-        const dateStr = item.timestamp || item.createdAt ? new Date(item.timestamp || item.createdAt).toLocaleString() : '—';
-        const currentStatus = item.status || 'Pending';
+    if (!isAppointment && item.formData) {
+        const formDataEntries = Object.entries(item.formData);
+        const midpoint = Math.ceil(formDataEntries.length / 2);
+        formDataEntries.slice(0, midpoint).forEach(([k, v]) => {
+            column1Html += `<p class="mt-2"><strong>${escapeHtml(k.replace(/_/g, ' ').replace(/^f \d+/, '')).toUpperCase()}:</strong><br>${escapeHtml(v)}</p>`;
+        });
+        formDataEntries.slice(midpoint).forEach(([k, v]) => {
+            column2Html += `<p class="mt-2"><strong>${escapeHtml(k.replace(/_/g, ' ').replace(/^f \d+/, '')).toUpperCase()}:</strong><br>${escapeHtml(v)}</p>`;
+        });
+    }
+    summaryAndFieldsContainer.innerHTML = `<div>${column1Html}</div><div>${column2Html}</div>`;
 
-        const summaryFields = [
-            { label: isAppointment ? 'Reason' : 'Service', value: isAppointment ? item.reason : item.serviceType },
-            { label: 'Resident', value: name },
-            { label: 'Contact', value: contact },
-            { label: isAppointment ? 'Date & Time' : 'Date Requested', value: isAppointment ? `${item.date || '—'} ${item.time || '—'}` : dateStr },
-            { label: 'Status', value: currentStatus },
-        ];
-        const modalSummaryEl = document.getElementById('modalSummary');
-        if (modalSummaryEl) {
-            modalSummaryEl.innerHTML = summaryFields
-            .map(f => `<p><strong>${escapeHtml(f.label)}:</strong> ${escapeHtml(f.value ?? '—')}</p>`)
-            .join('');
-        }
-        
-        // Form data rendering for Service Requests (Appointments don't use formData)
-        const formEl = document.getElementById('modalFormFields');
-        if (formEl) {
-            formEl.innerHTML = ''; // Clear previous content
-            if (!isAppointment && item.formData) {
-                const formData = typeof item.formData === 'string' ? JSON.parse(item.formData) : item.formData;
-                Object.entries(formData).forEach(([k, v]) => {
-                    const label = String(k).replace(/^f_\d+_/, '').replace(/_/g, ' ');
-                    formEl.innerHTML += `
-                        <div>
-                        <p class="text-gray-800 font-medium">${escapeHtml(label)}:</p>
-                        <p class="text-gray-700">${escapeHtml(v ?? '—')}</p>
-                        </div>`;
-                });
-            }
-        }
-        
-
-        // File attachments (only for Service Requests)
-        const fileSection = document.getElementById('fileSection');
-        const fileList = document.getElementById('fileList');
-        const attachments = isAppointment ? [] : (Array.isArray(item.attachments) ? item.attachments : (item.files || []));
-        if (attachments && attachments.length > 0) {
-            if (fileSection) fileSection.classList.remove('hidden');
-            if (fileList) {
-            fileList.innerHTML = attachments.map(f => {
-                const href = (typeof f === 'string') ? f : (f && f.url) ? f.url : '#';
-                const label = (f && f.name) ? f.name : 'Attachment';
-                return `<li><a href="${escapeHtml(href)}" target="_blank" class="text-orange-600 hover:underline">${escapeHtml(label)}</a></li>`;
-            }).join('');
-            }
-        } else {
-            if (fileSection) fileSection.classList.add('hidden');
-            if (fileList) fileList.innerHTML = '';
-        }
-
-        // Images section (only for Service Requests)
-        const imageSection = document.getElementById('imageSection');
-        const imageList = document.getElementById('imageList');
-        const images = isAppointment ? [] : (item.images || (attachments.filter ? attachments.filter(s => String(s).startsWith('data:') || /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(String(s))) : []));
-        if (images && images.length > 0) {
-            if (imageSection) imageSection.classList.remove('hidden');
-            if (imageList) {
-            imageList.innerHTML = images.map(src => `
-                <div class="p-1">
-                <button onclick="openImageModal('${jsEscape(src)}')" style="border:none;background:none;padding:0;cursor:pointer;">
-                    <img src="${escapeHtml(src)}" alt="Uploaded Image" style="width:100%;max-width:160px;border-radius:6px;object-fit:cover;border:1px solid #eee;" />
-                </button>
-                </div>
-            `).join('');
-            }
-        } else {
-            if (imageSection) imageSection.classList.add('hidden');
-            if (imageList) imageList.innerHTML = '';
-        }
-
-        // Status + rejection UI (hide for archived items)
-        const modalActions = document.getElementById('modalActions');
-        const statusSelect = document.getElementById('modal-status');
-        const rejectionDiv = document.getElementById('modal-rejection');
-        const rejectionInput = document.getElementById('modal-reason');
-        const rejectionReasonLabel = document.getElementById('rejectionReasonLabel');
-        const saveBtn = document.getElementById('modal-save-btn');
-
-
-        if (isArchived) {
-            modalActions.style.display = 'none';
-            rejectionDiv.style.display = 'none';
-        } else {
-            modalActions.style.display = 'flex';
-            if (statusSelect) {
-                statusSelect.innerHTML = statusOptions.map(opt => 
-                    `<option value="${opt}" ${currentStatus === opt ? 'selected' : ''}>${opt === 'For Pickup' ? 'Ready for Pickup' : opt}</option>`
-                ).join('');
-                statusSelect.value = currentStatus; // Ensure selected value is set
-                statusSelect.disabled = false; // Enable for non-archived items
-            }
-
-            const toggleRejectionUI = (status) => {
-                const show = (status === 'Rejected' || status === 'For Revision');
-                rejectionDiv.classList.toggle('hidden', !show);
-                if (rejectionReasonLabel) {
-                    rejectionReasonLabel.textContent = (status === 'For Revision') ? 'Revision note' : 'Reason for rejection';
-                }
-                if (rejectionInput) {
-                    rejectionInput.placeholder = (status === 'For Revision') ? 'Enter revision instructions or notes...' : 'Enter reason for rejection...';
-                }
-            };
-            toggleRejectionUI(currentStatus); // Initial state
-
-            if (rejectionInput) rejectionInput.value = item.rejectionReason || item.revisionNote || '';
-
-            if (statusSelect) {
-                statusSelect.onchange = () => toggleRejectionUI(statusSelect.value);
-            }
-            if (saveBtn) {
-                saveBtn.onclick = () => {
-                    const newStatus = statusSelect ? statusSelect.value : 'Pending';
-                    const reason = rejectionInput ? rejectionInput.value.trim() : '';
-                    if (newStatus === 'Rejected' && !reason) {
-                        showToast('Please enter a reason for rejection.', 'error');
-                        return;
-                    }
-                    if (isAppointment) {
-                        updateAppointmentStatus(key, newStatus, reason);
-                    } else {
-                        updateRequestStatus(key, newStatus, reason);
-                    }
-                };
-            }
-        }
+    // --- Handle Images and Signature ---
+    document.getElementById('imageSection').classList.toggle('hidden', !item.images || item.images.length === 0);
+    if (item.images) {
+        document.getElementById('imageList').innerHTML = item.images.map(src => `<img src="${src}" class="w-full h-24 object-cover rounded-md border cursor-pointer hover:opacity-80" onclick="openImageModal('${jsEscape(src)}')"/>`).join('');
     }
 
+const signatureSection = document.getElementById('signatureSection');
+if (item.requesterSignature || item.adminSignature) {
+    signatureSection.classList.remove('hidden');
+    signatureSection.innerHTML = `
+        <h4 class="font-semibold text-base mb-2 text-gray-800">SIGNATURES ON CLAIM</h4>
+        ${item.claimedBy ? `<p class="text-sm mb-2"><strong>Claimed By:</strong> ${escapeHtml(item.claimedBy)}</p>` : ''}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <p class="text-xs font-semibold text-gray-500 mb-1">Requester's Signature</p>
+                <img src="${item.requesterSignature || ''}" class="border rounded-md bg-gray-50"/>
+            </div>
+            <div>
+                <p class="text-xs font-semibold text-gray-500 mb-1">Admin's Signature</p>
+                <img src="${item.adminSignature || ''}" class="border rounded-md bg-gray-50"/>
+            </div>
+        </div>
+    `;
+} else {
+    signatureSection.classList.add('hidden');
+}
 
-    function closeModal(id = 'detailsModal') {
-        const modal = document.getElementById(id);
-        if (modal) {
-            modal.classList.add('hidden');
-            modal.style.display = 'none';
-        }
-        // Ensure image modal is closed if it's open
+    // --- Configure Actions Footer ---
+    const modalActions = document.getElementById('modalActions');
+    const rejectionDiv = document.getElementById('modal-rejection');
+    if (isArchived) {
+        modalActions.style.display = 'none';
+        rejectionDiv.style.display = 'none';
+    } else {
+        modalActions.style.display = 'block';
+        const statusSelect = document.getElementById('modal-status');
+        const reasonInput = document.getElementById('modal-reason');
+        const statusOptions = ['Pending', 'Under Review', 'For Revision', 'For Pickup', 'Claimed', 'Approved', 'Rejected'];
+        
+        statusSelect.innerHTML = statusOptions.map(s => `<option value="${s}" ${currentStatus === s ? 'selected' : ''}>${s}</option>`).join('');
+
+        const toggleRejectionUI = () => {
+            const show = ['Rejected', 'For Revision'].includes(statusSelect.value);
+            rejectionDiv.style.display = show ? 'block' : 'none';
+            reasonInput.placeholder = statusSelect.value === 'Rejected' ? 'Reason for rejection...' : 'Note for revision...';
+        };
+
+        
+
+        statusSelect.onchange = toggleRejectionUI;
+        document.getElementById('modal-save-btn').onclick = () => {
+            // *** THIS IS THE FIX ***
+            // Correctly call the update function for the right item type
+            if (isAppointment) {
+                updateAppointmentStatus(key, statusSelect.value, reasonInput.value);
+            } else {
+                updateRequestStatus(key, statusSelect.value, reasonInput.value);
+            }
+        };
+        toggleRejectionUI();
+    }
+    modal.style.display = 'flex';
+}
+    
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.style.display = 'none'; // Explicitly hide
+    }
+    // Ensure image modal is closed if it's open
+    if (id === 'detailsModal') { // Only close image modal when closing details modal
         closeImageModal();
     }
+}
 
 // Escape HTML
 function escapeHtml(str) {
@@ -862,114 +902,190 @@ function confirmArchive(key, isAppointment) {
     confirmModal.style.display = 'none';
   };
 }
+
+// Update request status and close modal
 function updateRequestStatus(requestKey, newStatus, rejectionReason = null) {
-  const updateObj = { status: newStatus };
+  // *** THIS IS THE FIX ***
+  // We are re-adding the critical check for the 'Claimed' status.
+  if (newStatus === 'Claimed') {
+    openSignatureModal(requestKey); 
+    return; // Stop here and let the signature process take over.
+  }
+
+  const user = firebase.auth().currentUser;
+  if (!user) {
+    showToast('Error: Admin not authenticated.', 'error');
+    return;
+  }
+
+  const updateObj = {
+    status: newStatus,
+    updatedBy: user.email,
+    updatedAt: firebase.database.ServerValue.TIMESTAMP
+  };
+
   if (newStatus === 'Rejected') {
-    updateObj.rejectionReason = rejectionReason || 'No reason provided.';
-    updateObj.revisionNote = null; // Clear revision note if rejecting
+    if (!rejectionReason) return showToast('Please enter a reason for rejection.', 'error');
+    updateObj.rejectionReason = rejectionReason;
+    updateObj.revisionNote = null;
   } else if (newStatus === 'For Revision') {
-    updateObj.revisionNote = rejectionReason || 'Please provide more details.'; // Use the reason field for revision notes
-    updateObj.rejectionReason = null; // Clear rejection reason
+    if (!rejectionReason) return showToast('Please enter a revision note.', 'error');
+    updateObj.revisionNote = rejectionReason;
+    updateObj.rejectionReason = null;
   } else {
-    // For other statuses, clear both fields
     updateObj.rejectionReason = null;
     updateObj.revisionNote = null;
+  }
+
+  if (newStatus === 'For Pickup') {
+    updateObj.readyForPickupAt = firebase.database.ServerValue.TIMESTAMP;
   }
 
   db.ref('serviceRequestsV2/' + requestKey).update(updateObj)
     .then(() => {
       const request = allServiceRequests[requestKey];
-      if (!request || !request.uid) {
-        console.error('No user ID found in request to notify.');
-        showToast('Status updated but notification could not be sent (no user ID).', 'error');
-        closeModal('detailsModal');
-        return;
+      if (request && request.uid) {
+        createNotification(request.uid, requestKey, newStatus, request.serviceType, rejectionReason);
       }
-
-      // Now call the existing createNotification function
-      return createNotification(request.uid, requestKey, newStatus, request.serviceType, rejectionReason);
-    })
-    .then(() => {
-      showToast(`Status updated to ${newStatus}. Notification sent.`, 'success');
+      showToast(`Status updated to ${newStatus}.`, 'success');
       closeModal('detailsModal');
     })
     .catch(err => {
-      console.error('Error updating status:', err);
-      showToast('Failed to update status. Please try again.', 'error');
+      showToast('Failed to update status: ' + err.message, 'error');
     });
 }
-// Update request status and close modal
-function updateAppointmentStatus(appointmentKey, newStatus, rejectionReason = null) {
-  const updateObj = { status: newStatus };
-  if (newStatus === 'Rejected') {
-    updateObj.rejectionReason = rejectionReason || 'No reason provided.';
-  } else {
-    updateObj.rejectionReason = null;
-  }
+// --- START: NEW SIGNATURE PAD FUNCTIONS ---
 
-  db.ref('appointments/' + appointmentKey).update(updateObj)
-    .then(() => {
-      const appointment = allAppointments[appointmentKey];
-      if (!appointment || !appointment.uid) {
-        console.error('No user ID found in appointment');
-        showToast('Status updated but notification failed - no user ID.', 'error');
-        closeModal('detailsModal');
-        return;
-      }
 
-      // Create a specific notification for appointments
-      const notificationMessage = `Your appointment for ${appointment.date} at ${appointment.time} has been ${newStatus}.` + 
-                                  (newStatus === 'Rejected' && rejectionReason ? ` Reason: ${rejectionReason}` : '');
+let requesterSignaturePad = null;
+let adminSignaturePad = null;
+let currentSignatureKey = null;
 
-      const notification = {
-        userId: appointment.uid,
-        title: "Appointment Status Update",
-        message: notificationMessage,
-        status: newStatus,
-        timestamp: new Date().toISOString(),
-        read: false,
-        requestId: appointmentKey 
-      };
+function openSignatureModal(requestKey) {
+    currentSignatureKey = requestKey;
+    const modal = document.getElementById('signatureModal');
+    const requesterCanvas = document.getElementById('requesterSignatureCanvas');
+    const adminCanvas = document.getElementById('adminSignatureCanvas');
 
-      return db.ref('notifications').push(notification);
-    })
-    .then(() => {
-      showToast(`Appointment status updated to ${newStatus}.`, 'success');
-      closeModal('detailsModal');
-    })
-    .catch(err => {
-      console.error('Error updating appointment status:', err);
-      showToast('Failed to update appointment status.', 'error');
-    });
+    modal.style.zIndex = '110';
+    modal.style.display = 'flex';
+
+    // Initialize both signature pads
+    requesterSignaturePad = new SignaturePad(requesterCanvas, { backgroundColor: 'rgb(243, 244, 246)' });
+    adminSignaturePad = new SignaturePad(adminCanvas, { backgroundColor: 'rgb(243, 244, 246)' });
+
+    // A nested function to resize both canvases
+    const resizeCanvases = () => {
+        [requesterCanvas, adminCanvas].forEach(canvas => {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+        });
+        requesterSignaturePad.clear();
+        adminSignaturePad.clear();
+    };
+
+    // Resize once initially and add listener
+    setTimeout(resizeCanvases, 100); // A small delay ensures the modal is fully visible
+    window.addEventListener('resize', resizeCanvases);
+
+    // Override the close function to also remove the resize listener
+    modal.querySelector('[onclick="closeSignatureModal()"]').onclick = () => {
+        window.removeEventListener('resize', resizeCanvases);
+        closeModal('signatureModal');
+    };
 }
+
+function saveSignatures() { // Renamed from saveSignature
+    if (!requesterSignaturePad || !adminSignaturePad || !currentSignatureKey) return;
+    
+    const requesterName = document.getElementById('requesterNameInput').value.trim();
+
+    if (requesterSignaturePad.isEmpty() || adminSignaturePad.isEmpty()) {
+        return alert("Both requester and admin signatures are required.");
+    }
+    if (!requesterName) {
+        return alert("Please enter the requester's full name.");
+    }
+
+    const requesterSignatureDataURL = requesterSignaturePad.toDataURL("image/png");
+    const adminSignatureDataURL = adminSignaturePad.toDataURL("image/png");
+
+    const updateObj = {
+        status: 'Claimed',
+        requesterSignature: requesterSignatureDataURL,
+        adminSignature: adminSignatureDataURL,
+        claimedBy: requesterName,
+        claimedAt: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    db.ref('serviceRequestsV2/' + currentSignatureKey).update(updateObj)
+        .then(() => {
+            const request = allServiceRequests[currentSignatureKey];
+            if (request && request.uid) {
+                createNotification(request.uid, currentSignatureKey, 'Claimed', request.serviceType);
+            }
+            showToast('Request marked as Claimed with signatures.', 'success');
+            closeModal('signatureModal');
+            closeModal('detailsModal');
+            currentSignatureKey = null;
+        })
+        .catch(err => {
+            showToast('Failed to save signatures: ' + err.message, 'error');
+        });
+}
+// --- END: NEW SIGNATURE PAD FUNCTIONS ---
 
 // Create notification for user
 function createNotification(userId, requestId, status, documentType, rejectionReason = null) {
+  // *** THIS IS THE FIX ***
+  // The messages object is updated to match your screenshot and requirements.
   const messages = {
     'Pending': `Your ${documentType} request has been received and is pending.`,
-    'Under Review': `Your ${documentType} request is currently being reviewed by barangay staff.`,
-    'For Revision': `Your ${documentType} request needs more information. Please review the requested changes and resubmit.`,
+    'Under Review': `Your ${documentType} request has been claimed by barangay staff for processing.`,
+    'For Revision': `Your ${documentType} request requires revision. Reason: ${rejectionReason || 'Please provide the required documents.'}`,
     'Resubmitted': `You have resubmitted your ${documentType} request. It is queued for review.`,
-    'Claimed': `Your ${documentType} request has been claimed by barangay staff for processing.`,
+    'Claimed': `You have successfully claimed your ${documentType}.`,
     'For Pickup': `Your ${documentType} request is approved and ready for pickup at the barangay.`,
-    'Approved': `Good news — your ${documentType} request has been approved.`,
-    'Rejected': rejectionReason
-      ? `Your ${documentType} request was rejected. Reason: ${rejectionReason}`
-      : `Your ${documentType} request was rejected.`
+    'Approved': `Good news — your ${documentType} request has been approved. Please wait for another update once it is ready for pickup.`,
+    'Rejected': `Your ${documentType} request has been Rejected. ${rejectionReason ? `Reason: ${rejectionReason}` : ''}`
   };
+
+  // Logic for appointment notifications
+  if (documentType && documentType.startsWith('Appointment')) {
+      messages['Approved'] = `Your ${documentType} has been Approved. Please be at the barangay hall on time.`;
+      messages['Rejected'] = `Your ${documentType} has been Rejected. ${rejectionReason ? `Reason: ${rejectionReason}` : ''}`;
+      messages['Pending'] = `Your request for an ${documentType} has been received and is pending review.`;
+  }
+  
+  let notificationMessage = messages[status] || "Your request status has been updated.";
+
+  if (documentType && !documentType.startsWith('Appointment') && status === 'For Pickup') {
+    notificationMessage += " NOTE: Please bring your valid ID or the ID you submitted for the request. You may claim the document you requested within SIX (6) Months only.";
+  }
+  if (documentType && !documentType.startsWith('Appointment') && status === 'Approved') {
+    notificationMessage += " NOTE: You may receive another notification once your requested document has been marked as “Ready to Pick Up.”";
+  }
 
   const notification = {
     userId: userId,
-    title: "Request Status Update",
-    message: messages[status] || "Your request status has been updated.",
+    title: status.includes('Appointment') ? "Appointment Status Update" : "Request Status Update",
+    message: notificationMessage,
     status: status,
     timestamp: new Date().toISOString(),
     read: false,
-    requestId: requestId
+    requestId: requestId,
+    // Add appointmentId if it's an appointment for easier linking
+    ...(isAppointment(documentType) && { appointmentId: requestId })
   };
 
-  // Push to Firebase and return the promise
   return db.ref('notifications').push(notification);
+}
+
+// Helper function to check if the documentType is for an appointment
+function isAppointment(documentType) {
+    return documentType && documentType.toLowerCase().startsWith('appointment');
 }
 
 // Remove request
@@ -995,8 +1111,6 @@ function archiveItem(key, isAppointment) {
     });
 }
 
-
-
     // Logout
 function logout() {
   auth.signOut()
@@ -1015,51 +1129,78 @@ function logout() {
 
 
     // Filter and search listeners
-    document.getElementById('statusFilter').addEventListener('change', renderServiceRequests);
-    document.getElementById('searchInput').addEventListener('input', renderServiceRequests);
-    document.getElementById('archiveSearchInput').addEventListener('input', renderArchivedServiceRequests);
+    
+   document.getElementById('searchInput').addEventListener('input', debounce(renderServiceRequests, 300));
+   document.getElementById('statusFilter').addEventListener('change', renderServiceRequests);
+   document.getElementById('archiveSearchInput').addEventListener('input', debounce(() => {
+    // Only re-render archived tables when the archive search is used
+    renderArchivedServiceRequests();
+    renderArchivedAppointments();
+}, 300));
 
 
     // Tab switching logic
-// --- TAB SWITCHING LOGIC ---
 const tabActive = document.getElementById('tabActive');
 const tabArchive = document.getElementById('tabArchive');
 const activeContent = document.getElementById('activeContent');
-const archivedContent = document.getElementById('archivedContent');
+const archivedContent = document.getElementById('archivedContent'); // Ensure this is correctly referenced
 const mainTitle = document.getElementById('mainTitle');
 const mainDesc = document.getElementById('mainDesc');
 
-tabActive.addEventListener('click', () => {
-    // Style buttons
-    tabActive.classList.add('bg-orange-400', 'text-white');
-    tabActive.classList.remove('bg-gray-200', 'text-gray-700');
-    tabArchive.classList.remove('bg-orange-400', 'text-white');
-    tabArchive.classList.add('bg-gray-200', 'text-gray-700');
+function switchTab(isActive) {
+    // Correctly apply/remove styling for the tabs
+    tabActive.classList.toggle('bg-orange-400', isActive);
+    tabActive.classList.toggle('text-white', isActive);
+    tabActive.classList.toggle('bg-gray-200', !isActive);
+    tabActive.classList.toggle('text-gray-700', !isActive);
 
-    // Show/hide content blocks
-    activeContent.classList.remove('hidden');
-    archivedContent.classList.add('hidden');
-    
+    tabArchive.classList.toggle('bg-orange-400', !isActive);
+    tabArchive.classList.toggle('text-white', !isActive);
+    tabArchive.classList.toggle('bg-gray-200', isActive);
+    tabArchive.classList.toggle('text-gray-700', isActive);
+
+    // Correctly show/hide content blocks
+    activeContent.classList.toggle('hidden', !isActive);
+    archivedContent.classList.toggle('hidden', isActive); // This was previously 'hidden', isActive which is incorrect.
+
     // Update header text
-    mainTitle.textContent = 'Barangay Services';
-    mainDesc.textContent = 'Review, approve, or reject service requests from residents';
-});
+    mainTitle.textContent = isActive ? 'Barangay Services' : 'Archived Requests';
+    mainDesc.textContent = isActive ? 'Review, approve, or reject service requests from residents' : 'View previously archived service requests and appointments';
 
-tabArchive.addEventListener('click', () => {
-    // Style buttons
-    tabArchive.classList.add('bg-orange-400', 'text-white');
-    tabArchive.classList.remove('bg-gray-200', 'text-gray-700');
-    tabActive.classList.remove('bg-orange-400', 'text-white');
-    tabActive.classList.add('bg-gray-200', 'text-gray-700');
-
-    // Show/hide content blocks
-    archivedContent.classList.remove('hidden');
-    activeContent.classList.add('hidden');
-    
-    // Update header text
-    mainTitle.textContent = 'Archived Requests';
-    mainDesc.textContent = 'View previously archived service requests and appointments';
-});
+    // If switching to archive tab, fetch and render archived data
+    if (!isActive) {
+        // Only fetch and render archived data when the tab is switched to it.
+        // The real-time listeners for active data continue to run.
+        db.ref('archivedServiceRequests').once('value', snap => {
+            allArchivedServiceRequests = snap.val() || {};
+            renderArchivedServiceRequests();
+        });
+        db.ref('archivedAppointments').once('value', snap => {
+            allArchivedAppointments = snap.val() || {};
+            renderArchivedAppointments();
+        });
+    }
+}
+   // --- TAB SWITCHING ---
+document.getElementById('tabActive').addEventListener('click', () => switchTab(true));
+document.getElementById('tabArchive').addEventListener('click', () => switchTab(false));
+    ['searchInput', 'statusFilter'].forEach(id => document.getElementById(id).addEventListener('input', renderServiceRequests));
+    document.getElementById('archiveSearchInput').addEventListener('input', () => {
+        db.ref('archivedServiceRequests').once('value', snap => { allArchivedServiceRequests = snap.val() || {}; renderArchivedServiceRequests(); });
+        db.ref('archivedAppointments').once('value', snap => { allArchivedAppointments = snap.val() || {}; renderArchivedAppointments(); });
+    });
+function switchTab(isActive) {
+        document.getElementById('tabActive').classList.toggle('active', isActive);
+        document.getElementById('tabArchive').classList.toggle('active', !isActive);
+        document.getElementById('activeContent').classList.toggle('hidden', !isActive);
+        document.getElementById('archivedContent').classList.toggle('hidden', isActive);
+        document.getElementById('mainTitle').textContent = isActive ? 'Barangay Services' : 'Archived Requests';
+        document.getElementById('mainDesc').textContent = isActive ? 'Review, approve, or reject service requests from residents' : 'View previously archived service requests and appointments';
+        if (!isActive) {
+            db.ref('archivedServiceRequests').once('value', snap => { allArchivedServiceRequests = snap.val() || {}; renderArchivedServiceRequests(); });
+            db.ref('archivedAppointments').once('value', snap => { allArchivedAppointments = snap.val() || {}; renderArchivedAppointments(); });
+        }
+    }
 
 // --- Enhanced Export CSV for Active Service Requests (includes user-provided infos) ---
 function exportActiveRequestsToCSV() {
@@ -1264,11 +1405,6 @@ document.addEventListener('keydown', function (ev) {
 });
 
 
-function isFullAdmin() {
-  // Helper to check the globally stored admin role
-  return window.currentAdminAccess === 'full';
-}
-
     // Load current admin record and apply UI permissions (defines loadCurrentAdminAndApply + applyAdminAccessUI)
     async function loadCurrentAdminAndApply() {
       const user = firebase.auth().currentUser;
@@ -1359,130 +1495,118 @@ function isFullAdmin() {
            console.error('watchAdminAccess error', err);
        }
    }
-    function applyAdminAccessUI() {
-      const role = window.currentAdminAccess; // 'full' | null
+function applyAdminAccessUI() {
+  const isFull = window.currentAdminAccess === 'full'; // Correctly check the access level
 
-      // Only 'full' admins have access to admin actions
-      const full = isFullAdmin();
-      document.querySelectorAll('.admin-add-action, .archive-action, .remove-user-action').forEach(el => { if (el) el.style.display = full ? '' : 'none'; });
-      document.querySelectorAll('.admin-edit-action').forEach(btn => { if (btn) btn.disabled = !full; });
+  document.querySelectorAll('.archive-action').forEach(el => { 
+    if (el) el.style.display = isFull ? '' : 'none'; 
+  });
+  
+  ['exportActiveServiceBtn', 'exportArchiveServiceBtn', 'exportActiveAppointmentBtn', 'exportArchiveAppointmentBtn']
+    .forEach(id => { 
+      const btn = document.getElementById(id);
+      if (btn) btn.style.display = isFull ? '' : 'none'; 
+    });
 
-      // Export buttons: only full admins
-      document.querySelectorAll('#exportActiveServiceBtn, #exportArchiveServiceBtn, #exportActiveAppointmentBtn, #exportArchiveAppointmentBtn')
-        .forEach(btn => { if (btn) btn.style.display = (role === 'full') ? '' : 'none'; });
+  ['AdminUsers.html', 'AdminManagement.html'].forEach(href => {
+    const link = document.querySelector(`.nav-links a[href="${href}"]`);
+    if (link) link.style.display = isFull ? '' : 'none';
+  });
 
-      // Admin pages links visibility
-      const usersLink = document.querySelector('.nav-links a[href="AdminUsers.html"]');
-      const managementLink = document.querySelector('.nav-links a[href="AdminManagement.html"]');
-      if (usersLink) usersLink.style.display = (role === 'full') ? '' : 'none';
-      if (managementLink) managementLink.style.display = (role === 'full') ? '' : 'none';
-
-      // Appointments card: only full admins see it now
-      const apptCard = document.getElementById('appointmentsCard');
-      if (apptCard) apptCard.style.display = full ? '' : 'none';
-    }
+  const apptCard = document.getElementById('appointmentsCard');
+  if (apptCard) apptCard.style.display = isFull ? '' : 'none';
+}
 
 // --- DATA FETCHING ---
-    async function loadAllData() {
-        // Fetch all data types in parallel
-        await db.ref('users').once('value').then(snap => { allUsers = snap.val() || {}; });
-        
-        db.ref('serviceRequestsV2').on('value', snap => {
-            allServiceRequests = snap.val() || {};
-            renderServiceRequests();
-        });
-        db.ref('archivedServiceRequests').on('value', snap => {
-            allArchivedServiceRequests = snap.val() || {};
-            renderArchivedServiceRequests();
-        });
-        db.ref('appointments').on('value', snap => {
-            allAppointments = snap.val() || {};
-            renderAppointments();
-        });
-        db.ref('archivedAppointments').on('value', snap => {
-            allArchivedAppointments = snap.val() || {};
-            renderArchivedAppointments();
-        });
-    }
+async function loadAllData() {
+    // Fetch users once, as this data is needed everywhere
+    await db.ref('users').once('value').then(snap => { allUsers = snap.val() || {}; });
+    
+    // Set up REAL-TIME listeners ONLY for ACTIVE data
+    db.ref('serviceRequestsV2').on('value', snap => {
+        allServiceRequests = snap.val() || {};
+        renderServiceRequests(); // This will render the active table
+        // *** NEW: Run the check after data loads ***
+        checkAndAutoRejectExpiredRequests(); 
+    });
+    
+    db.ref('appointments').on('value', snap => {
+        allAppointments = snap.val() || {};
+        renderAppointments(); // This will render the active appointments
+    });
+}
 
     // --- RENDER FUNCTIONS ---
     function renderTable(tableEl, data, isArchived = false, isAppointment = false) {
-       if (!tableEl) {
-            return; // If the table element doesn't exist on this page, do nothing.
-        }
-        tableEl.innerHTML = '';
-        const filter = document.getElementById('statusFilter')?.value || 'All';
-        const query = isArchived ? (document.getElementById('archiveSearchInput')?.value || '') : (document.getElementById('searchInput')?.value || '');
-
-  // Sort ascending: earliest (oldest) request first
-        const entries = Object.entries(data).sort((a, b) => (a[1].timestamp || a[1].createdAt || 0) - (b[1].timestamp || b[1].createdAt || 0));
-
-        const filteredEntries = entries.filter(([key, item]) => {
-            const statusMatch = (filter === 'All' || item.status === filter);
-            const searchMatch = matchesSearch(item, query, isAppointment);
-            return statusMatch && searchMatch;
-        });
-
-        if (filteredEntries.length === 0) {
-            const type = isAppointment ? 'appointments' : 'service requests';
-            tableEl.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-500">No ${isArchived ? 'archived' : ''} ${type} found.</td></tr>`;
-            return;
-        }
-
-        filteredEntries.forEach(([key, item]) => {
-            const { name, contact } = getUserInfo(item.uid);
-            const date = item.timestamp || item.createdAt;
-            const dateStr = date ? new Date(date).toLocaleString() : '—';
-            
-            // Format time for appointments if available
-            let dateTimeDisplay = dateStr;
-            if (isAppointment) {
-                let time = item.time || '';
-                if (time) {
-                    try {
-                        const [hourStr, minuteStr] = time.split(':');
-                        let hour = parseInt(hourStr, 10);
-                        const minute = minuteStr ? minuteStr.padStart(2, '0') : '00';
-                        const ampm = hour >= 12 ? 'PM' : 'AM';
-                        hour = hour % 12 || 12;
-                        time = `${hour}:${minute} ${ampm}`;
-                    } catch {
-                        time = item.time; // fallback
-                    }
-                }
-                dateTimeDisplay = `${item.date || '—'} ${time || '—'}`;
-            }
-
-            const row = document.createElement('tr');
-            row.className = "hover:bg-gray-50 transition cursor-pointer";
-            
-            row.innerHTML = `
-                <td class="px-6 py-4">${escapeHtml(isAppointment ? item.reason : item.serviceType)}</td>
-                <td class="px-6 py-4">${escapeHtml(name)}</td>
-                <td class="px-6 py-4">${escapeHtml(contact)}</td>
-                <td class="px-6 py-4">${dateTimeDisplay}</td>
-                <td class="px-6 py-4">${statusBadge(item.status)}</td>
-                <td class="px-6 py-4 space-x-2">
-                    <button class="view-btn bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm hover:bg-gray-300">View</button>
-                    ${!isArchived ? `<button class="archive-btn bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-400">Archive</button>` : ''}
-                </td>
-            `;
-            
-            row.querySelector('.view-btn').addEventListener('click', (e) => {
-                e.stopPropagation();
-                openModal(key, isAppointment, isArchived);
-            });
-            if (!isArchived) {
-                row.querySelector('.archive-btn').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    confirmArchive(key, isAppointment);
-                });
-            }
-            
-            row.onclick = () => openModal(key, isAppointment, isArchived);
-            tableEl.appendChild(row);
-        });
+    if (!tableEl) {
+        return; // Safety check
     }
+    tableEl.innerHTML = '';
+
+    // Determine which search input to use based on the view
+    const query = isArchived 
+        ? (document.getElementById('archiveSearchInput')?.value || '').toLowerCase() 
+        : (document.getElementById('searchInput')?.value || '').toLowerCase();
+        
+    const statusFilter = document.getElementById('statusFilter')?.value || 'All';
+
+    const entries = Object.entries(data).sort((a, b) => (b[1].timestamp || b[1].createdAt || 0) - (a[1].timestamp || a[1].createdAt || 0));
+
+    const filteredEntries = entries.filter(([key, item]) => {
+        // *** THIS IS THE FIX ***
+        // For archived items, we IGNORE the status filter. For active items, we apply it.
+        const statusMatch = isArchived ? true : (statusFilter === 'All' || (item.status || 'Pending') === statusFilter);
+        
+        const searchMatch = matchesSearch(item, query, isAppointment);
+        return statusMatch && searchMatch;
+    });
+
+    if (filteredEntries.length === 0) {
+        const type = isAppointment ? 'appointments' : 'service requests';
+        tableEl.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-500">No ${isArchived ? 'archived' : ''} ${type} found.</td></tr>`;
+        return;
+    }
+
+    filteredEntries.forEach(([key, item]) => {
+        const { name, contact } = getUserInfo(item.uid);
+        const date = item.timestamp || item.createdAt;
+        const dateStr = date ? new Date(date).toLocaleString() : '—';
+        
+        let dateTimeDisplay = dateStr;
+        if (isAppointment) {
+            dateTimeDisplay = `${item.date || '—'} ${item.time ? formatTime(item.time) : ''}`.trim();
+        }
+
+        const row = document.createElement('tr');
+        row.className = "hover:bg-gray-50 transition cursor-pointer";
+        
+        row.innerHTML = `
+            <td class="px-6 py-4">${escapeHtml(isAppointment ? item.reason : item.serviceType)}</td>
+            <td class="px-6 py-4">${escapeHtml(name)}</td>
+            <td class="px-6 py-4">${escapeHtml(contact)}</td>
+            <td class="px-6 py-4">${dateTimeDisplay}</td>
+            <td class="px-6 py-4">${statusBadge(item.status || 'N/A')}</td>
+            <td class="px-6 py-4 space-x-2">
+                <button class="view-btn bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm hover:bg-gray-300">View</button>
+                ${!isArchived ? `<button class="archive-btn bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-400">Archive</button>` : ''}
+            </td>
+        `;
+        
+        row.querySelector('.view-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openModal(key, isAppointment, isArchived);
+        });
+        if (!isArchived) {
+            row.querySelector('.archive-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                confirmArchive(key, isAppointment);
+            });
+        }
+        
+        row.onclick = () => openModal(key, isAppointment, isArchived);
+        tableEl.appendChild(row);
+    });
+}
 
     function renderServiceRequests() { 
         renderTable(serviceRequestsTable, allServiceRequests, false, false); 
@@ -1490,12 +1614,90 @@ function isFullAdmin() {
     function renderArchivedServiceRequests() { 
         renderTable(archivedServiceRequestsTable, allArchivedServiceRequests, true, false); 
     }
-    function renderAppointments() { 
-        renderTable(appointmentsTable, allAppointments, false, true); 
+function renderAppointments() { 
+    // This is the main fix: It now correctly targets the 'appointmentsList' div
+    const container = document.getElementById('appointmentsList');
+    if (!container) return;
+
+    const items = Object.entries(allAppointments).sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
+    
+    if (items.length === 0) {
+        container.innerHTML = '<div class="text-gray-500 text-center py-6">No active appointments found.</div>';
+        return;
     }
-    function renderArchivedAppointments() { 
-        renderTable(archivedAppointmentsTable, allArchivedAppointments, true, true); 
+
+    container.innerHTML = items.map(([key, appt]) => {
+        const { name, contact } = getUserInfo(appt.uid);
+        const date = appt.date || 'N/A';
+        const reason = appt.reason || 'Appointment';
+        
+        return `
+        <div class="flex justify-between items-start bg-gray-50 rounded-lg p-3 border border-gray-100">
+            <div>
+                <div class="font-medium text-gray-800">${escapeHtml(reason)}</div>
+                <div class="text-sm text-gray-600">${escapeHtml(name)} • ${escapeHtml(contact)}</div>
+                <div class="text-xs text-gray-500 mt-1">Scheduled for: ${escapeHtml(date)}</div>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-28 text-right">${statusBadge(appt.status || 'Pending')}</div>
+                <button class="add-btn text-sm py-1 px-3" onclick="openAppointment('${key}')">View</button>
+                <button class="archive-action bg-orange-500 text-white px-3 py-1 rounded text-sm hover:bg-orange-400" onclick="confirmArchive('${key}', true)">Archive</button>
+            </div>
+        </div>
+        `;
+    }).join('');
+    applyAdminAccessUI();
+}
+function formatTime(timeString) {
+    if (!timeString) return '';
+    try {
+        const [hourStr, minuteStr] = timeString.split(':');
+        let hour = parseInt(hourStr, 10);
+        const minute = minuteStr ? minuteStr.padStart(2, '0') : '00';
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        hour = hour % 12 || 12; // Convert hour to 12-hour format
+        return `${hour}:${minute} ${ampm}`;
+    } catch {
+        return timeString; // Return original if formatting fails
     }
+}
+
+function renderArchivedAppointments() {
+    const tableBody = document.getElementById('archivedAppointmentsTable'); // Ensure this ID is correct in HTML
+    if (!tableBody) return;
+
+    // Filter by search query if applicable
+    const query = (document.getElementById('archiveSearchInput')?.value || '').toLowerCase();
+
+    const items = Object.entries(allArchivedAppointments)
+        .filter(([, appt]) => matchesSearch(appt, query, true)) // Apply search filter
+        .sort((a, b) => (b[1].archivedAt || 0) - (a[1].archivedAt || 0));
+
+    if (items.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">No archived appointments found.</td></tr>';
+        return;
+    }
+
+    tableBody.innerHTML = items.map(([key, appt]) => {
+        const { name, contact } = getUserInfo(appt.uid);
+        const date = appt.date || 'N/A';
+        const time = appt.time ? formatTime(appt.time) : '';
+        return `
+            <tr class="hover:bg-gray-50 transition cursor-pointer">
+                <td class="px-6 py-4">${escapeHtml(appt.reason)}</td>
+                <td class="px-6 py-4">${escapeHtml(name)}</td>
+                <td class="px-6 py-4">${escapeHtml(contact)}</td>
+                <td class="px-6 py-4">${escapeHtml(date)} ${escapeHtml(time)}</td>
+                <td class="px-6 py-4">${statusBadge(appt.status)}</td>
+                <td class="px-6 py-4">
+                    <button class="bg-gray-200 text-gray-800 px-3 py-1 rounded text-sm hover:bg-gray-300" onclick="openAppointment('${key}', true)">View</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+
 
 
 // Apply UI rules (customize per page)
@@ -1508,15 +1710,147 @@ firebase.auth().onAuthStateChanged(user => {
    try { if (typeof watchAdminAccess === 'function') watchAdminAccess(); } catch (e) { console.error('watchAdminAccess invocation failed', e); }
   }
 });
+
+function openAppointment(id, isArchived = false) {
+  const refPath = isArchived ? `archivedAppointments/${id}` : `appointments/${id}`;
+  db.ref(refPath).once('value').then(snapshot => {
+    const appt = snapshot.val();
+    if (!appt) {
+      return showToast('Appointment not found.', 'error');
+    }
+
+    const modal = document.getElementById('appointmentModal');
+    const modalContent = document.getElementById('appointmentModalContent');
+    const modalActions = document.getElementById('appointmentModalActions');
+    
+    const { name, contact } = getUserInfo(appt.uid);
+    const date = appt.date || '—';
+    const time = appt.time ? formatTime(appt.time) : '—';
+    const reason = appt.reason || '—';
+    const status = appt.status || 'Pending';
+
+    // Populate the main content of the modal
+    modalContent.innerHTML = `
+      <div class="space-y-2 text-gray-700">
+        <p><strong>Name:</strong> ${escapeHtml(name)}</p>
+        <p><strong>Contact:</strong> ${escapeHtml(contact)}</p>
+        <p><strong>Date:</strong> ${escapeHtml(date)}</p>
+        <p><strong>Time:</strong> ${escapeHtml(time)}</p>
+        <p><strong>Reason:</strong> ${escapeHtml(reason)}</p>
+        <p><strong>Status:</strong> ${statusBadge(status)}</p>
+      </div>
+    `;
+
+    // Populate the footer with actions, or hide it for archived items
+    if (isArchived) {
+      modalActions.innerHTML = `<button onclick="closeModal('appointmentModal')" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg w-full">Close</button>`;
+    } else {
+      modalActions.innerHTML = `
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <label for="appt-modal-status" class="font-medium text-gray-700">Status:</label>
+                <select id="appt-modal-status" class="border border-gray-300 rounded px-2 py-1">
+                    <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>Pending</option>
+                    <option value="Approved" ${status === 'Approved' ? 'selected' : ''}>Approved</option>
+                    <option value="Rejected" ${status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button id="appt-modal-save-btn" class="add-btn">Save</button>
+            </div>
+        </div>
+        <div id="appt-modal-rejection" class="hidden">
+            <label class="block text-sm font-medium text-red-700 mb-1">Reason for Rejection</label>
+            <textarea id="appt-modal-reason" class="border border-red-300 rounded w-full p-2" rows="2" placeholder="Enter reason..."></textarea>
+        </div>
+      `;
+      
+      const statusSelect = document.getElementById('appt-modal-status');
+      const rejectionDiv = document.getElementById('appt-modal-rejection');
+      const reasonInput = document.getElementById('appt-modal-reason');
+
+      const toggleRejectionUI = () => {
+        rejectionDiv.style.display = statusSelect.value === 'Rejected' ? 'block' : 'none';
+      };
+
+      statusSelect.onchange = toggleRejectionUI;
+      document.getElementById('appt-modal-save-btn').onclick = () => {
+        updateAppointmentStatus(id, statusSelect.value, reasonInput.value);
+      };
+      toggleRejectionUI(); // Set initial state
+    }
+
+    modal.style.display = 'flex';
+  });
+}
+
+function updateAppointmentStatus(id, newStatus, reason = '') {
+  const updateData = { status: newStatus };
+  const appt = allAppointments[id]; // Get appointment data upfront to use in the message
+
+  if (!appt) {
+    showToast('Error: Could not find appointment data.', 'error');
+    return;
+  }
+
+  let notificationMessage; // This will hold our final, detailed message
+
+  if (newStatus === 'Rejected') {
+    if (!reason.trim()) {
+      alert('A reason is required to reject an appointment.');
+      return;
+    }
+    updateData.rejectionReason = reason.trim();
+    // Construct the specific rejection message, including the date, time, and reason
+    notificationMessage = `Your appointment for ${appt.date} at ${formatTime(appt.time)} has been Rejected. Reason: ${reason.trim()}`;
+  
+  } else if (newStatus === 'Approved') {
+    updateData.rejectionReason = null; // Clear any previous rejection reason
+    // Construct the specific approval message
+    notificationMessage = `Your appointment for ${appt.date} at ${formatTime(appt.time)} has been Approved. Please be at the barangay hall on time.`;
+  
+  } else {
+     // Fallback for other statuses (like manually setting back to Pending)
+     updateData.rejectionReason = null;
+     notificationMessage = `Your appointment for ${appt.date} at ${formatTime(appt.time)} has been updated to ${newStatus}.`;
+  }
+
+  // Save the status update to Firebase
+  db.ref(`appointments/${id}`).update(updateData).then(() => {
+    // If the update is successful, create and push the new notification directly
+    if (appt.uid) {
+      const notification = {
+        userId: appt.uid,
+        title: "Appointment Status Update",
+        message: notificationMessage, // Use our new, detailed message
+        status: newStatus,
+        timestamp: new Date().toISOString(),
+        read: false,
+        appointmentId: id 
+      };
+      db.ref('notifications').push(notification);
+    }
+    showToast('Appointment status updated successfully.', 'success');
+    closeModal('appointmentModal');
+  }).catch(err => {
+    showToast(`Error updating status: ${err.message}`, 'error');
+  });
+}
+
 </script>
-<!-- Modal for viewing appointment -->
-<div id="appointmentModal" class="fixed inset-0 z-50 hidden bg-black/40 justify-center items-center">
-  <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
-    <button onclick="closeModal('appointmentModal')" class="absolute top-3 right-3 text-gray-500 hover:text-gray-800">&times;</button>
-    <div id="appointmentModalContent"></div>
-    <button onclick="closeModal('appointmentModal')" class="mt-4 px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 w-full">
-      Exit
-    </button>
+<div id="appointmentModal" class="modal hidden">
+  <div class="modal-content w-full max-w-lg">
+    <div class="modal-header">
+      <h3 class="modal-title">Appointment Details</h3>
+      <button class="close-btn" onclick="closeModal('appointmentModal')">&times;</button>
+    </div>
+    <div id="appointmentModalContent" class="space-y-4 text-sm">
+      <!-- JS will inject the appointment details here -->
+    </div>
+    <!-- Footer for actions -->
+    <div id="appointmentModalActions" class="border-t mt-6 pt-4 space-y-3">
+      <!-- JS will inject the status dropdown and buttons here -->
+    </div>
   </div>
 </div>
 </body>
