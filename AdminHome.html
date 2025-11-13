@@ -57,7 +57,20 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            font-size: 1.25rem; /* match AdminServices text-xl */
+            font-weight: 800;  /* match font-extrabold */
+            color: #f97316;    /* tailwind text-orange-500 */
+            letter-spacing: 0.05em; /* tracking-wide */
         }
+        /* logo image sizing for AdminHome (match AdminServices h-8 w-8) */
+       .logo-img {
+           width: 2rem;            /* 32px like h-8 in AdminServices */
+           height: 2rem;
+           border-radius: 9999px;  /* rounded-full */
+           object-fit: cover;
+           display: inline-block;
+           vertical-align: middle;
+       }
 
         .nav-links {
             display: flex;
@@ -743,12 +756,15 @@
             color: white;
         }
     </style>
+
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
     <nav class="navbar">
         <div class="navbar-content">
-            <div class="nav-left">
-                <div class="logo">e-Serbisyong Tañong</div>
+            <div class="flex items-center gap-3">
+    <img src="icon.png" alt="Logo" class="h-8 w-8 rounded-full" />
+    <span class="font-extrabold text-xl text-orange-500 tracking-wide">e-Serbisyong Tañong</span>
             </div>
 
             <div class="nav-center">
@@ -810,10 +826,15 @@
                 <div class="stat-value" id="nearingSeniorCount">0</div>
                 <div class="stat-label">Nearing Senior Citizens (Age 60)</div>
             </div>
-            <div class="stat-card verification" onclick="window.location.href='UserVerification.html?filter=Verification'">
+            <div class="stat-card verification" onclick="window.location.href='userVerification.html?filter=Verification'">
                 <div class="stat-icon">🔍</div>
                 <div class="stat-value" id="usersForVerification">0</div>
                 <div class="stat-label">Users for Verification</div>
+            </div>
+                <div class="stat-card services" onclick="window.location.href='AdminRequest.html'">
+                <div class="stat-icon">🚶</div>
+                <div class="stat-value" style="font-size: 1.8rem; line-height: 1.2;">Walk-in</div>
+                <div class="stat-label">Create a User Request</div>
             </div>
         </div>
 
@@ -1677,5 +1698,4 @@ firebase.auth().onAuthStateChanged(user => {
         }
     </script>
 </body>
-
 </html>
