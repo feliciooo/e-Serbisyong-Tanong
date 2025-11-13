@@ -553,10 +553,6 @@ main {
 <body class="bg-gray-50 font-['Roboto',_Arial,_sans-serif] min-h-screen m-0">
     <!-- Add user greet bar -->
     <div class="fixed top-0 right-0 z-50 w-full flex justify-end pointer-events-none">
-        <div class="flex items-center gap-3 bg-white/95 shadow rounded-bl-2xl px-5 py-2 mt-0 mr-0 pointer-events-auto border-b border-l border-gray-200">
-            <img src="https://static.vecteezy.com/system/resources/previews/020/911/731/original/profile-icon-avatar-icon-user-icon-person-icon-free-png.png" alt="Profile" class="h-8 w-8 rounded-full border border-gray-200 object-cover bg-gray-100" />
-            <span class="text-base text-gray-700 font-medium" id="userGreet"></span>
-        </div>
     </div>
 
     <div class="flex w-full min-h-screen">
@@ -942,298 +938,350 @@ function validatePhoneNumber(value) {
 // --- START: REPLACEMENT FOR openServiceForm ---
 
 function openServiceForm(key) {
-    const def = serviceForms[key] || { title: (key || 'Service'), fields: [] };
-    const fields = def.fields || [];
-
     const localUser = getUser();
     if (!localUser || !localUser.uid) {
         alert('Please sign in before submitting a service request.');
         return;
     }
 
-    const container = document.getElementById('serviceFormContent');
-    container.innerHTML = `<div class="text-center py-8 text-lg text-gray-700">Loading your profile...</div>`;
-    openModal('modalServiceForm');
+    const today = new Date().toISOString().slice(0, 10);
+    const serviceRequestsRef = db.ref('serviceRequestsV2');
 
-    firebase.database().ref('users/' + localUser.uid).once('value').then(snapshot => {
-        const data = snapshot.val() || {};
-        const merged = { uid: localUser.uid, ...data };
-        localStorage.setItem('user', JSON.stringify(merged));
-
-        const user = merged;
-        const escapeHtml = (str) => String(str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x27;'})[m]);
-
-        const firstName = escapeHtml(user.firstname || '');
-        const middleName = escapeHtml(user.middlename || '');
-        const lastName = escapeHtml(user.lastname || '');
-
-        const title = def.title || 'Service Form';
-        let requirementsHtml = def.requirements || '';
-        const isAlreadyPaidService = def.requirements && /payment|₱|php|fee/i.test(def.requirements);
-
-        if (isAlreadyPaidService) {
-            if (requirementsHtml.includes('<ul>') && !/Payment Receipt/i.test(requirementsHtml)) {
-                requirementsHtml = requirementsHtml.replace('</ul>', '<li><strong>Payment Receipt</strong> (GCash, Bank Transfer)</li></ul>');
-            } else if (!requirementsHtml.includes('<ul>')) {
-                requirementsHtml += '<ul><li><strong>Payment Receipt</strong> (GCash, Bank Transfer)</li></ul>';
-            }
-        }
-        
-        const ctcToggleHtml = `
-            <div class="col-span-full flex items-center justify-between gap-3 p-3 bg-gray-100 rounded-lg">
-                <label for="requestCTCCheckbox" class="font-semibold text-gray-800">Request for Certified True Copy?</label>
-                <div class="flex items-center gap-3">
-                    <span class="text-sm text-gray-500">(Adds a fee of ₱50.00)</span>
-                    <input type="checkbox" id="requestCTCCheckbox" name="request_ctc" value="true" class="h-5 w-5 text-orange-600 border-gray-300 rounded focus:ring-orange-500">
-                </div>
-            </div>
-        `;
-
-        let fieldsHtml = `
-            <label>First Name*<input type="text" name="first_name" value="${firstName}" required readonly class="bg-gray-100 cursor-not-allowed" /></label>
-            <label>Middle Name<input type="text" name="middle_name" value="${middleName}" readonly class="bg-gray-100 cursor-not-allowed" /></label>
-            <label>Last Name*<input type="text" name="last_name" value="${lastName}" required readonly class="bg-gray-100 cursor-not-allowed" /></label>
-        `;
-
-        fieldsHtml += fields
-            .filter(f => !/first name|middle name|surname|last name/i.test(f.label))
-            .map((f, i) => {
-                const name = 'f_' + i + '_' + f.label.replace(/[\s*\/.#$[\]]+/g, '_').toLowerCase();
-                const required = f.required ? 'required' : '';
-                // Treat any contact/contact number/emergency contact field consistently.
-                // Use class "service-phone" so we can attach validation to ALL phone fields (contact, emergency contact, etc.)
-                if (/contact\s*(no|number)/i.test(f.label) || /emergency contact/i.test(f.label)) {
-                    const inputId = `service_${name}`;
-                    return `<label>${f.label}<input type="tel" id="${inputId}" name="${name}" ${required} maxlength="11" pattern="^09\\d{9}$" title="Must start with 09 and be exactly 11 digits." inputmode="numeric" class="numeric-only service-phone" /><span class="contact-error text-red-500 text-xs mt-1 hidden"></span></label>`;
-                }
-                if (f.type === 'select') {
-                    const options = (f.options || []).map(opt => `<option value="${opt}">${opt}</option>`).join('');
-                    return `<label>${f.label}<select name="${name}" ${required}>${options}</select></label>`;
-                }
-                const inputType = f.type === 'number' ? 'number' : (f.type === 'date' ? 'date' : 'text');
-                return `<label>${f.label}<input type="${inputType}" name="${name}" ${required} /></label>`;
-            }).join('');
-
-        const gcashRefHtml = `<label>GCash Payment Reference #<input type="text" name="gcash_reference" class="numeric-only" /></label>`;
-        const gcashBoxHtml = `<div class="gcash-box">GCash Account — 0919 874 2869 — Arvinne Vergara (Barangay Secretary)</div>`;
-        const uploadHtml = `
-            <div class="upload-label">
-                <span id="upload-label-text">Images (you can select multiple)</span>
-                <input type="file" name="images" id="imageUploadInput" class="visually-hidden" accept="image/*" multiple />
-                <label for="imageUploadInput" class="mt-2 inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150 cursor-pointer">
-                    Choose Files
-                </label>
-                <div id="imagePreviewContainer" class="flex gap-2 flex-wrap mt-4"></div>
-            </div>
-        `;
-
-        container.innerHTML = `
-            <button class="close-modal" onclick="closeModal('modalServiceForm')">&times;</button>
-            <div class="form-title">${title}</div>
-            <div class="requirements-box" style="display:none;" id="serviceReqBox"></div>
-            <form id="serviceForm" class="service-form">
-                ${fieldsHtml}
-                ${ctcToggleHtml}
-                <div id="payment-section" class="col-span-full space-y-4 hidden">
-                    ${gcashBoxHtml}
-                    ${gcashRefHtml}
-                </div>
-                ${uploadHtml}
-                <div style="grid-column:1/-1;display:flex;justify-content:center;margin-top:8px;">
-                    <button type="submit" class="submit-btn">Submit</button>
-                </div>
-            </form>
-        `;
-
-        const form = document.getElementById('serviceForm');
-        const reqBox = document.getElementById('serviceReqBox');
-        if (requirementsHtml) {
-            reqBox.style.display = 'block';
-            reqBox.innerHTML = requirementsHtml;
-        }
-
-        const requestCTCCheckbox = document.getElementById('requestCTCCheckbox');
-        const paymentSection = document.getElementById('payment-section');
-        const gcashRefInput = form.querySelector('[name="gcash_reference"]');
-        const uploadLabelText = document.getElementById('upload-label-text');
-
-        const updatePaymentRequirements = () => {
-            const isPaymentDue = isAlreadyPaidService || (requestCTCCheckbox && requestCTCCheckbox.checked);
-            paymentSection.classList.toggle('hidden', !isPaymentDue);
-            if (gcashRefInput) gcashRefInput.required = isPaymentDue;
-            if (uploadLabelText) {
-                uploadLabelText.innerHTML = isPaymentDue
-                    ? 'Images* <span class="font-normal text-gray-600">(Proof of payment required)</span>'
-                    : 'Images <span class="font-normal text-gray-600">(Optional)</span>';
-            }
-        };
-
-        updatePaymentRequirements(); // Set initial state
-
-        if (requestCTCCheckbox) {
-            requestCTCCheckbox.addEventListener('change', updatePaymentRequirements);
-        }
-        
-        form.querySelectorAll('.numeric-only').forEach(input => {
-            input.addEventListener('input', (e) => {
-                e.target.value = e.target.value.replace(/[^0-9]/g, '');
-            });
-        });
-
-        const phoneInput = document.getElementById('service_contact_no');
-        // Attach validation to all phone fields created with class .service-phone (contact, emergency contact, etc.)
-        document.querySelectorAll('.service-phone').forEach(phoneInputEl => {
-            const errorSpan = phoneInputEl.parentNode.querySelector('.contact-error');
-            phoneInputEl.addEventListener('blur', () => {
-                const error = validatePhoneNumber(phoneInputEl.value);
-                if (error) {
-                    if (errorSpan) { errorSpan.textContent = error; errorSpan.classList.remove('hidden'); }
-                    phoneInputEl.classList.add('border-red-500');
-                } else {
-                    if (errorSpan) { errorSpan.classList.add('hidden'); errorSpan.textContent = ''; }
-                    phoneInputEl.classList.remove('border-red-500');
-                }
-            });
-            // enforce numeric-only while typing
-            phoneInputEl.addEventListener('input', (e) => {
-                e.target.value = e.target.value.replace(/[^0-9]/g, '');
-            });
-        });
-
-        const imageUploadInput = document.getElementById('imageUploadInput');
-        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-        let uploadedImageFiles = [];
-        if (imageUploadInput) {
-            imageUploadInput.addEventListener('change', function(e) {
-                const files = Array.from(e.target.files);
-                files.forEach(file => {
-                    if (!uploadedImageFiles.some(f => f.name === file.name && f.size === file.size)) {
-                        uploadedImageFiles.push(file);
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                            const previewWrapper = document.createElement('div');
-                            previewWrapper.className = 'relative w-24 h-24';
-                            const img = document.createElement('img');
-                            img.src = event.target.result;
-                            img.className = 'w-full h-full object-cover rounded-md border';
-                            const removeBtn = document.createElement('button');
-                            removeBtn.type = 'button';
-                            removeBtn.innerHTML = '&times;';
-                            removeBtn.className = 'absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold';
-                            removeBtn.onclick = () => {
-                                uploadedImageFiles = uploadedImageFiles.filter(f => f.name !== file.name || f.size !== file.size);
-                                previewWrapper.remove();
-                            };
-                            previewWrapper.appendChild(img);
-                            previewWrapper.appendChild(removeBtn);
-                            imagePreviewContainer.appendChild(previewWrapper);
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                });
-                e.target.value = '';
-            });
-        }
-
-        form.onsubmit = async function(ev) {
-            ev.preventDefault();
-
-            const isPaymentRequired = isAlreadyPaidService || (requestCTCCheckbox && requestCTCCheckbox.checked);
-            if (isPaymentRequired && uploadedImageFiles.length === 0) {
-                alert('A payment is required for this request. Please upload an image of your payment receipt to continue.');
-                return; 
-            }
+    // --- START: NEW CHECKS FOR REQUEST LIMITS ---
+    serviceRequestsRef.orderByChild('uid').equalTo(localUser.uid).once('value')
+        .then(snapshot => {
+            const userRequests = snapshot.val() || {};
+            let dailyCount = 0;
+            let hasPendingDuplicate = false;
             
-            // Validate all phone inputs before submit
-            const invalidPhone = Array.from(form.querySelectorAll('.service-phone')).some(inp => {
-                const err = validatePhoneNumber(inp.value);
-                const span = inp.parentNode.querySelector('.contact-error');
-                if (err) {
-                    if (span) { span.textContent = err; span.classList.remove('hidden'); }
-                    inp.classList.add('border-red-500');
-                    return true;
-                } else {
-                    if (span) { span.classList.add('hidden'); span.textContent = ''; }
-                    inp.classList.remove('border-red-500');
-                    return false;
-                }
-            });
-            if (invalidPhone) {
-                alert('Please fix the errors before submitting.');
-                return;
-            }
+            const serviceDef = serviceForms[key] || {};
+            const requestedServiceTitle = serviceDef.title || 'this service';
 
-            const formData = new FormData(form);
-            const dataObj = {};
-            for (const [key, value] of formData.entries()) {
-                if (!(value instanceof File)) {
-                    dataObj[key] = value;
-                }
-            }
-
-            let imageBase64Array = [];
-            for (const file of uploadedImageFiles) {
-                const base64 = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = e => resolve(e.target.result);
-                    reader.onerror = error => reject(error);
-                    reader.readAsDataURL(file);
-                });
-                imageBase64Array.push(base64);
-            }
-            
-            const payload = {
-                uid: user.uid,
-                userFullname: user.fullname || '',
-                serviceKey: key,
-                serviceType: title,
-                formData: dataObj,
-                images: imageBase64Array,
-                status: 'Pending',
-                timestamp: Date.now()
-            };
-
-            try {
-                const newRef = db.ref('serviceRequestsV2').push();
-                await newRef.set(payload);
-                closeModal('modalServiceForm');
+            for (const requestKey in userRequests) {
+                const request = userRequests[requestKey];
                 
-                let notif = document.getElementById('requestNotifModal');
-                if (notif) notif.remove();
-                notif = document.createElement('div');
-                notif.id = 'requestNotifModal';
-                Object.assign(notif.style, {
-                    position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    zIndex: 99999, background: 'rgba(0,0,0,0.18)', backdropFilter: 'blur(6px)'
-                });
-                const inner = document.createElement('div');
-                Object.assign(inner.style, { background: '#fff', borderRadius: '1.25rem', boxShadow: '0 10px 40px rgba(0,0,0,0.15)', padding: '1.5rem 2rem', maxWidth: 'min(90vw, 360px)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' });
-                const titleEl = document.createElement('div');
-                titleEl.textContent = 'Your request has been submitted!';
-                Object.assign(titleEl.style, { fontWeight: 'bold', fontSize: '1.15rem', color: '#333' });
-                const gif = document.createElement('img');
-                gif.src = 'submittedgif.gif';
-                gif.alt = 'Request Submitted';
-                Object.assign(gif.style, { width: '120px', height: '120px', margin: '0.5rem 0' });
-                const exitBtn = document.createElement('button');
-                exitBtn.textContent = 'OK';
-                Object.assign(exitBtn.style, { background: '#fb923c', color: '#fff', border: 'none', borderRadius: '0.5rem', fontWeight: '600', fontSize: '0.9rem', padding: '0.6rem 2rem', marginTop: '0.5rem', cursor: 'pointer', transition: 'background 0.2s' });
-                exitBtn.onmouseover = () => exitBtn.style.background = '#f97316';
-                exitBtn.onmouseout = () => exitBtn.style.background = '#fb923c';
-                exitBtn.onclick = function () { notif.remove(); };
-                inner.appendChild(titleEl);
-                inner.appendChild(gif);
-                inner.appendChild(exitBtn);
-                notif.appendChild(inner);
-                document.body.appendChild(notif);
+                // 1. Check for daily limit
+                if (request.timestamp) {
+                    const requestDate = new Date(request.timestamp).toISOString().slice(0, 10);
+                    if (requestDate === today) {
+                        dailyCount++;
+                    }
+                }
 
-            } catch (err) {
-                console.error('Failed to submit request:', err);
-                alert('Failed to submit request: ' + err.message);
+                // 2. Check for duplicate pending service of the same type
+                // A request is considered "pending" if it's not yet Claimed or Rejected.
+// A request is now only considered a "duplicate" if its status is still actively pending or under review.
+if (request.serviceKey === key && (request.status === 'Pending' || request.status === 'Under Review' || request.status === 'For Revision' || request.status === 'Resubmitted')) {
+    hasPendingDuplicate = true;
+}
             }
-        };
-    });
+
+            // --- VALIDATE AND SHOW MODAL OR ERROR ---
+            if (dailyCount >= 5) {
+                alert('You have reached the maximum of 5 service requests per day. You can make another request after 24 hours.');
+                return; // Stop execution
+            }
+
+            if (hasPendingDuplicate) {
+                alert(`You already have a pending request for "${requestedServiceTitle}". Please wait for it to be processed before requesting it again.`);
+                return; // Stop execution
+            }
+
+            // --- ALL CHECKS PASSED, PROCEED TO BUILD THE FORM ---
+            // This is your original form-building logic, now placed correctly inside the check.
+            const def = serviceForms[key] || { title: (key || 'Service'), fields: [] };
+            const fields = def.fields || [];
+
+            const container = document.getElementById('serviceFormContent');
+            container.innerHTML = `<div class="text-center py-8 text-lg text-gray-700">Loading your profile...</div>`;
+            openModal('modalServiceForm');
+
+            firebase.database().ref('users/' + localUser.uid).once('value').then(snapshot => {
+                const data = snapshot.val() || {};
+                const merged = { uid: localUser.uid, ...data };
+                localStorage.setItem('user', JSON.stringify(merged));
+
+                const user = merged;
+                const escapeHtml = (str) => String(str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x27;'})[m]);
+
+                const firstName = escapeHtml(user.firstname || '');
+                const middleName = escapeHtml(user.middlename || '');
+                const lastName = escapeHtml(user.lastname || '');
+
+                const title = def.title || 'Service Form';
+                let requirementsHtml = def.requirements || '';
+                const isAlreadyPaidService = def.requirements && /payment|₱|php|fee/i.test(def.requirements);
+
+                if (isAlreadyPaidService) {
+                    if (requirementsHtml.includes('<ul>') && !/Payment Receipt/i.test(requirementsHtml)) {
+                        requirementsHtml = requirementsHtml.replace('</ul>', '<li><strong>Payment Receipt</strong> (GCash, Bank Transfer)</li></ul>');
+                    } else if (!requirementsHtml.includes('<ul>')) {
+                        requirementsHtml += '<ul><li><strong>Payment Receipt</strong> (GCash, Bank Transfer)</li></ul>';
+                    }
+                }
+                
+                const ctcToggleHtml = `
+                    <div class="col-span-full flex items-center justify-between gap-3 p-3 bg-gray-100 rounded-lg">
+                        <label for="requestCTCCheckbox" class="font-semibold text-gray-800">Request for Certified True Copy?</label>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm text-gray-500">(Adds a fee of ₱50.00)</span>
+                            <input type="checkbox" id="requestCTCCheckbox" name="request_ctc" value="true" class="h-5 w-5 text-orange-600 border-gray-300 rounded focus:ring-orange-500">
+                        </div>
+                    </div>
+                `;
+
+                let fieldsHtml = `
+                    <label>First Name*<input type="text" name="first_name" value="${firstName}" required readonly class="bg-gray-100 cursor-not-allowed" /></label>
+                    <label>Middle Name<input type="text" name="middle_name" value="${middleName}" readonly class="bg-gray-100 cursor-not-allowed" /></label>
+                    <label>Last Name*<input type="text" name="last_name" value="${lastName}" required readonly class="bg-gray-100 cursor-not-allowed" /></label>
+                `;
+
+                fieldsHtml += fields
+                    .filter(f => !/first name|middle name|surname|last name/i.test(f.label))
+                    .map((f, i) => {
+                        const name = 'f_' + i + '_' + f.label.replace(/[\s*\/.#$[\]]+/g, '_').toLowerCase();
+                        const required = f.required ? 'required' : '';
+                        if (/contact\s*(no|number)/i.test(f.label) || /emergency contact/i.test(f.label)) {
+                            const inputId = `service_${name}`;
+                            return `<label>${f.label}<input type="tel" id="${inputId}" name="${name}" ${required} maxlength="11" pattern="^09\\d{9}$" title="Must start with 09 and be exactly 11 digits." inputmode="numeric" class="numeric-only service-phone" /><span class="contact-error text-red-500 text-xs mt-1 hidden"></span></label>`;
+                        }
+                        if (f.type === 'select') {
+                            const options = (f.options || []).map(opt => `<option value="${opt}">${opt}</option>`).join('');
+                            return `<label>${f.label}<select name="${name}" ${required}>${options}</select></label>`;
+                        }
+                        const inputType = f.type === 'number' ? 'number' : (f.type === 'date' ? 'date' : 'text');
+                        const isFutureDateField = inputType === 'date' && /hakot|shooting|rental|date \(dd\/mm\/yyyy\)/i.test(f.label);
+                        const minDateAttribute = isFutureDateField ? `min="${today}"` : '';
+                        return `<label>${f.label}<input type="${inputType}" name="${name}" ${required} ${minDateAttribute} /></label>`;
+                    }).join('');
+
+                const gcashRefHtml = `<label>GCash Payment Reference #<input type="text" name="gcash_reference" class="numeric-only" /></label>`;
+                const gcashBoxHtml = `<div class="gcash-box">GCash Account — 0919 874 2869 — Arvinne Vergara (Barangay Secretary)</div>`;
+                const uploadHtml = `
+                    <div class="upload-label">
+                        <span id="upload-label-text">Images (you can select multiple)</span>
+                        <input type="file" name="images" id="imageUploadInput" class="visually-hidden" accept="image/*" multiple />
+                        <label for="imageUploadInput" class="mt-2 inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150 cursor-pointer">
+                            Choose Files
+                        </label>
+                        <div id="imagePreviewContainer" class="flex gap-2 flex-wrap mt-4"></div>
+                    </div>
+                `;
+
+                container.innerHTML = `
+                    <button class="close-modal" onclick="closeModal('modalServiceForm')">&times;</button>
+                    <div class="form-title">${title}</div>
+                    <div class="requirements-box" style="display:none;" id="serviceReqBox"></div>
+                    <form id="serviceForm" class="service-form">
+                        ${fieldsHtml}
+                        ${ctcToggleHtml}
+                        <div id="payment-section" class="col-span-full space-y-4 hidden">
+                            ${gcashBoxHtml}
+                            ${gcashRefHtml}
+                        </div>
+                        ${uploadHtml}
+                        <div style="grid-column:1/-1;display:flex;justify-content:center;margin-top:8px;">
+                            <button type="submit" class="submit-btn">Submit</button>
+                        </div>
+                    </form>
+                `;
+
+                const form = document.getElementById('serviceForm');
+                const reqBox = document.getElementById('serviceReqBox');
+                if (requirementsHtml) {
+                    reqBox.style.display = 'block';
+                    reqBox.innerHTML = requirementsHtml;
+                }
+
+                const requestCTCCheckbox = document.getElementById('requestCTCCheckbox');
+                const paymentSection = document.getElementById('payment-section');
+                const gcashRefInput = form.querySelector('[name="gcash_reference"]');
+                const uploadLabelText = document.getElementById('upload-label-text');
+
+                const updatePaymentRequirements = () => {
+                    const isPaymentDue = isAlreadyPaidService || (requestCTCCheckbox && requestCTCCheckbox.checked);
+                    paymentSection.classList.toggle('hidden', !isPaymentDue);
+                    if (gcashRefInput) gcashRefInput.required = isPaymentDue;
+                    if (uploadLabelText) {
+                        uploadLabelText.innerHTML = isPaymentDue
+                            ? 'Images* <span class="font-normal text-gray-600">(Proof of payment required)</span>'
+                            : 'Images <span class="font-normal text-gray-600">(Optional)</span>';
+                    }
+                };
+
+                updatePaymentRequirements();
+
+                if (requestCTCCheckbox) {
+                    requestCTCCheckbox.addEventListener('change', updatePaymentRequirements);
+                }
+                
+                form.querySelectorAll('.numeric-only').forEach(input => {
+                    input.addEventListener('input', (e) => {
+                        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                    });
+                });
+
+                document.querySelectorAll('.service-phone').forEach(phoneInputEl => {
+                    const errorSpan = phoneInputEl.parentNode.querySelector('.contact-error');
+                    phoneInputEl.addEventListener('blur', () => {
+                        const error = validatePhoneNumber(phoneInputEl.value);
+                        if (error) {
+                            if (errorSpan) { errorSpan.textContent = error; errorSpan.classList.remove('hidden'); }
+                            phoneInputEl.classList.add('border-red-500');
+                        } else {
+                            if (errorSpan) { errorSpan.classList.add('hidden'); errorSpan.textContent = ''; }
+                            phoneInputEl.classList.remove('border-red-500');
+                        }
+                    });
+                    phoneInputEl.addEventListener('input', (e) => {
+                        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                    });
+                });
+
+                const imageUploadInput = document.getElementById('imageUploadInput');
+                const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+                let uploadedImageFiles = [];
+                const MAX_IMAGE_UPLOAD = 6;
+
+                if (imageUploadInput) {
+                    imageUploadInput.addEventListener('change', function(e) {
+                        const files = Array.from(e.target.files);
+                        if (uploadedImageFiles.length + files.length > MAX_IMAGE_UPLOAD) {
+                            alert(`You can upload a maximum of ${MAX_IMAGE_UPLOAD} photos.`);
+                            e.target.value = '';
+                            return;
+                        }
+                        files.forEach(file => {
+                            if (!uploadedImageFiles.some(f => f.name === file.name && f.size === file.size)) {
+                                uploadedImageFiles.push(file);
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                    const previewWrapper = document.createElement('div');
+                                    previewWrapper.className = 'relative w-24 h-24';
+                                    const img = document.createElement('img');
+                                    img.src = event.target.result;
+                                    img.className = 'w-full h-full object-cover rounded-md border';
+                                    const removeBtn = document.createElement('button');
+                                    removeBtn.type = 'button';
+                                    removeBtn.innerHTML = '&times;';
+                                    removeBtn.className = 'absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold';
+                                    removeBtn.onclick = () => {
+                                        uploadedImageFiles = uploadedImageFiles.filter(f => f.name !== file.name || f.size !== file.size);
+                                        previewWrapper.remove();
+                                    };
+                                    previewWrapper.appendChild(img);
+                                    previewWrapper.appendChild(removeBtn);
+                                    imagePreviewContainer.appendChild(previewWrapper);
+                                };
+                                reader.readAsDataURL(file);
+                            }
+                        });
+                        e.target.value = '';
+                    });
+                }
+
+                form.onsubmit = async function(ev) {
+                    ev.preventDefault();
+
+                    const isPaymentRequired = isAlreadyPaidService || (requestCTCCheckbox && requestCTCCheckbox.checked);
+                    if (isPaymentRequired && uploadedImageFiles.length === 0) {
+                        alert('A payment is required for this request. Please upload an image of your payment receipt to continue.');
+                        return;
+                    }
+                    
+                    const invalidPhone = Array.from(form.querySelectorAll('.service-phone')).some(inp => {
+                        const err = validatePhoneNumber(inp.value);
+                        const span = inp.parentNode.querySelector('.contact-error');
+                        if (err) {
+                            if (span) { span.textContent = err; span.classList.remove('hidden'); }
+                            inp.classList.add('border-red-500');
+                            return true;
+                        } else {
+                            if (span) { span.classList.add('hidden'); span.textContent = ''; }
+                            inp.classList.remove('border-red-500');
+                            return false;
+                        }
+                    });
+                    if (invalidPhone) {
+                        alert('Please fix the errors before submitting.');
+                        return;
+                    }
+
+                    const formData = new FormData(form);
+                    const dataObj = {};
+                    for (const [key, value] of formData.entries()) {
+                        if (!(value instanceof File)) {
+                            dataObj[key] = value;
+                        }
+                    }
+
+                    let imageBase64Array = [];
+                    for (const file of uploadedImageFiles) {
+                        const base64 = await new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = e => resolve(e.target.result);
+                            reader.onerror = error => reject(error);
+                            reader.readAsDataURL(file);
+                        });
+                        imageBase64Array.push(base64);
+                    }
+                    
+                    const payload = {
+                        uid: user.uid,
+                        userFullname: `${firstName} ${middleName} ${lastName}`.trim(),
+                        serviceKey: key,
+                        serviceType: title,
+                        formData: dataObj,
+                        images: imageBase64Array,
+                        status: 'Pending',
+                        timestamp: Date.now()
+                    };
+
+                    try {
+                        const newRef = db.ref('serviceRequestsV2').push();
+                        await newRef.set(payload);
+                        closeModal('modalServiceForm');
+                        
+                        // Success popup logic...
+                        let notif = document.getElementById('requestNotifModal');
+                        if (notif) notif.remove();
+                        notif = document.createElement('div');
+                        notif.id = 'requestNotifModal';
+                        Object.assign(notif.style, {
+                            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            zIndex: 99999, background: 'rgba(0,0,0,0.18)', backdropFilter: 'blur(6px)'
+                        });
+                        const inner = document.createElement('div');
+                        Object.assign(inner.style, { background: '#fff', borderRadius: '1.25rem', padding: '1.5rem 2rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' });
+                        const titleEl = document.createElement('div');
+                        titleEl.textContent = 'Your request has been submitted!';
+                        Object.assign(titleEl.style, { fontWeight: 'bold', fontSize: '1.15rem' });
+                        const gif = document.createElement('img');
+                        gif.src = 'submittedgif.gif';
+                        gif.alt = 'Request Submitted';
+                        Object.assign(gif.style, { width: '120px', height: '120px', margin: '0.5rem 0' });
+                        const exitBtn = document.createElement('button');
+                        exitBtn.textContent = 'OK';
+                        Object.assign(exitBtn.style, { background: '#fb923c', color: '#fff', border: 'none', borderRadius: '0.5rem', fontWeight: '600', padding: '0.6rem 2rem', marginTop: '0.5rem', cursor: 'pointer' });
+                        exitBtn.onclick = function () { notif.remove(); };
+                        inner.appendChild(titleEl);
+                        inner.appendChild(gif);
+                        inner.appendChild(exitBtn);
+                        notif.appendChild(inner);
+                        document.body.appendChild(notif);
+
+                    } catch (err) {
+                        console.error('Failed to submit request:', err);
+                        alert('Failed to submit request: ' + err.message);
+                    }
+                };
+            });
+        })
+        .catch(error => {
+            console.error("Error checking request limits:", error);
+            alert("Could not verify your request history. Please try again.");
+        });
 }
 
 // --- END: REPLACEMENT FOR openServiceForm ---
@@ -1279,12 +1327,20 @@ function openServiceForm(key) {
             { label: "Number of Dependents*", type: "number", required: true },
             
         ];
-       const hakotKuyagotFields = [
+        const hakotKuyagotFields = [
             { label: "Name of Requestor*", type: "text", required: true },
             { label: "Date of Hakot*", type: "date", required: true },
             { label: "Location for Collection/Hauling*", type: "text", required: true },
             { label: "Contact Number*", type: "text", required: true },
             { label: "Type of Waste/Debris*", type: "text", required: true }
+        ];
+
+        const hakotPanambakFields = [
+            { label: "Name of Requestor*", type: "text", required: true },
+            { label: "Date of Hakot*", type: "date", required: true },
+            { label: "Location for Collection/Hauling*", type: "text", required: true },
+            { label: "Contact Number*", type: "text", required: true },
+            { label: "Type of Panambak*", type: "text", required: true }
         ];
 
         const tentsChairsFields = [
@@ -1464,7 +1520,7 @@ function openServiceForm(key) {
     socialJobseekers: { 
         title: "First-Time Jobseekers (RA 11261) Form", 
         fields: unifiedFields,
-        requirements: `<b>Requirements</b><ul><li>Same as Indigency requirements</li><li>Filled-out form</li><li>Current Community Tax Certificate (Cedula)</li></ul>`
+        requirements: `<b>Requirements</b><ul><li>1 Government-issued Valid ID</li><li>Secondary ID (Barangay ID, School ID, Postal, TIN, Police Clearance, Company ID) OR HOA Certification + any ID</li><li>Filled-out form</li><li>Current Community Tax Certificate (Cedula)</li></ul>`
 
 
     },
@@ -1502,14 +1558,14 @@ function openServiceForm(key) {
     socialLoans: { 
         title: "Loans Form", 
         fields: unifiedFields,
-        requirements: `<b>Requirements</b><ul><li>Same as Residency/Employment requirements</li><li>Filled-out form</li><li>Current Community Tax Certificate (Cedula)</li></ul>`
+        requirements: `<b>Requirements</b><ul><li>1 Government-issued Valid ID</li><li>Secondary ID OR HOA Cert + ID</li><li>Filled-out form</li><li>Current Community Tax Certificate (Cedula)</li><li>If not personally applied → Authorization + valid ID</li><b><li>Payment: ₱50.00</li></ul>`
 
 
     },
     socialBankTrans: { 
         title: "Bank Transactions Form", 
         fields: unifiedFields,
-        requirements: `<b>Requirements</b><ul><li>Same as Loans requirements</li><li>Filled-out form</li><li>Cedula</li><li>Authorization + valid ID if not personally applied</li></ul>`
+        requirements: `<b>Requirements</b><ul><li>1 Government-issued Valid ID</li><li>Secondary ID OR HOA Cert + ID</li><li>Filled-out form</li><li>Current Community Tax Certificate (Cedula)</li><li>If not personally applied → Authorization + valid ID</li><b><li>Payment: ₱50.00</li></ul>`
 
 
     },
@@ -1530,42 +1586,42 @@ function openServiceForm(key) {
     socialSeniorID: { 
         title: "Senior Citizen ID Form", 
         fields: unifiedFields,
-        requirements: `<b>Requirements</b><ul><li>Same as NBI clearance requirements</li><li>Filled-out form</li><li>Cedula</li></ul>`
+        requirements: `<b>Requirements</b><ul><li>Valid ID + Secondary ID (OR HOA Cert + ID)</li><li>Filled-out form</li><li>Cedula</li></ul>`
 
 
     },
     socialPWDID: { 
         title: "PWD ID Form", 
         fields: unifiedFields,
-        requirements: `<b>Requirements</b><ul><li>Same as Senior Citizen ID requirements</li><li>Filled-out form</li><li>Cedula</li></ul>`
+        requirements: `<b>Requirements</b><ul><li>Valid ID + Secondary ID (OR HOA Cert + ID)</li><li>Filled-out form</li><li>Cedula</li></ul>`
 
 
     },
     socialPostalID: { 
         title: "Postal ID Form", 
         fields: unifiedFields,
-        requirements: `<b>Requirements</b><ul><li>Same as PWD ID requirements</li><li>Filled-out form</li><li>Cedula</li></ul>`
+        requirements: `<b>Requirements</b><ul><li>Valid ID + Secondary ID (OR HOA Cert + ID)</li><li>Filled-out form</li><li>Cedula</li></ul>`
 
 
     },
     socialVisa: { 
         title: "Visa Application Form", 
         fields: unifiedFields,
-        requirements: `<b>Requirements</b><ul><li>Same as Postal ID requirements</li><li>Filled-out form</li><li>Cedula</li></ul>`
+        requirements: `<b>Requirements</b><ul><li>Valid ID + Secondary ID (OR HOA Cert + ID)</li><li>Filled-out form</li><li>Cedula</li></ul>`
 
 
     },
     socialCalamity: { 
         title: "Calamity Victims (Flood/Typhoon) Form", 
         fields: unifiedFields,
-        requirements: `<b>Requirements</b><ul><li>Same as Visa Application requirements</li><li>Filled-out form</li><li>Cedula</li></ul>`
+        requirements: `<b>Requirements</b><ul><li>Valid ID + Secondary ID (OR HOA Cert + ID)</li><li>Filled-out form</li><li>Cedula</li></ul>`
 
 
     },
     socialLocalEmployment: { 
         title: "Local Employment / TNVS Application Form", 
         fields: unifiedFields,
-        requirements: `<b>Requirements</b><ul><li>Same as standard employment clearance</li><li>Filled-out form</li><li>Cedula</li></ul>`
+        requirements: `<b>Requirements</b><ul><li>Valid ID + Secondary ID (OR HOA Cert + ID)</li><li>Filled-out form</li><li>Cedula</li></ul>`
 
 
     },
@@ -1782,7 +1838,7 @@ Class E – None
     },
     otherHakotPanambak: { 
         title: "Hakot Panambak Form", 
-        fields: unifiedFields,
+        fields: hakotPanambakFields,
         requirements: `<b>Requirements</b><ul><li>Valid ID</li><li>Request letter</li></ul>`
 
 
@@ -2214,6 +2270,4 @@ document.addEventListener('DOMContentLoaded', function() {
         © 2025 e-Serbisyong Tañong. All rights reserved.
     </footer>
 </body>
-
 </html>
-
